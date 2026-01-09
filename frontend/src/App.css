@@ -1,34 +1,63 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.sidebar-nav a {
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.sidebar-nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.App-link {
-    color: #61dafb;
+.stat-card {
+  transition: box-shadow 150ms ease, transform 150ms ease;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.stat-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.ticket-category-card {
+  transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+  cursor: pointer;
+}
+
+.ticket-category-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.ticket-category-card.selected {
+  border-color: #0EA5E9;
+  background: #F0F9FF;
+}
+
+.scan-result-valid {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.scan-result-used {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+.scan-result-invalid {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+}
+
+button {
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+input, select, textarea {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
