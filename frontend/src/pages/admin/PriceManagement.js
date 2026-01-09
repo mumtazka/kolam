@@ -88,8 +88,8 @@ const PriceManagement = () => {
                     <Input
                       id={`price-${category.id}`}
                       type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                      value={priceInputs[category.id] || 0}
+                      onChange={(e) => setPriceInputs(prev => ({...prev, [category.id]: e.target.value}))}
                       className="flex-1"
                       data-testid={`price-input-${category.id}`}
                     />
