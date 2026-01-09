@@ -1,53 +1,101 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Toaster } from './components/ui/sonner';
+import '@/App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Pages
+import Login from './pages/Login';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import PriceManagement from './pages/admin/PriceManagement';
+import Reports from './pages/admin/Reports';
+import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
+import ScannerDashboard from './pages/scanner/ScannerDashboard';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+const RoleBasedRedirect = () => {
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redirect based on role
+  if (user.role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  } else if (user.role === 'RECEPTIONIST') {
+    return <Navigate to="/receptionist" replace />;
+  } else if (user.role === 'SCANNER') {
+    return <Navigate to="/scanner" replace />;
+  }
+
+  return <Navigate to="/login" replace />;
 };
 
 function App() {
   return (
-    <div className="App">
+    <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            
+            {/* Root - Redirect based on role */}
+            <Route path="/" element={<RoleBasedRedirect />} />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="categories" element={<PriceManagement />} />
+              <Route path="reports" element={<Reports />} />
+            </Route>
+
+            {/* Receptionist Route */}
+            <Route
+              path="/receptionist"
+              element={
+                <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
+                  <ReceptionistDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Scanner Route */}
+            <Route
+              path="/scanner"
+              element={
+                <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
+                  <ScannerDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <Toaster position="top-right" richColors />
+        </div>
       </BrowserRouter>
-    </div>
+    </AuthProvider>
   );
 }
 
