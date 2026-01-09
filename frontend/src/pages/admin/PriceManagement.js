@@ -94,7 +94,7 @@ const PriceManagement = () => {
                       data-testid={`price-input-${category.id}`}
                     />
                     <Button
-                      onClick={() => handlePriceUpdate(category.id, price)}
+                      onClick={() => handlePriceUpdate(category.id, priceInputs[category.id])}
                       className="bg-slate-900 hover:bg-slate-800"
                       data-testid={`update-price-${category.id}`}
                     >
