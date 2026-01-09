@@ -12,6 +12,7 @@ const API = `${BACKEND_URL}/api`;
 const PriceManagement = () => {
   const [categories, setCategories] = useState([]);
   const [prices, setPrices] = useState([]);
+  const [priceInputs, setPriceInputs] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,14 @@ const PriceManagement = () => {
       ]);
       setCategories(catRes.data);
       setPrices(priceRes.data);
+      
+      // Initialize price inputs
+      const inputs = {};
+      catRes.data.forEach(cat => {
+        const price = priceRes.data.find(p => p.category_id === cat.id);
+        inputs[cat.id] = price ? price.price : 0;
+      });
+      setPriceInputs(inputs);
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
