@@ -71,7 +71,6 @@ const PriceManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {categories.map((category) => {
           const currentPrice = getPrice(category.id);
-          const [price, setPrice] = useState(currentPrice);
           
           return (
             <Card key={category.id} className="p-6" data-testid={`price-card-${category.id}`}>
