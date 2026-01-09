@@ -1,0 +1,134 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "AquaFlow Manager",
+      "tone": "Professional, Hygienic, Efficient, Operational",
+      "archetype": "Swiss & High-Contrast (Authority, Clarity)",
+      "theme_strategy": "Light Mode Dominant (Operational Clarity) with Dark Sidebar (Admin Authority)"
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Outfit, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl font-bold tracking-tight",
+        "h2": "text-3xl font-semibold tracking-tight",
+        "h3": "text-2xl font-semibold",
+        "body_large": "text-lg leading-relaxed",
+        "body_default": "text-base leading-normal",
+        "caption": "text-sm text-muted-foreground",
+        "ticket_code": "font-mono text-xl tracking-widest font-bold"
+      }
+    },
+    "colors": {
+      "primary": {
+        "name": "Deep Ocean",
+        "hex": "#0F172A",
+        "tailwind": "bg-slate-900 text-white"
+      },
+      "accent": {
+        "name": "Electric Water",
+        "hex": "#0EA5E9",
+        "tailwind": "text-sky-500 bg-sky-500"
+      },
+      "background": {
+        "app": "#F8FAFC",
+        "card": "#FFFFFF",
+        "sidebar": "#0F172A"
+      },
+      "status": {
+        "valid": {
+          "bg": "bg-emerald-100",
+          "text": "text-emerald-700",
+          "border": "border-emerald-200"
+        },
+        "used": {
+          "bg": "bg-amber-100",
+          "text": "text-amber-700",
+          "border": "border-amber-200"
+        },
+        "invalid": {
+          "bg": "bg-rose-100",
+          "text": "text-rose-700",
+          "border": "border-rose-200"
+        }
+      }
+    },
+    "layout": {
+      "spacing": "Generous (p-6 to p-12) for Admin, Compact (p-2 to p-4) for Mobile Scanner",
+      "radius": "rounded-lg (0.5rem)",
+      "grids": {
+        "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+        "ticket_list": "flex flex-col gap-2"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-slate-900 hover:bg-slate-800 text-white shadow-sm",
+        "secondary": "bg-white border border-slate-200 hover:bg-slate-50 text-slate-900",
+        "destructive": "bg-rose-600 hover:bg-rose-700 text-white",
+        "ghost": "hover:bg-slate-100 text-slate-700"
+      },
+      "cards": {
+        "default": "bg-white border border-slate-200 shadow-sm rounded-xl",
+        "interactive": "hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      },
+      "inputs": {
+        "default": "h-10 border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+      }
+    },
+    "visual_assets": {
+      "login_background": "https://images.unsplash.com/photo-1575204015190-28962b6919bf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHxpbmRvb3IlMjBzd2ltbWluZyUyMHBvb2wlMjBtaW5pbWFsJTIwYXJjaGl0ZWN0dXJlfGVufDB8fHx8MTc2NzkzMDE2MXww&ixlib=rb-4.1.0&q=85",
+      "water_texture": "https://images.unsplash.com/photo-1541256181278-02c7e14f2a8e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHdhdGVyJTIwc3VyZmFjZSUyMGJsdWUlMjB0ZXh0dXJlfGVufDB8fHx8MTc2NzkzMDE2NHww&ixlib=rb-4.1.0&q=85"
+    }
+  },
+  "page_strategies": {
+    "login": {
+      "layout": "Split screen: Left side branding/image (60%), Right side form (40%)",
+      "visuals": "Use 'login_background' with a slate-900/50 overlay on the left. Clean white form on right."
+    },
+    "admin_dashboard": {
+      "layout": "Sidebar Navigation (Fixed Left) + Main Content Area",
+      "grid_strategy": "Bento Grid Mode B (Control Room)",
+      "key_elements": [
+        "Stats Row (Total Sales, Active Staff, Today's Visitors)",
+        "Recent Activity Feed (Scan logs)",
+        "Quick Actions (Create User, Update Price)"
+      ]
+    },
+    "receptionist_dashboard": {
+      "layout": "Two-Panel Operational View",
+      "left_panel": "Ticket Selection Grid (Big clickable cards for Ticket Types)",
+      "right_panel": "Cart & Checkout (Sticky sidebar)",
+      "focus": "Speed. Minimal clicks. Big touch targets."
+    },
+    "scanner_dashboard": {
+      "layout": "Mobile-First Single Column",
+      "visuals": "Massive Status Indicator (Full screen background color change on scan result)",
+      "elements": "QR Scanner Window (Top), Last Scan Result (Middle), Manual Entry (Bottom)"
+    }
+  },
+  "special_instructions": {
+    "thermal_printing": {
+      "css_rule": "@media print { body * { visibility: hidden; } .printable-ticket, .printable-ticket * { visibility: visible; } .printable-ticket { position: absolute; left: 0; top: 0; width: 58mm; } }",
+      "layout": "Width: 58mm or 80mm. Black and white only. No gradients. High contrast text."
+    },
+    "accessibility": {
+      "contrast": "Ensure text-slate-500 is not used on slate-200 backgrounds. Use text-slate-600 minimum.",
+      "focus": "Visible focus rings on all inputs for keyboard-only operation."
+    },
+    "motion": {
+      "type": "Reduced. Fast transitions (150ms). No layout shifts.",
+      "hover": "Subtle lift (-1px) on interactive cards."
+    }
+  },
+  "universal_guidelines": [
+    "Do not use gradients for text.",
+    "Avoid 'Inter' for Headings - use 'Outfit'.",
+    "Use 'sonner' for all toast notifications.",
+    "All interactive elements must have data-testid attributes.",
+    "Use Lucide React for icons."
+  ]
+}
