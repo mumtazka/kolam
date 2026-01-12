@@ -56,13 +56,9 @@ export const getDailyReport = async (date) => {
         tickets_sold: ticketsSold,
         tickets_scanned: ticketsScanned,
         total_revenue: totalRevenue,
+        tickets: tickets, // Include raw tickets for history view
         by_category: Object.entries(byCategory).map(([name, data]) => ({
             _id: name,
-            count: data.count,
-            revenue: data.revenue
-        })),
-        by_shift: Object.entries(byShift).map(([name, data]) => ({
-            shift: name,
             count: data.count,
             revenue: data.revenue
         })),
@@ -121,12 +117,23 @@ export const getMonthlyReport = async (year, month) => {
         byDay[day].revenue += parseFloat(ticket.price);
     });
 
+    // Group by staff
+    const byStaff = {};
+    tickets.forEach(ticket => {
+        if (!byStaff[ticket.created_by_name]) {
+            byStaff[ticket.created_by_name] = { count: 0, revenue: 0 };
+        }
+        byStaff[ticket.created_by_name].count++;
+        byStaff[ticket.created_by_name].revenue += parseFloat(ticket.price);
+    });
+
     return {
         year,
         month,
         tickets_sold: ticketsSold,
         tickets_scanned: ticketsScanned,
         total_revenue: totalRevenue,
+        tickets: tickets, // Include raw tickets for history view
         by_category: Object.entries(byCategory).map(([name, data]) => ({
             _id: name,
             count: data.count,
@@ -137,7 +144,12 @@ export const getMonthlyReport = async (year, month) => {
             date,
             count: data.count,
             revenue: data.revenue
-        })).sort((a, b) => a.date.localeCompare(b.date))
+        })).sort((a, b) => a.date.localeCompare(b.date)),
+        by_staff: Object.entries(byStaff).map(([name, data]) => ({
+            staff_name: name,
+            count: data.count,
+            revenue: data.revenue
+        }))
     };
 };
 
