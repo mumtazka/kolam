@@ -7,7 +7,15 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { ScrollArea } from '../../components/ui/scroll-area';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard } from 'lucide-react';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 import { toast } from 'sonner';
 
 const ScannerDashboard = () => {
@@ -179,21 +187,35 @@ const ScannerDashboard = () => {
                     </div>
                     <div className="h-6 w-px bg-slate-200 mx-2"></div>
                     <div className="flex items-center space-x-4 text-sm text-slate-600">
-                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><User className="w-4 h-4 mr-1.5 text-slate-500" /> {user.name}</span>
                         <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Calendar className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedShift}</span>
                         <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Tag className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedLocation}</span>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={logout}
-                        className="text-rose-600 hover:bg-rose-50"
-                    >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        {t('common.logout')}
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="flex items-center space-x-2 hover:bg-slate-50">
+                                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
+                                    <User className="w-4 h-4 text-slate-600" />
+                                </div>
+                                <span className="text-slate-700 font-medium">{user?.name}</span>
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={logout} className="text-rose-600 focus:text-rose-600 cursor-pointer">
+                                <LogOut className="w-4 h-4 mr-2" />
+                                <span>{t('common.logout')}</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 

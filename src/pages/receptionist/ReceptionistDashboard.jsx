@@ -7,7 +7,16 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { LogOut, Printer, Plus, Minus, ShoppingCart, Ticket, Clock } from 'lucide-react';
+import { LogOut, Printer, Plus, Minus, ShoppingCart, Ticket, Clock, User, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import Barcode from '../../components/ui/Barcode';
 import { toast } from 'sonner';
 
 // Import Supabase services
@@ -143,12 +152,32 @@ const ReceptionistDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('auth.title')} - Resepsionis</h1>
-            <p className="text-sm text-slate-600">{t('dashboard.welcome')}, {user?.name}</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} data-testid="logout-button">
-            <LogOut className="w-4 h-4 mr-2" />
-            {t('common.logout')}
-          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center space-x-2 border-slate-200">
+                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-slate-600" />
+                </div>
+                <span className="text-slate-700">{user?.name}</span>
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-600 cursor-pointer">
+                <LogOut className="w-4 h-4 mr-2" />
+                <span>{t('common.logout')}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -316,16 +345,14 @@ const ReceptionistDashboard = () => {
               </div>
 
               <div className="flex justify-center my-4">
-                <img src={ticket.qr_code} alt="Barcode" style={{ width: '250px', height: '80px' }} />
+                <Barcode value={ticket.ticket_code} width={1.5} height={40} displayValue={false} />
               </div>
 
               <div className="text-sm space-y-1 font-mono">
                 <p><strong>Code:</strong> {ticket.ticket_code}</p>
                 <p><strong>{t('dashboard.price')}:</strong> Rp {ticket.price.toLocaleString()}</p>
                 {ticket.nim && <p><strong>NIM:</strong> {ticket.nim}</p>}
-                <p><strong>Shift:</strong> {ticket.shift}</p>
                 <p><strong>Date:</strong> {new Date(ticket.created_at).toLocaleString('id-ID')}</p>
-                <p><strong>Staff:</strong> {ticket.created_by_name}</p>
                 <div className="text-center pt-4 mt-4 border-t border-dashed border-black">
                   <p className="font-bold">TIKET HANYA BERLAKU 1 KALI</p>
                   <p>TIKET YANG SUDAH DIBELI TIDAK DAPAT DIKEMBALIKAN</p>
