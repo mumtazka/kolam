@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { scanTicket } from '../../services/ticketService';
-import { getPools } from '../../services/adminService';
 import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Droplets } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { ScrollArea } from '../../components/ui/scroll-area';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ScannerDashboard = () => {
@@ -14,37 +15,40 @@ const ScannerDashboard = () => {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
 
-    // State
-    const [setupComplete, setSetupComplete] = useState(false);
-    const [selectedShift, setSelectedShift] = useState('');
-    const [selectedPool, setSelectedPool] = useState(null); // Object: { id, name }
-    const [pools, setPools] = useState([]);
-    const [loadingPools, setLoadingPools] = useState(true);
+    // Determine Shift based on time
+    const getShift = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Pagi';
+        if (hour < 16) return 'Siang';
+        return 'Sore';
+    };
 
-    // Scan State: 'IDLE' | 'PROCESSING' | 'VALID' | 'USED' | 'INVALID' | 'ERROR'
+    // State
+    const [selectedShift, setSelectedShift] = useState(getShift());
+    const [selectedLocation] = useState('Scanner Station');
+
+    // Scan State
     const [scanStatus, setScanStatus] = useState('IDLE');
     const [scanResult, setScanResult] = useState(null);
     const [lastScannedCode, setLastScannedCode] = useState('');
+
+    // Manual Input State
+    const [manualCode, setManualCode] = useState('');
+
+    // History State
+    const [scanHistory, setScanHistory] = useState([]);
 
     // Buffer for barcode input
     const barcodeBuffer = useRef('');
     const lastKeyTime = useRef(Date.now());
     const scanTimeout = useRef(null);
 
+    // Update shift periodically
     useEffect(() => {
-        const loadPools = async () => {
-            try {
-                const data = await getPools();
-                const activePools = data.filter(p => p.active);
-                setPools(activePools);
-            } catch (error) {
-                console.error("Failed to load pools", error);
-                toast.error("Failed to load pools");
-            } finally {
-                setLoadingPools(false);
-            }
-        };
-        loadPools();
+        const interval = setInterval(() => {
+            setSelectedShift(getShift());
+        }, 60000); // Check every minute
+        return () => clearInterval(interval);
     }, []);
 
     // Play sound helper
@@ -52,67 +56,90 @@ const ScannerDashboard = () => {
         try {
             const audio = new Audio(type === 'success' ? '/success.mp3' : '/error.mp3');
             audio.volume = 0.5;
-            audio.play().catch(() => { }); // Ignore errors
+            audio.play().catch(() => { });
         } catch (e) {
             // Ignore audio errors
         }
     };
 
+    // Add to history helper
+    const addToHistory = (result, code) => {
+        const newEntry = {
+            id: crypto.randomUUID(),
+            timestamp: new Date(),
+            code,
+            status: result.status || (result.success ? 'VALID' : 'INVALID'),
+            message: result.message,
+            ticket: result.ticket
+        };
+        setScanHistory(prev => [newEntry, ...prev].slice(0, 50));
+    };
+
     // Handle barcode processing
     const processBarcode = async (code) => {
-        if (!code || code.length < 5) return; // Ignore noise
+        if (!code || code.length < 3) return;
         if (scanStatus === 'PROCESSING') return;
 
         setScanStatus('PROCESSING');
         setLastScannedCode(code);
+        setManualCode(''); // Clear manual input
 
         try {
-            // Clean the code (some scanners add prefixes/suffixes)
             const cleanCode = code.trim();
-
-            // Call API with pool ID
-            const result = await scanTicket(cleanCode, user, selectedShift, selectedPool?.id);
+            const result = await scanTicket(cleanCode, user, selectedShift);
 
             setScanResult(result);
+            addToHistory(result, cleanCode);
+
             if (result.success) {
                 setScanStatus('VALID');
                 playSound('success');
+                toast.success(t('scanner.valid') || 'Scan Berhasil!');
             } else if (result.status === 'USED') {
                 setScanStatus('USED');
                 playSound('error');
+                toast.warning(t('scanner.used') || 'Tiket Sudah Digunakan');
             } else {
                 setScanStatus('INVALID');
                 playSound('error');
+                toast.error(result.message || 'Tiket Tidak Valid');
             }
 
         } catch (error) {
             console.error('Scan error:', error);
             setScanStatus('ERROR');
-            setScanResult({ message: 'System Error: ' + error.message });
+            const errorResult = { success: false, status: 'ERROR', message: 'System Error: ' + error.message };
+            setScanResult(errorResult);
+            addToHistory(errorResult, code);
             playSound('error');
+            toast.error('System Error');
         }
 
         // Reset to IDLE after delay
         if (scanTimeout.current) clearTimeout(scanTimeout.current);
         scanTimeout.current = setTimeout(() => {
             setScanStatus('IDLE');
-            setScanResult(null);
-        }, 3000); // Show result for 3 seconds
+        }, 3000);
     };
 
-    // Keyboard listener
+    // Manual Submit
+    const handleManualSubmit = (e) => {
+        e.preventDefault();
+        if (manualCode) {
+            processBarcode(manualCode);
+        }
+    };
+
+    // Keyboard listener for Scanner Hardware
     useEffect(() => {
-        if (!setupComplete) return;
-
         const handleKeyDown = (e) => {
-            const currentTime = Date.now();
+            // Don't capture if user is typing in the input field
+            if (e.target.tagName === 'INPUT') return;
 
-            // Timeout check: if typing is too slow, it's likely manual typing, not a scanner
-            // Reset buffer if gap > 100ms
+            const currentTime = Date.now();
             if (currentTime - lastKeyTime.current > 100) {
                 barcodeBuffer.current = '';
             }
-
             lastKeyTime.current = currentTime;
 
             if (e.key === 'Enter') {
@@ -121,245 +148,212 @@ const ScannerDashboard = () => {
                     barcodeBuffer.current = '';
                 }
             } else if (e.key.length === 1) {
-                // Append printable characters
                 barcodeBuffer.current += e.key;
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [setupComplete, user, selectedShift, scanStatus, selectedPool]);
+    }, [user, selectedShift, scanStatus]);
 
-    // Start Shift Handler
-    const startShift = () => {
-        if (selectedShift && selectedPool) {
-            setSetupComplete(true);
-        } else {
-            toast.error('Please select shift and pool');
-        }
-    };
-
-    if (!setupComplete) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-['Outfit']">
-                <Card className="max-w-md w-full p-8 bg-slate-900 border border-slate-800 shadow-2xl">
-                    <div className="text-center mb-8">
-                        <div className="bg-sky-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Scan className="w-8 h-8 text-sky-500" />
-                        </div>
-                        <h1 className="text-2xl font-bold text-white">{t('scanner.setup')}</h1>
-                        <p className="text-slate-400 mt-2">Configure your station before starting</p>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div>
-                            <label className="text-sm font-medium text-slate-300 mb-3 block">{t('dashboard.selectShift')}</label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {['Pagi', 'Siang', 'Sore'].map(s => (
-                                    <Button
-                                        key={s}
-                                        onClick={() => setSelectedShift(s)}
-                                        variant={selectedShift === s ? 'default' : 'outline'}
-                                        className={`h-12 ${selectedShift === s ? 'bg-sky-500 hover:bg-sky-600 border-none' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
-                                    >
-                                        {s}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-medium text-slate-300 mb-3 block">{t('admin.pools')}</label>
-                            {loadingPools ? (
-                                <div className="text-center text-slate-500 py-4">Loading pools...</div>
-                            ) : pools.length === 0 ? (
-                                <div className="text-center text-amber-500 py-4">No active pools found</div>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-3">
-                                    {pools.map(pool => (
-                                        <Button
-                                            key={pool.id}
-                                            onClick={() => setSelectedPool(pool)}
-                                            variant={selectedPool?.id === pool.id ? 'default' : 'outline'}
-                                            className={`h-auto py-3 px-2 whitespace-normal text-center leading-tight ${selectedPool?.id === pool.id ? 'bg-indigo-500 hover:bg-indigo-600 border-none' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
-                                        >
-                                            {pool.name}
-                                        </Button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <Button
-                            onClick={startShift}
-                            disabled={!selectedShift || !selectedPool}
-                            className="w-full h-12 text-lg bg-emerald-500 hover:bg-emerald-600 font-bold text-white mt-4"
-                        >
-                            {t('scanner.startShift')}
-                        </Button>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
-
-    // --- MAIN SCANNER INTERFACE ---
-
-    // Determine Background Color
-    const getBgColor = () => {
+    // --- MAIN SCANNER INTERFACE (Admin Style) ---
+    // Background logic to give visual feedback but keep it cleaner
+    const getMainBg = () => {
         switch (scanStatus) {
             case 'VALID': return 'bg-emerald-50';
             case 'USED': return 'bg-amber-50';
-            case 'INVALID': return 'bg-red-50';
-            case 'ERROR': return 'bg-red-50';
-            case 'PROCESSING': return 'bg-white';
-            default: return 'bg-slate-50'; // IDLE
+            case 'INVALID': return 'bg-rose-50';
+            case 'ERROR': return 'bg-rose-50';
+            default: return 'bg-slate-50';
         }
     };
 
     return (
-        <div className={`min-h-screen transition-colors duration-300 flex flex-col ${getBgColor()} text-slate-900 overflow-hidden`}>
-
-            {/* Top Bar */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-10 border-b border-slate-200/50 bg-white/50 backdrop-blur-sm">
-                <div>
-                    <h2 className="text-xl font-bold font-['Outfit'] text-slate-900">{t('auth.title')}</h2>
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
-                        <span className="flex items-center"><User className="w-4 h-4 mr-1" /> {user.name}</span>
-                        <span className="flex items-center"><Calendar className="w-4 h-4 mr-1" /> {selectedShift}</span>
-                        <span className="flex items-center"><Droplets className="w-4 h-4 mr-1" /> {selectedPool ? selectedPool.name : '-'}</span>
+        <div className="min-h-screen bg-slate-50 flex flex-col overflow-hidden font-['Outfit']">
+            {/* Header matches Admin Layout style */}
+            <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-sm">
+                <div className="flex items-center space-x-4">
+                    <div className="flex items-center">
+                        <Scan className="w-6 h-6 mr-2 text-sky-600" />
+                        <span className="font-bold text-xl text-slate-900 tracking-tight">WebKolam Scanner</span>
+                    </div>
+                    <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                    <div className="flex items-center space-x-4 text-sm text-slate-600">
+                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><User className="w-4 h-4 mr-1.5 text-slate-500" /> {user.name}</span>
+                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Calendar className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedShift}</span>
+                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Tag className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedLocation}</span>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSetupComplete(false)}
-                        className="bg-white hover:bg-slate-100 text-slate-700 border-slate-200"
-                    >
-                        {t('common.switch')}
-                    </Button>
-                    <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={logout}
-                        className="bg-white hover:bg-slate-100 text-rose-600 border-slate-200 hover:text-rose-700"
+                        className="text-rose-600 hover:bg-rose-50"
                     >
+                        <LogOut className="w-4 h-4 mr-2" />
                         {t('common.logout')}
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-300 pt-24">
+            <div className="flex-1 flex overflow-hidden">
+                {/* Left Side: Main Scanner Area */}
+                <main className={`flex-1 transition-colors duration-300 ease-out flex flex-col items-center justify-center p-8 ${getMainBg()}`}>
 
-                {/* IDLE STATE */}
-                {scanStatus === 'IDLE' && (
-                    <div className="space-y-6">
-                        <div className="w-32 h-32 rounded-full bg-sky-100 flex items-center justify-center mx-auto animate-pulse shadow-lg">
-                            <Scan className="w-16 h-16 text-sky-600" />
-                        </div>
-                        <h1 className="text-4xl font-bold tracking-tight text-slate-900">{t('scanner.ready')}</h1>
-                        <p className="text-xl font-mono text-slate-500">{t('scanner.waiting')}</p>
-                        <p className="text-sm text-slate-400 mt-8 bg-slate-100 py-2 px-4 rounded-full inline-block">{t('scanner.focusMessage')}</p>
-                    </div>
-                )}
+                    <div className="w-full max-w-2xl mx-auto space-y-8">
 
-                {/* PROCESSING STATE */}
-                {scanStatus === 'PROCESSING' && (
-                    <div className="space-y-6">
-                        <div className="w-24 h-24 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin mx-auto"></div>
-                        <h2 className="text-3xl font-bold text-slate-800">{t('scanner.processing')}</h2>
-                        <p className="font-mono text-xl text-slate-500">{lastScannedCode}</p>
-                    </div>
-                )}
-
-                {/* VALID STATE */}
-                {scanStatus === 'VALID' && (
-                    <div className="space-y-6 scale-110 transform transition-transform">
-                        <div className="w-40 h-40 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-white">
-                            <CheckCircle className="w-24 h-24" />
-                        </div>
-                        <div>
-                            <h1 className="text-6xl font-black tracking-tight mb-2 text-emerald-600">{t('scanner.valid')}</h1>
-                            <p className="text-2xl text-emerald-700/80 font-medium">{t('scanner.accessGranted')}</p>
-                        </div>
-
-                        {/* Ticket Details Card */}
-                        <div className="mt-8 bg-white rounded-2xl p-8 max-w-lg mx-auto text-left border border-emerald-100 shadow-xl ring-4 ring-emerald-50">
-                            <div className="grid grid-cols-2 gap-y-6">
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Category</p>
-                                    <p className="text-2xl font-bold text-slate-900">{scanResult?.ticket?.category_name}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Price</p>
-                                    <p className="text-2xl font-bold text-emerald-600">Rp {scanResult?.ticket?.price?.toLocaleString()}</p>
-                                </div>
-                                {scanResult?.ticket?.nim && (
-                                    <div className="col-span-2 border-t border-slate-100 pt-4">
-                                        <p className="text-sm text-slate-500 mb-1">Student ID (NIM)</p>
-                                        <p className="text-3xl font-mono font-bold text-slate-800 bg-yellow-100 inline-block px-2 py-1 rounded">{scanResult.ticket.nim}</p>
+                        {/* Status Display */}
+                        <div className="text-center">
+                            {scanStatus === 'IDLE' && (
+                                <div className="space-y-6 animate-in fade-in">
+                                    <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                                        <Scan className="w-16 h-16 text-slate-400" />
                                     </div>
-                                )}
-                                <div className="col-span-2 border-t border-slate-100 pt-4">
-                                    <p className="text-sm text-slate-500 mb-1">Ticket Code</p>
-                                    <p className="font-mono text-slate-600">{scanResult?.ticket?.ticket_code}</p>
+                                    <div>
+                                        <h1 className="text-4xl font-bold text-slate-900 mb-2">Ready to Scan</h1>
+                                        <p className="text-lg text-slate-500">Point scanner at QR Code or enter manually below</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                            )}
 
-                {/* USED STATE */}
-                {scanStatus === 'USED' && (
-                    <div className="space-y-6">
-                        <div className="w-40 h-40 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-white">
-                            <AlertTriangle className="w-24 h-24" />
-                        </div>
-                        <div>
-                            <h1 className="text-5xl font-black tracking-tight mb-2 text-amber-600">{t('scanner.used')}</h1>
-                            <p className="text-xl text-amber-700/80">{t('scanner.usedMessage')}</p>
-                        </div>
-                        <div className="bg-white rounded-xl p-6 max-w-md mx-auto mt-6 shadow-lg border border-amber-100">
-                            <p className="text-sm text-slate-500 text-center uppercase tracking-wider font-semibold mb-4">Riwayat Penggunaan</p>
-                            <div className="text-center space-y-4">
-                                <div>
-                                    <p className="text-xs text-slate-400 md:text-sm">{t('scanner.scannedAt')}</p>
-                                    <p className="text-xl font-bold text-slate-800">{scanResult?.ticket?.scanned_at ? new Date(scanResult.ticket.scanned_at).toLocaleString() : 'Visual Error'}</p>
+                            {scanStatus === 'PROCESSING' && (
+                                <div className="space-y-6">
+                                    <div className="w-24 h-24 border-4 border-slate-200 border-t-sky-600 rounded-full animate-spin mx-auto"></div>
+                                    <h2 className="text-2xl font-bold text-slate-700">Verifying...</h2>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-slate-400 md:text-sm">{t('scanner.scannedBy')}</p>
-                                    <p className="text-lg font-semibold text-slate-700">{scanResult?.ticket?.scanned_by || t('common.unknown')}</p>
+                            )}
+
+                            {scanStatus === 'VALID' && (
+                                <div className="space-y-6 animate-in zoom-in-95">
+                                    <div className="w-32 h-32 bg-emerald-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <CheckCircle className="w-16 h-16 text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-5xl font-bold text-emerald-600 mb-2">{t('scanner.valid')}</h1>
+                                        <p className="text-xl text-emerald-800">Access Granted</p>
+                                    </div>
+                                    <Card className="bg-white/80 backdrop-blur border-emerald-200 shadow-lg text-left">
+                                        <CardContent className="p-6 grid grid-cols-2 gap-6">
+                                            <div>
+                                                <p className="text-slate-500 text-sm font-medium uppercase">Category</p>
+                                                <p className="text-2xl font-bold text-slate-900">{scanResult?.ticket?.category_name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-500 text-sm font-medium uppercase">Code</p>
+                                                <p className="text-lg font-mono text-slate-700">{scanResult?.ticket?.ticket_code}</p>
+                                            </div>
+                                            {scanResult?.ticket?.nim && (
+                                                <div className="col-span-2 pt-4 border-t border-slate-100">
+                                                    <p className="text-slate-500 text-sm font-medium uppercase mb-1">Student ID (NIM)</p>
+                                                    <div className="inline-block bg-sky-50 px-3 py-1 rounded text-xl font-mono font-bold text-sky-700 border border-sky-100">
+                                                        {scanResult.ticket.nim}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                            )}
 
-                {/* INVALID/ERROR STATE */}
-                {(scanStatus === 'INVALID' || scanStatus === 'ERROR') && (
-                    <div className="space-y-6">
-                        <div className="w-40 h-40 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-white">
-                            <XCircle className="w-24 h-24" />
-                        </div>
-                        <div>
-                            <h1 className="text-6xl font-black tracking-tight mb-2 text-red-600">{t('scanner.invalid')}</h1>
-                            <p className="text-2xl text-red-700/80 font-medium">{scanResult?.message || t('scanner.invalidMessage')}</p>
-                        </div>
-                        <div className="bg-white rounded-xl p-4 font-mono text-lg mt-6 shadow-md border border-red-100 inline-block px-8">
-                            Code: {lastScannedCode}
-                        </div>
-                    </div>
-                )}
+                            {scanStatus === 'USED' && (
+                                <div className="space-y-6 animate-in shake">
+                                    <div className="w-32 h-32 bg-amber-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <AlertTriangle className="w-16 h-16 text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-4xl font-bold text-amber-600 mb-2">{t('scanner.used')}</h1>
+                                        <p className="text-lg text-amber-800">Scanned at {new Date(scanResult?.ticket?.scanned_at).toLocaleTimeString()}</p>
+                                    </div>
+                                </div>
+                            )}
 
+                            {(scanStatus === 'INVALID' || scanStatus === 'ERROR') && (
+                                <div className="space-y-6 animate-in shake">
+                                    <div className="w-32 h-32 bg-rose-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <XCircle className="w-16 h-16 text-rose-600" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-4xl font-bold text-rose-600 mb-2">{t('scanner.invalid')}</h1>
+                                        <p className="text-lg text-rose-800">{scanResult?.message}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Manual Entry Form */}
+                        <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-md mx-auto">
+                            <form onSubmit={handleManualSubmit} className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Keyboard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter ticket code manual..."
+                                        className="pl-9 h-12 text-lg uppercase bg-white border-slate-300 focus:border-sky-500 text-slate-900 placeholder:text-slate-400"
+                                        value={manualCode}
+                                        onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                                    />
+                                </div>
+                                <Button type="submit" size="lg" className="h-12 bg-slate-900 hover:bg-slate-800 text-white">
+                                    Scan
+                                </Button>
+                            </form>
+                        </div>
+
+                    </div>
+                </main>
+
+                {/* Right Side: History Sidebar (Admin Style) */}
+                <aside className="w-80 bg-white border-l border-slate-200 flex flex-col z-20 shadow-sm">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <h3 className="font-bold text-slate-900 flex items-center">
+                            <History className="w-4 h-4 mr-2 text-slate-500" />
+                            Recent Scans
+                        </h3>
+                    </div>
+
+                    <ScrollArea className="flex-1 p-4">
+                        <div className="space-y-3">
+                            {scanHistory.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <p className="text-slate-400 text-sm">No scans yet.</p>
+                                </div>
+                            ) : (
+                                scanHistory.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`p-3 rounded-lg border text-sm transition-colors ${item.status === 'VALID' ? 'bg-emerald-50 border-emerald-200' :
+                                            item.status === 'USED' ? 'bg-amber-50 border-amber-200' :
+                                                'bg-rose-50 border-rose-200'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${item.status === 'VALID' ? 'bg-emerald-100 text-emerald-700' :
+                                                item.status === 'USED' ? 'bg-amber-100 text-amber-700' :
+                                                    'bg-rose-100 text-rose-700'
+                                                }`}>
+                                                {item.status}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500">
+                                                {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+
+                                        {item.status === 'VALID' || item.status === 'USED' ? (
+                                            <>
+                                                <p className="font-medium text-slate-900 truncate">{item.ticket?.category_name}</p>
+                                                <p className="text-xs font-mono text-slate-500 truncate">{item.code}</p>
+                                            </>
+                                        ) : (
+                                            <p className="text-xs text-slate-500">{item.message}</p>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </ScrollArea>
+                </aside>
             </div>
-
-            {/* Footer Instructions */}
-            <div className="absolute bottom-6 left-0 right-0 text-center text-slate-400 text-sm">
-                <p>Sistem Scanner V2.0 - USB Mode - {scanStatus}</p>
-            </div>
-
         </div>
     );
 };
