@@ -171,11 +171,20 @@ export const uploadPoolImage = async (file) => {
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
+    // Debug Authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("Current Session:", session);
+    console.log("User Role:", session?.user?.role);
+    console.log("Uploading to bucket: pool-images");
+
     const { error: uploadError } = await supabase.storage
         .from('pool-images')
         .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+        console.error("Storage Error Details:", uploadError);
+        throw uploadError;
+    }
 
     const { data } = supabase.storage
         .from('pool-images')

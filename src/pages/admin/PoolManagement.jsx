@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { Switch } from '../../components/ui/switch';
 import { Plus, Edit, Trash2, Droplets, Ruler, CheckCircle, XCircle, Image as ImageIcon, ZoomIn, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -229,7 +229,10 @@ const PoolManagement = () => {
 
             {/* Image Zoom Modal */}
             <Dialog open={!!zoomImage} onOpenChange={(open) => !open && setZoomImage(null)}>
-                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none" aria-describedby="zoom-description">
+                    <DialogDescription className="sr-only" id="zoom-description">
+                        Zoomed view of the pool image
+                    </DialogDescription>
                     {zoomImage && (
                         <img src={zoomImage} alt="Zoomed Pool" className="w-full h-auto rounded-lg shadow-2xl" />
                     )}
@@ -238,9 +241,12 @@ const PoolManagement = () => {
 
             {/* Create/Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent data-testid="pool-form-dialog">
+                <DialogContent data-testid="pool-form-dialog" aria-describedby="form-description">
                     <DialogHeader>
                         <DialogTitle>{editingPool ? t('admin.editPool') : t('admin.newPool')}</DialogTitle>
+                        <DialogDescription id="form-description">
+                            {editingPool ? 'Update the details of the pool.' : 'Fill in the details to create a new pool.'}
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Image Upload */}
