@@ -121,3 +121,13 @@ dist
 # Vite
 dist-ssr
 *.local
+# ===== Frontend / App build output =====
+build
+/build
+dist
+/dist
+.next
+out
+.cache
+.parcel-cache
+.vite

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Users, Ticket, DollarSign, Activity } from 'lucide-react';
@@ -9,6 +10,7 @@ import { getDailyReport } from '../../services/reportService';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     totalStaff: 0,
     todayTickets: 0,
@@ -37,17 +39,17 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load dashboard data');
+      toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
   };
 
   const statCards = [
-    { label: 'Active Staff', value: stats.totalStaff, icon: Users, color: 'bg-blue-500' },
-    { label: "Today's Tickets", value: stats.todayTickets, icon: Ticket, color: 'bg-emerald-500' },
-    { label: "Today's Revenue", value: `Rp ${stats.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-amber-500' },
-    { label: 'Tickets Scanned', value: stats.todayScans, icon: Activity, color: 'bg-purple-500' },
+    { label: t('admin.activeStaff'), value: stats.totalStaff, icon: Users, color: 'bg-blue-500' },
+    { label: t('admin.todayTickets'), value: stats.todayTickets, icon: Ticket, color: 'bg-emerald-500' },
+    { label: t('admin.todayRevenue'), value: `Rp ${stats.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-amber-500' },
+    { label: t('admin.todayScans'), value: stats.todayScans, icon: Activity, color: 'bg-purple-500' },
   ];
 
   if (loading) {
@@ -61,8 +63,8 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>Dashboard</h1>
-        <p className="text-slate-600 mt-1">Welcome back! Here's your pool operations overview.</p>
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>{t('admin.dashboard')}</h1>
+        <p className="text-slate-600 mt-1">{t('admin.welcomeBack')}</p>
       </div>
 
       {/* Stats Grid */}
@@ -87,14 +89,14 @@ const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <Card className="p-6">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>Quick Actions</h2>
+        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>{t('admin.quickActions')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             className="h-20 bg-slate-900 hover:bg-slate-800"
             data-testid="view-reports-button"
             onClick={() => navigate('/admin/reports')}
           >
-            View Today's Report
+            {t('admin.viewTodayReport')}
           </Button>
           <Button
             variant="outline"
@@ -102,7 +104,7 @@ const AdminDashboard = () => {
             data-testid="manage-staff-button"
             onClick={() => navigate('/admin/users')}
           >
-            Manage Staff
+            {t('admin.manageStaff')}
           </Button>
           <Button
             variant="outline"
@@ -110,19 +112,19 @@ const AdminDashboard = () => {
             data-testid="update-prices-button"
             onClick={() => navigate('/admin/categories')}
           >
-            Update Prices
+            {t('admin.updatePrices')}
           </Button>
         </div>
       </Card>
 
       {/* Recent Activity */}
       <Card className="p-6">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>System Status</h2>
+        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>{t('admin.systemStatus')}</h2>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-slate-700 font-medium">All systems operational</span>
+              <span className="text-slate-700 font-medium">{t('admin.allSystemsOperational')}</span>
             </div>
           </div>
         </div>

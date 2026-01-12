@@ -45,63 +45,69 @@ const RoleBasedRedirect = () => {
   return <Navigate to="/login" replace />;
 };
 
+import { LanguageProvider } from './contexts/LanguageContext';
+
+// ... (other imports)
+
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="App">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <div className="App">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
 
-            {/* Root - Redirect based on role */}
-            <Route path="/" element={<RoleBasedRedirect />} />
+              {/* Root - Redirect based on role */}
+              <Route path="/" element={<RoleBasedRedirect />} />
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="categories" element={<CategoryManagement />} />
-              <Route path="sessions" element={<SessionManagement />} />
-              <Route path="packages" element={<PackageManagement />} />
-              <Route path="locations" element={<LocationManagement />} />
-              <Route path="reports" element={<Reports />} />
-            </Route>
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="categories" element={<CategoryManagement />} />
+                <Route path="sessions" element={<SessionManagement />} />
+                <Route path="packages" element={<PackageManagement />} />
+                <Route path="locations" element={<LocationManagement />} />
+                <Route path="reports" element={<Reports />} />
+              </Route>
 
-            {/* Receptionist Route */}
-            <Route
-              path="/receptionist"
-              element={
-                <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
-                  <ReceptionistDashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Receptionist Route */}
+              <Route
+                path="/receptionist"
+                element={
+                  <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
+                    <ReceptionistDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Scanner Route */}
-            <Route
-              path="/scanner"
-              element={
-                <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
-                  <ScannerDashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Scanner Route */}
+              <Route
+                path="/scanner"
+                element={
+                  <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
+                    <ScannerDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          <Toaster position="top-right" richColors />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <Toaster position="top-right" richColors />
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

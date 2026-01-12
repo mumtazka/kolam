@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import { getDailyReport, getMonthlyReport, getBatchReport } from '../../services/reportService';
 
 const Reports = () => {
+  const { t } = useLanguage();
   const [reportType, setReportType] = useState('daily');
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ const Reports = () => {
       setHistoryPage(1);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load report: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ const Reports = () => {
   // Export to Excel function
   const exportToExcel = () => {
     if (!reportData || !reportData.tickets || reportData.tickets.length === 0) {
-      toast.error('No ticket data to export');
+      toast.error(t('dashboard.noTicketsSelected'));
       return;
     }
 
@@ -86,13 +88,13 @@ const Reports = () => {
     link.setAttribute('href', url);
     const filename = reportType === 'daily'
       ? `ticket_history_${selectedDate}.csv`
-      : `ticket_history_${selectedYear}-${String(selectedMonth).padStart(2, '0')}.csv`;
+      : `ticket_history_${selectedYear} -${String(selectedMonth).padStart(2, '0')}.csv`;
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Excel file downloaded successfully!');
+    toast.success(t('reports.exportSuccess'));
   };
 
   // Get paginated tickets for history view
@@ -112,22 +114,22 @@ const Reports = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Reports</h1>
-          <p className="text-slate-600 mt-1">View sales and operational analytics</p>
+          <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('reports.title')}</h1>
+          <p className="text-slate-600 mt-1">{t('reports.viewReports')}</p>
         </div>
         {/* Summary Stats - Moved to header area */}
         {reportData && reportType !== 'batch' && (
           <div className="flex items-center space-x-4">
             <div className="text-right px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
-              <p className="text-xs text-blue-600 font-medium">Sold</p>
-              <p className="text-lg font-bold text-blue-900">{reportData.tickets_sold}</p>
+              <p className="text-xs text-blue-600 font-medium">{t('reports.sold')}</p>
+              <p className="text-lg font-bold text-blue-900">{reportData.tickets_printed}</p>
             </div>
             <div className="text-right px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
-              <p className="text-xs text-emerald-600 font-medium">Scanned</p>
+              <p className="text-xs text-emerald-600 font-medium">{t('reports.scanned')}</p>
               <p className="text-lg font-bold text-emerald-900">{reportData.tickets_scanned}</p>
             </div>
             <div className="text-right px-4 py-2 bg-amber-50 rounded-lg border border-amber-100">
-              <p className="text-xs text-amber-600 font-medium">Revenue</p>
+              <p className="text-xs text-amber-600 font-medium">{t('reports.revenue')}</p>
               <p className="text-lg font-bold text-amber-900">Rp {reportData.total_revenue?.toLocaleString()}</p>
             </div>
           </div>
@@ -136,9 +138,9 @@ const Reports = () => {
 
       <Tabs defaultValue="daily" value={reportType} onValueChange={setReportType}>
         <TabsList className="mb-4">
-          <TabsTrigger value="daily">Daily Report</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly Report</TabsTrigger>
-          <TabsTrigger value="batch">Batch Audit</TabsTrigger>
+          <TabsTrigger value="daily">{t('reports.dailyReport')}</TabsTrigger>
+          <TabsTrigger value="monthly">{t('reports.monthlyReport')}</TabsTrigger>
+          <TabsTrigger value="batch">{t('reports.batchAudit')}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -147,7 +149,7 @@ const Reports = () => {
         <div className="flex items-center space-x-4 mb-6">
           {reportType === 'daily' || reportType === 'batch' ? (
             <div className="flex-1 max-w-xs">
-              <label className="text-sm font-medium text-slate-700 mb-2 block">Select Date</label>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">{t('reports.selectDate')}</label>
               <input
                 type="date"
                 value={selectedDate}
@@ -158,7 +160,7 @@ const Reports = () => {
           ) : (
             <div className="flex space-x-4">
               <div className="w-32">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Month</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('common.month')}</label>
                 <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -171,7 +173,7 @@ const Reports = () => {
                 </Select>
               </div>
               <div className="w-32">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Year</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('common.year')}</label>
                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -184,12 +186,12 @@ const Reports = () => {
             </div>
           )}
           <Button onClick={fetchReport} className="bg-slate-900 hover:bg-slate-800 mt-7">
-            Refresh
+            {t('common.refresh')}
           </Button>
           {reportType !== 'batch' && reportData && reportData.tickets && reportData.tickets.length > 0 && (
             <Button onClick={exportToExcel} variant="outline" className="mt-7">
               <FileSpreadsheet className="w-4 h-4 mr-2" />
-              Export Excel
+              {t('reports.exportExcel')}
             </Button>
           )}
         </div>
@@ -205,24 +207,24 @@ const Reports = () => {
               // Batch Report View
               <div className="space-y-4">
                 {!Array.isArray(reportData) || reportData.length === 0 ? (
-                  <p className="text-center text-slate-500 py-8">No batches found for this date.</p>
+                  <p className="text-center text-slate-500 py-8">{t('reports.noData')}</p>
                 ) : (
                   reportData.map(batch => (
                     <div key={batch.batch_id} className="border rounded-lg p-4 hover:bg-slate-50">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="font-semibold text-slate-900">Batch ID: <span className="font-mono text-xs">{batch.batch_id}</span></p>
-                          <p className="text-sm text-slate-600">Created by: {batch.created_by_name} | Shift: {batch.shift}</p>
+                          <p className="text-sm text-slate-600">{t('reports.createdBy')}: {batch.created_by_name} | Shift: {batch.shift}</p>
                           <p className="text-xs text-slate-400">{new Date(batch.created_at).toLocaleTimeString()}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-lg">Rp {batch.total_revenue.toLocaleString()}</p>
-                          <p className="text-sm text-emerald-600">{batch.total_tickets} Tickets</p>
+                          <p className="text-sm text-emerald-600">{batch.total_tickets} {t('reports.tickets')}</p>
                         </div>
                       </div>
                       <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500 flex flex-wrap gap-2">
                         {batch.tickets.map(t => (
-                          <span key={t.id} className={`px-2 py-1 rounded ${t.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100'}`}>
+                          <span key={t.id} className={`px - 2 py - 1 rounded ${t.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100'} `}>
                             {t.category_name} {t.status === 'USED' ? '(Scanned)' : ''}
                           </span>
                         ))}
@@ -238,14 +240,14 @@ const Reports = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Category Breakdown */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Sales by Category</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.salesByCategory')}</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Category</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Count</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Revenue</th>
+                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">{t('common.category')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.count')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.revenue')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -263,14 +265,14 @@ const Reports = () => {
 
                   {/* Staff Breakdown */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Sales by Staff</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.salesByStaff')}</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Staff</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Count</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Revenue</th>
+                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">{t('common.staff')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.count')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.revenue')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -289,19 +291,19 @@ const Reports = () => {
 
                 {/* Ticket History Table */}
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Ticket History ({reportData.tickets?.length || 0})</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.ticketHistory')} ({reportData.tickets?.length || 0})</h3>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">No</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ticket ID</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Category</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Staff</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">Qty</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">Price</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Status</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Time</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('common.category')}</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('common.staff')}</th>
+                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">{t('reports.quantity')}</th>
+                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">{t('reports.price')}</th>
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">{t('admin.status')}</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('reports.time')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -316,8 +318,8 @@ const Reports = () => {
                               <td className="px-4 py-3 text-sm text-slate-600 text-right">{ticket.quantity || 1}</td>
                               <td className="px-4 py-3 text-sm text-slate-900 font-medium text-right">Rp {parseFloat(ticket.price).toLocaleString()}</td>
                               <td className="px-4 py-3 text-center">
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${ticket.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                                  }`}>
+                                <span className={`px - 2 py - 1 text - xs font - medium rounded - full ${ticket.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                  } `}>
                                   {ticket.status}
                                 </span>
                               </td>
@@ -347,7 +349,7 @@ const Reports = () => {
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
                         <span className="text-sm text-slate-600">
-                          Page {historyPage} of {getTotalPages()}
+                          {t('common.page')} {historyPage} of {getTotalPages()}
                         </span>
                         <Button
                           variant="outline"
@@ -369,14 +371,14 @@ const Reports = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Category Breakdown */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Sales by Category</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.salesByCategory')}</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Category</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Count</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Revenue</th>
+                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">{t('common.category')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.count')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.revenue')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -394,14 +396,14 @@ const Reports = () => {
 
                   {/* Daily Trend */}
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Daily Sales Trend</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.dailySalesTrend')}</h3>
                     <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                       <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">Date</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Count</th>
-                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">Revenue</th>
+                            <th className="px-4 py-2 text-left text-sm font-semibold text-slate-900">{t('reports.date')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.count')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-semibold text-slate-900">{t('reports.revenue')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -420,19 +422,19 @@ const Reports = () => {
 
                 {/* Ticket History Table */}
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Ticket History ({reportData.tickets?.length || 0})</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('reports.ticketHistory')} ({reportData.tickets?.length || 0})</h3>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">No</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ticket ID</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Category</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Staff</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">Qty</th>
-                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">Price</th>
-                          <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Status</th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Date & Time</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('common.category')}</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('common.staff')}</th>
+                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">{t('reports.quantity')}</th>
+                          <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900">{t('reports.price')}</th>
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">{t('admin.status')}</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('reports.time')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -447,8 +449,8 @@ const Reports = () => {
                               <td className="px-4 py-3 text-sm text-slate-600 text-right">{ticket.quantity || 1}</td>
                               <td className="px-4 py-3 text-sm text-slate-900 font-medium text-right">Rp {parseFloat(ticket.price).toLocaleString()}</td>
                               <td className="px-4 py-3 text-center">
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${ticket.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                                  }`}>
+                                <span className={`px - 2 py - 1 text - xs font - medium rounded - full ${ticket.status === 'USED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                  } `}>
                                   {ticket.status}
                                 </span>
                               </td>
@@ -478,7 +480,7 @@ const Reports = () => {
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
                         <span className="text-sm text-slate-600">
-                          Page {historyPage} of {getTotalPages()}
+                          {t('common.page')} {historyPage} of {getTotalPages()}
                         </span>
                         <Button
                           variant="outline"
@@ -498,7 +500,7 @@ const Reports = () => {
         ) : (
           <div className="text-center py-12 text-slate-500">
             <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Select filter and click Refresh</p>
+            <p>{t('dashboard.selectFilter')}</p>
           </div>
         )}
       </Card>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -15,6 +16,7 @@ import { createBatchTickets } from '../../services/ticketService';
 
 const ReceptionistDashboard = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
@@ -33,7 +35,7 @@ const ReceptionistDashboard = () => {
       const data = await getActiveCategoriesWithPrices();
       setCategories(data);
     } catch (error) {
-      toast.error('Failed to load data: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,7 @@ const ReceptionistDashboard = () => {
     // Validate NIM inputs
     for (const item of cart) {
       if (item.requires_nim && !nimInputs[item.category_id]) {
-        toast.error(`NIM required for ${item.category_name}`);
+        toast.error(`NIM ${t('common.required')} for ${item.category_name}`);
         return;
       }
     }
@@ -103,7 +105,7 @@ const ReceptionistDashboard = () => {
 
       const result = await createBatchTickets(ticketItems, user, currentShift);
       setPrintedTickets(result.tickets);
-      toast.success(`${result.total_tickets} tickets created successfully!`);
+      toast.success(`${result.total_tickets} ${t('dashboard.printSuccess')}`);
 
       // Print
       setTimeout(() => {
@@ -115,7 +117,7 @@ const ReceptionistDashboard = () => {
       }, 500);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to create tickets: ' + error.message);
+      toast.error(t('dashboard.printError') + ': ' + error.message);
     } finally {
       setPrinting(false);
     }
@@ -140,12 +142,12 @@ const ReceptionistDashboard = () => {
       <header className="bg-white border-b border-slate-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY - Resepsionis</h1>
-            <p className="text-sm text-slate-600">Selamat datang, {user?.name}</p>
+            <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('auth.title')} - Resepsionis</h1>
+            <p className="text-sm text-slate-600">{t('dashboard.welcome')}, {user?.name}</p>
           </div>
           <Button variant="outline" onClick={handleLogout} data-testid="logout-button">
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            {t('common.logout')}
           </Button>
         </div>
       </header>
@@ -154,12 +156,12 @@ const ReceptionistDashboard = () => {
         {/* Left Panel - Ticket Selection */}
         <div className="flex-1 p-6 overflow-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-slate-900" style={{ fontFamily: 'Outfit' }}>Select Ticket Type</h2>
+            <h2 className="text-2xl font-semibold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('dashboard.clickToSelect')}</h2>
 
             {/* Shift Selector */}
             <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border border-slate-200">
               <Clock className="w-4 h-4 text-slate-500" />
-              <span className="text-sm font-medium text-slate-700">Shift:</span>
+              <span className="text-sm font-medium text-slate-700">{t('dashboard.selectShift')}:</span>
               <select
                 value={currentShift}
                 onChange={(e) => setCurrentShift(e.target.value)}
@@ -173,6 +175,7 @@ const ReceptionistDashboard = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            {categories.length === 0 && <p className="col-span-2 text-center text-slate-500 py-10">{t('dashboard.noActiveCategories')}</p>}
             {categories.map(category => (
               <Card
                 key={category.id}
@@ -201,7 +204,7 @@ const ReceptionistDashboard = () => {
         {/* Right Panel - Cart */}
         <div className="w-96 bg-white border-l border-slate-200 p-6 overflow-auto flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-slate-900" style={{ fontFamily: 'Outfit' }}>Cart</h2>
+            <h2 className="text-2xl font-semibold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('dashboard.cart')}</h2>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-medium px-2 py-1 bg-sky-100 text-sky-700 rounded full">
                 Shift: {currentShift}
@@ -213,8 +216,8 @@ const ReceptionistDashboard = () => {
           {cart.length === 0 ? (
             <div className="text-center py-12 text-slate-500 flex-1 flex flex-col justify-center">
               <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" />
-              <p>No tickets selected</p>
-              <p className="text-sm">Click on a ticket type to add</p>
+              <p>{t('dashboard.noTicketsSelected')}</p>
+              <p className="text-sm">{t('dashboard.clickToSelect')}</p>
             </div>
           ) : (
             <>
@@ -233,7 +236,7 @@ const ReceptionistDashboard = () => {
                           onClick={() => removeFromCart(item.category_id)}
                           className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                         >
-                          Remove
+                          {t('dashboard.remove')}
                         </Button>
                       </div>
 
@@ -259,7 +262,7 @@ const ReceptionistDashboard = () => {
 
                       {item.requires_nim && (
                         <div>
-                          <Label htmlFor={`nim-${item.category_id}`} className="text-xs">Student NIM (Required)</Label>
+                          <Label htmlFor={`nim-${item.category_id}`} className="text-xs">Student NIM ({t('common.required')})</Label>
                           <Input
                             id={`nim-${item.category_id}`}
                             value={nimInputs[item.category_id] || ''}
@@ -284,7 +287,7 @@ const ReceptionistDashboard = () => {
 
               <div className="pt-4 border-t-2 border-slate-300 mt-auto">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-slate-900">Total:</span>
+                  <span className="text-lg font-semibold text-slate-900">{t('dashboard.total')}:</span>
                   <span className="text-2xl font-bold text-slate-900">Rp {getTotalAmount().toLocaleString()}</span>
                 </div>
                 <Button
@@ -294,7 +297,7 @@ const ReceptionistDashboard = () => {
                   data-testid="print-tickets-button"
                 >
                   <Printer className="w-5 h-5 mr-2" />
-                  {printing ? 'Processing...' : 'Print Tickets'}
+                  {printing ? t('auth.signingIn') : t('dashboard.checkout')}
                 </Button>
               </div>
             </>
@@ -302,7 +305,7 @@ const ReceptionistDashboard = () => {
         </div>
       </div>
 
-      {/* Print Template */}
+      {/* Print Template - Minimal Translation here as it's physical */}
       {printedTickets.length > 0 && (
         <div className="hidden print:block">
           {printedTickets.map((ticket, index) => (
@@ -313,12 +316,12 @@ const ReceptionistDashboard = () => {
               </div>
 
               <div className="flex justify-center my-4">
-                <img src={ticket.qr_code} alt="QR Code" className="w-48 h-48" />
+                <img src={ticket.qr_code} alt="Barcode" style={{ width: '250px', height: '80px' }} />
               </div>
 
               <div className="text-sm space-y-1 font-mono">
                 <p><strong>Code:</strong> {ticket.ticket_code}</p>
-                <p><strong>Price:</strong> Rp {ticket.price.toLocaleString()}</p>
+                <p><strong>{t('dashboard.price')}:</strong> Rp {ticket.price.toLocaleString()}</p>
                 {ticket.nim && <p><strong>NIM:</strong> {ticket.nim}</p>}
                 <p><strong>Shift:</strong> {ticket.shift}</p>
                 <p><strong>Date:</strong> {new Date(ticket.created_at).toLocaleString('id-ID')}</p>

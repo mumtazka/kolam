@@ -46,11 +46,12 @@ const getNextBatchNumber = async () => {
 };
 
 /**
- * Generate QR code data URL for a ticket
+ * Generate Code128 barcode image URL for a ticket
+ * Using barcodeapi.org for server-side generation
  */
-const generateQRCode = async (ticketCode) => {
-    // Using a simple QR code API - in production you might want to use a library
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticketCode)}`;
+const generateBarcode = (ticketCode) => {
+    // Code128 barcode - good for alphanumeric codes
+    return `https://barcodeapi.org/api/128/${encodeURIComponent(ticketCode)}`;
 };
 
 /**
@@ -96,7 +97,7 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
                 status: 'UNUSED',
                 price: category.price,
                 nim: item.nim || null,
-                qr_code: await generateQRCode(ticketCode),
+                qr_code: generateBarcode(ticketCode),
                 created_by: user.id,
                 created_by_name: user.name,
                 shift: shift
@@ -124,8 +125,9 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
  * Scan and validate a ticket
  * @param {string} ticketIdentifier - Ticket UUID or ticket_code
  * @param {Object} scanner - Scanner user object
+ * @param {string} shift - Current scanner shift
  */
-export const scanTicket = async (ticketIdentifier, scanner) => {
+export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown') => {
     // Try to find ticket by ID first, then by ticket_code
     let ticket = null;
     let fetchError = null;
@@ -172,6 +174,8 @@ export const scanTicket = async (ticketIdentifier, scanner) => {
     }
 
     // Mark as used
+    // We do NOT update ticket.shift here, as that preserves the printing shift
+    // We only record the scanner's shift in scan_logs
     const { data: updatedTicket, error: updateError } = await supabase
         .from('tickets')
         .update({
@@ -185,12 +189,13 @@ export const scanTicket = async (ticketIdentifier, scanner) => {
 
     if (updateError) throw updateError;
 
-    // Create scan log
+    // Create scan log with shift attribution
     await supabase.from('scan_logs').insert({
         ticket_id: ticket.id,
         scanned_by: scanner.id,
         scanned_by_name: scanner.name,
-        category_name: ticket.category_name
+        category_name: ticket.category_name,
+        shift: shift // Record the shift of the scanner
     });
 
     return {

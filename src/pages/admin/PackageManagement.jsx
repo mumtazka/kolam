@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import { getPackages, createPackage, updatePackage, deletePackage } from '../../services/adminService';
 
 const PackageManagement = () => {
+    const { t } = useLanguage();
     const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,7 +32,7 @@ const PackageManagement = () => {
             setPackages(data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load packages');
+            toast.error(t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -41,10 +43,10 @@ const PackageManagement = () => {
         try {
             if (editingPackage) {
                 await updatePackage(editingPackage.id, formData);
-                toast.success('Package updated successfully');
+                toast.success(t('common.success'));
             } else {
                 await createPackage(formData);
-                toast.success('Package created successfully');
+                toast.success(t('common.success'));
             }
             setDialogOpen(false);
             setEditingPackage(null);
@@ -52,19 +54,19 @@ const PackageManagement = () => {
             fetchPackages();
         } catch (error) {
             console.error(error);
-            toast.error(error.message || 'Operation failed');
+            toast.error(error.message || t('common.error'));
         }
     };
 
     const handleDelete = async (packageId) => {
-        if (window.confirm('Are you sure you want to delete this package?')) {
+        if (window.confirm(t('admin.confirmStatusChange'))) {
             try {
                 await deletePackage(packageId);
-                toast.success('Package deleted');
+                toast.success(t('common.success'));
                 fetchPackages();
             } catch (error) {
                 console.error(error);
-                toast.error('Failed to delete package');
+                toast.error(t('common.error'));
             }
         }
     };
@@ -105,23 +107,23 @@ const PackageManagement = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Package Management</h1>
-                    <p className="text-slate-600 mt-1">Manage pool packages and depth ranges</p>
+                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.packages')}</h1>
+                    <p className="text-slate-600 mt-1">{t('admin.packagesSubtitle')}</p>
                 </div>
                 <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-package-button">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Package
+                    {t('admin.addPackage')}
                 </Button>
             </div>
 
             {packages.length === 0 ? (
                 <Card className="p-12 text-center">
                     <Package className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Packages</h3>
-                    <p className="text-slate-600 mb-4">Create your first package to get started</p>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('admin.noPackages')}</h3>
+                    <p className="text-slate-600 mb-4">{t('admin.createFirstPackage')}</p>
                     <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Package
+                        {t('admin.addPackage')}
                     </Button>
                 </Card>
             ) : (
@@ -153,7 +155,7 @@ const PackageManagement = () => {
                                     data-testid={`edit-package-${pkg.id}`}
                                 >
                                     <Edit className="w-4 h-4 mr-1" />
-                                    Edit
+                                    {t('common.edit')}
                                 </Button>
                                 <Button
                                     size="sm"
@@ -172,11 +174,11 @@ const PackageManagement = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent data-testid="package-form-dialog">
                     <DialogHeader>
-                        <DialogTitle>{editingPackage ? 'Edit Package' : 'Add New Package'}</DialogTitle>
+                        <DialogTitle>{editingPackage ? t('admin.editPackage') : t('admin.newPackage')}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Package Name</Label>
+                            <Label htmlFor="name">{t('admin.packageName')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -188,7 +190,7 @@ const PackageManagement = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="depth_range">Depth Range</Label>
+                            <Label htmlFor="depth_range">{t('admin.depthRange')}</Label>
                             <Input
                                 id="depth_range"
                                 value={formData.depth_range}
@@ -200,7 +202,7 @@ const PackageManagement = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="description">Description (Optional)</Label>
+                            <Label htmlFor="description">{t('admin.description')} (Optional)</Label>
                             <Textarea
                                 id="description"
                                 value={formData.description}
@@ -213,10 +215,10 @@ const PackageManagement = () => {
 
                         <div className="flex space-x-2 pt-4">
                             <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="package-form-submit">
-                                {editingPackage ? 'Update' : 'Create'}
+                                {editingPackage ? t('admin.update') : t('admin.create')}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </form>

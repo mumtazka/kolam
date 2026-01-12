@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -20,6 +21,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const SessionManagement = () => {
+    const { t } = useLanguage();
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,7 +44,7 @@ const SessionManagement = () => {
             setSessions(data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load sessions');
+            toast.error(t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -52,17 +54,17 @@ const SessionManagement = () => {
         e.preventDefault();
 
         if (formData.days.length === 0) {
-            toast.error('Please select at least one day');
+            toast.error(t('admin.selectAtLeastOneDay'));
             return;
         }
 
         try {
             if (editingSession) {
                 await updateSession(editingSession.id, formData);
-                toast.success('Session updated successfully');
+                toast.success(t('common.success'));
             } else {
                 await createSession(formData);
-                toast.success('Session created successfully');
+                toast.success(t('common.success'));
             }
             setDialogOpen(false);
             setEditingSession(null);
@@ -70,19 +72,19 @@ const SessionManagement = () => {
             fetchSessions();
         } catch (error) {
             console.error(error);
-            toast.error(error.message || 'Operation failed');
+            toast.error(error.message || t('common.error'));
         }
     };
 
     const handleDelete = async (sessionId) => {
-        if (window.confirm('Are you sure you want to delete this session?')) {
+        if (window.confirm(t('admin.confirmStatusChange'))) {
             try {
                 await deleteSession(sessionId);
-                toast.success('Session deleted');
+                toast.success(t('common.success'));
                 fetchSessions();
             } catch (error) {
                 console.error(error);
-                toast.error('Failed to delete session');
+                toast.error(t('common.error'));
             }
         }
     };
@@ -136,23 +138,23 @@ const SessionManagement = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Session Management</h1>
-                    <p className="text-slate-600 mt-1">Manage pool sessions and schedules</p>
+                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.sessions')}</h1>
+                    <p className="text-slate-600 mt-1">{t('admin.sessionsSubtitle')}</p>
                 </div>
                 <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-session-button">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Session
+                    {t('admin.addSession')}
                 </Button>
             </div>
 
             {sessions.length === 0 ? (
                 <Card className="p-12 text-center">
                     <Clock className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Sessions</h3>
-                    <p className="text-slate-600 mb-4">Create your first session to get started</p>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('admin.noSessions')}</h3>
+                    <p className="text-slate-600 mb-4">{t('admin.createFirstSession')}</p>
                     <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Session
+                        {t('admin.addSession')}
                     </Button>
                 </Card>
             ) : (
@@ -161,11 +163,11 @@ const SessionManagement = () => {
                         <table className="w-full">
                             <thead className="bg-slate-50 border-b border-slate-200">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Session Name</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Time</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Days</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Recurring</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Actions</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.sessionName')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('common.time')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.days')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.recurring')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200">
@@ -190,11 +192,11 @@ const SessionManagement = () => {
                                         <td className="px-6 py-4">
                                             {session.is_recurring ? (
                                                 <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
-                                                    Yes
+                                                    {t('common.yes')}
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
-                                                    No
+                                                    {t('common.no')}
                                                 </span>
                                             )}
                                         </td>
@@ -229,11 +231,11 @@ const SessionManagement = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent data-testid="session-form-dialog">
                     <DialogHeader>
-                        <DialogTitle>{editingSession ? 'Edit Session' : 'Add New Session'}</DialogTitle>
+                        <DialogTitle>{editingSession ? t('admin.editSession') : t('admin.newSession')}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Session Name</Label>
+                            <Label htmlFor="name">{t('admin.sessionName')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -246,7 +248,7 @@ const SessionManagement = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="start_time">Start Time</Label>
+                                <Label htmlFor="start_time">{t('admin.startTime')}</Label>
                                 <Input
                                     id="start_time"
                                     type="time"
@@ -257,7 +259,7 @@ const SessionManagement = () => {
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="end_time">End Time</Label>
+                                <Label htmlFor="end_time">{t('admin.endTime')}</Label>
                                 <Input
                                     id="end_time"
                                     type="time"
@@ -270,7 +272,7 @@ const SessionManagement = () => {
                         </div>
 
                         <div>
-                            <Label className="mb-3 block">Days of Week</Label>
+                            <Label className="mb-3 block">{t('admin.daysOfWeek')}</Label>
                             <div className="flex flex-wrap gap-2">
                                 {DAYS_OF_WEEK.map(day => (
                                     <button
@@ -290,7 +292,7 @@ const SessionManagement = () => {
                         </div>
 
                         <div className="flex items-center justify-between py-2">
-                            <Label htmlFor="is_recurring" className="cursor-pointer">Recurring Session</Label>
+                            <Label htmlFor="is_recurring" className="cursor-pointer">{t('admin.recurringSession')}</Label>
                             <Switch
                                 id="is_recurring"
                                 checked={formData.is_recurring}
@@ -301,10 +303,10 @@ const SessionManagement = () => {
 
                         <div className="flex space-x-2 pt-4">
                             <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="session-form-submit">
-                                {editingSession ? 'Update' : 'Create'}
+                                {editingSession ? t('admin.update') : t('admin.create')}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </form>

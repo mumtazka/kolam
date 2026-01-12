@@ -8,8 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../componen
 import { Plus, Edit, UserX, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUsers, createUser, updateUser, deactivateUser, activateUser } from '../../services/userService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const UserManagement = () => {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -31,7 +33,7 @@ const UserManagement = () => {
       setUsers(data);
     } catch (error) {
       console.error(error);
-      toast.error('Failed to load users');
+      toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -42,10 +44,10 @@ const UserManagement = () => {
     try {
       if (editingUser) {
         await updateUser(editingUser.id, formData);
-        toast.success('User updated successfully');
+        toast.success(t('common.success'));
       } else {
         await createUser(formData);
-        toast.success('User created successfully');
+        toast.success(t('common.success'));
       }
       setDialogOpen(false);
       setEditingUser(null);
@@ -53,25 +55,33 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       console.error(error);
-      toast.error(error.message || 'Operation failed');
+      toast.error(error.message || t('common.error'));
     }
   };
 
   const handleDeactivate = async (userId, currentStatus) => {
-    const action = currentStatus ? 'deactivate' : 'activate';
-    if (window.confirm(`Are you sure you want to ${action} this user?`)) {
+    if (window.confirm(t('admin.confirmStatusChange'))) {
       try {
         if (currentStatus) {
           await deactivateUser(userId);
-          toast.success('User deactivated');
+          toast.success(t('admin.userDeactivated'));
         } else {
           await activateUser(userId);
-          toast.success('User activated');
+          toast.success(t('admin.userActivated'));
         }
         fetchUsers();
       } catch (error) {
-        toast.error(`Failed to ${action} user`);
+        toast.error(t('common.error'));
       }
+    }
+  };
+
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case 'ADMIN': return t('admin.roleAdmin');
+      case 'RECEPTIONIST': return t('admin.roleReceptionist');
+      case 'SCANNER': return t('admin.roleScanner');
+      default: return role;
     }
   };
 
@@ -100,12 +110,12 @@ const UserManagement = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Staff Management</h1>
-          <p className="text-slate-600 mt-1">Manage system users and their permissions</p>
+          <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.staffManagement')}</h1>
+          <p className="text-slate-600 mt-1">{t('admin.usersSubtitle')}</p>
         </div>
         <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-user-button">
           <Plus className="w-4 h-4 mr-2" />
-          Add Staff
+          {t('admin.addStaff')}
         </Button>
       </div>
 
@@ -114,11 +124,11 @@ const UserManagement = () => {
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Email</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Role</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Actions</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.name')}</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('auth.email')}</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.role')}</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.status')}</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -128,22 +138,22 @@ const UserManagement = () => {
                   <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                        user.role === 'RECEPTIONIST' ? 'bg-blue-100 text-blue-700' :
-                          'bg-green-100 text-green-700'
+                      user.role === 'RECEPTIONIST' ? 'bg-blue-100 text-blue-700' :
+                        'bg-green-100 text-green-700'
                       }`}>
-                      {user.role}
+                      {getRoleLabel(user.role)}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     {user.is_active ? (
                       <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
                         <UserCheck className="w-3 h-3 mr-1" />
-                        Active
+                        {t('admin.active')}
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-rose-100 text-rose-700">
                         <UserX className="w-3 h-3 mr-1" />
-                        Inactive
+                        {t('admin.inactive')}
                       </span>
                     )}
                   </td>
@@ -180,11 +190,11 @@ const UserManagement = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent data-testid="user-form-dialog">
           <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit Staff Member' : 'Add New Staff'}</DialogTitle>
+            <DialogTitle>{editingUser ? t('admin.editStaff') : t('admin.addStaff')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{t('admin.fullName')}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -194,7 +204,7 @@ const UserManagement = () => {
               />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -205,7 +215,7 @@ const UserManagement = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password {editingUser && '(leave blank to keep current)'}</Label>
+              <Label htmlFor="password">{t('auth.password')} {editingUser && `(${t('admin.passwordHint')})`}</Label>
               <Input
                 id="password"
                 type="password"
@@ -216,24 +226,24 @@ const UserManagement = () => {
               />
             </div>
             <div>
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{t('admin.role')}</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger data-testid="user-role-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                  <SelectItem value="SCANNER">Scanner</SelectItem>
+                  <SelectItem value="ADMIN">{t('admin.roleAdmin')}</SelectItem>
+                  <SelectItem value="RECEPTIONIST">{t('admin.roleReceptionist')}</SelectItem>
+                  <SelectItem value="SCANNER">{t('admin.roleScanner')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex space-x-2 pt-4">
               <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="user-form-submit">
-                {editingUser ? 'Update' : 'Create'}
+                {editingUser ? t('admin.update') : t('admin.create')}
               </Button>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>

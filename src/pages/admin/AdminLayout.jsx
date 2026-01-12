@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../../components/ui/button';
 import {
   LayoutDashboard,
@@ -17,18 +18,19 @@ import {
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/users', label: 'Staff Management', icon: Users },
-    { path: '/admin/categories', label: 'Categories', icon: Ticket },
-    { path: '/admin/sessions', label: 'Sessions', icon: Clock },
-    { path: '/admin/packages', label: 'Packages', icon: Package },
-    { path: '/admin/locations', label: 'Locations', icon: MapPin },
-    { path: '/admin/reports', label: 'Reports', icon: BarChart3 },
+    { path: '/admin', label: t('admin.dashboard'), icon: LayoutDashboard },
+    { path: '/admin/users', label: t('admin.staffManagement'), icon: Users },
+    { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
+    { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
+    { path: '/admin/packages', label: t('admin.packages'), icon: Package },
+    { path: '/admin/locations', label: t('admin.locations'), icon: MapPin },
+    { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
   ];
 
   const handleLogout = () => {
@@ -44,7 +46,7 @@ const AdminLayout = () => {
           {/* Header */}
           <div className="p-6 border-b border-slate-800">
             <h1 className="text-2xl font-bold" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
-            <p className="text-sm text-slate-400 mt-1">Admin Panel</p>
+            <p className="text-sm text-slate-400 mt-1">{t('admin.panel')}</p>
           </div>
 
           {/* Navigation */}
@@ -86,7 +88,7 @@ const AdminLayout = () => {
               data-testid="logout-button"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              {t('common.logout')}
             </Button>
           </div>
         </div>

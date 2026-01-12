@@ -6,6 +6,7 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { toast } from 'sonner';
 import { Plus, Pencil, X, Check, Ticket, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
     getCategories,
     createCategory,
@@ -15,6 +16,7 @@ import {
 } from '../../services/categoryService';
 
 const CategoryManagement = () => {
+    const { t } = useLanguage();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -39,7 +41,7 @@ const CategoryManagement = () => {
             setCategories(data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load categories');
+            toast.error(t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -76,19 +78,19 @@ const CategoryManagement = () => {
 
         // Validation
         if (!formData.name.trim()) {
-            toast.error('Category name is required');
+            toast.error(t('admin.categoryName') + ' ' + t('common.required'));
             return;
         }
         if (!formData.code_prefix.trim()) {
-            toast.error('Code prefix is required');
+            toast.error(t('admin.codePrefix') + ' ' + t('common.required'));
             return;
         }
         if (formData.code_prefix.length > 3) {
-            toast.error('Code prefix must be 1-3 characters');
+            toast.error(t('admin.codePrefix') + ' max 3 chars');
             return;
         }
         if (!formData.price || parseFloat(formData.price) < 0) {
-            toast.error('Valid price is required');
+            toast.error(t('dashboard.price') + ' ' + t('common.required'));
             return;
         }
 
@@ -105,17 +107,17 @@ const CategoryManagement = () => {
 
             if (editingId) {
                 await updateCategory(editingId, categoryData);
-                toast.success('Category updated successfully');
+                toast.success(t('common.success'));
             } else {
                 await createCategory(categoryData);
-                toast.success('Category created successfully');
+                toast.success(t('common.success'));
             }
 
             resetForm();
             fetchCategories();
         } catch (error) {
             console.error(error);
-            toast.error(error.message || 'Failed to save category');
+            toast.error(error.message || t('common.error'));
         } finally {
             setSubmitting(false);
         }
@@ -124,26 +126,26 @@ const CategoryManagement = () => {
     const handleToggleActive = async (category) => {
         try {
             await toggleCategoryActive(category.id, !category.active);
-            toast.success(`Category ${!category.active ? 'enabled' : 'disabled'}`);
+            toast.success(t('common.success'));
             fetchCategories();
         } catch (error) {
             console.error(error);
-            toast.error('Failed to update category status');
+            toast.error(t('common.error'));
         }
     };
 
     const handleDelete = async (categoryId) => {
-        if (!confirm('Are you sure you want to delete this category? This may affect existing tickets.')) {
+        if (!confirm(t('admin.deleteConfirm'))) {
             return;
         }
 
         try {
             await deleteCategory(categoryId);
-            toast.success('Category deleted');
+            toast.success(t('common.success'));
             fetchCategories();
         } catch (error) {
             console.error(error);
-            toast.error('Cannot delete category - it may have associated tickets');
+            toast.error(t('common.error'));
         }
     };
 
@@ -161,9 +163,9 @@ const CategoryManagement = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>
-                        Ticket Categories
+                        {t('admin.categories')}
                     </h1>
-                    <p className="text-slate-600 mt-1">Manage ticket categories, prefixes, and pricing</p>
+                    <p className="text-slate-600 mt-1">{t('admin.categoriesSubtitle')}</p>
                 </div>
                 {!showForm && (
                     <Button
@@ -172,7 +174,7 @@ const CategoryManagement = () => {
                         data-testid="add-category-button"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Category
+                        {t('admin.addCategory')}
                     </Button>
                 )}
             </div>
@@ -183,7 +185,7 @@ const CategoryManagement = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-semibold text-slate-900">
-                                {editingId ? 'Edit Category' : 'New Category'}
+                                {editingId ? t('admin.editCategory') : t('admin.newCategory')}
                             </h2>
                             <Button
                                 type="button"
@@ -197,7 +199,7 @@ const CategoryManagement = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="name">Category Name *</Label>
+                                <Label htmlFor="name">{t('admin.categoryName')} *</Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
@@ -209,7 +211,7 @@ const CategoryManagement = () => {
                             </div>
 
                             <div>
-                                <Label htmlFor="code_prefix">Code Prefix * (1-3 chars)</Label>
+                                <Label htmlFor="code_prefix">{t('admin.codePrefix')} * (1-3 chars)</Label>
                                 <Input
                                     id="code_prefix"
                                     value={formData.code_prefix}
@@ -220,12 +222,12 @@ const CategoryManagement = () => {
                                     data-testid="category-prefix-input"
                                 />
                                 <p className="text-xs text-slate-500 mt-1">
-                                    Used in ticket codes: {formData.code_prefix || 'XXX'}-20260112-0001-A1B2
+                                    Ticket Code Example: {formData.code_prefix || 'XXX'}-20260112-0001-A1B2
                                 </p>
                             </div>
 
                             <div>
-                                <Label htmlFor="price">Price (Rp) *</Label>
+                                <Label htmlFor="price">{t('dashboard.price')} (Rp) *</Label>
                                 <Input
                                     id="price"
                                     type="number"
@@ -240,7 +242,7 @@ const CategoryManagement = () => {
                             </div>
 
                             <div>
-                                <Label htmlFor="description">Description</Label>
+                                <Label htmlFor="description">{t('admin.description')}</Label>
                                 <Input
                                     id="description"
                                     value={formData.description}
@@ -261,7 +263,7 @@ const CategoryManagement = () => {
                                     data-testid="category-nim-switch"
                                 />
                                 <Label htmlFor="requires_nim" className="cursor-pointer">
-                                    Requires NIM (Student ID)
+                                    {t('admin.requiresNim')} (Student ID)
                                 </Label>
                             </div>
 
@@ -273,7 +275,7 @@ const CategoryManagement = () => {
                                     data-testid="category-active-switch"
                                 />
                                 <Label htmlFor="active" className="cursor-pointer">
-                                    Active
+                                    {t('admin.active')}
                                 </Label>
                             </div>
                         </div>
@@ -285,7 +287,7 @@ const CategoryManagement = () => {
                                 onClick={resetForm}
                                 disabled={submitting}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                             <Button
                                 type="submit"
@@ -293,7 +295,7 @@ const CategoryManagement = () => {
                                 className="bg-slate-900 hover:bg-slate-800"
                                 data-testid="save-category-button"
                             >
-                                {submitting ? 'Saving...' : editingId ? 'Update Category' : 'Create Category'}
+                                {submitting ? t('admin.saving') : editingId ? t('admin.updateCategory') : t('admin.createCategory')}
                             </Button>
                         </div>
                     </form>
@@ -315,14 +317,14 @@ const CategoryManagement = () => {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-lg text-slate-900">{category.name}</h3>
-                                    <p className="text-sm text-slate-500">{category.description || 'No description'}</p>
+                                    <p className="text-sm text-slate-500">{category.description || t('common.unknown')}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-2 mb-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Price:</span>
+                                <span className="text-slate-600">{t('dashboard.price')}:</span>
                                 <span className="font-semibold text-slate-900">Rp {(category.price || 0).toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-sm">
@@ -335,11 +337,11 @@ const CategoryManagement = () => {
                                 {category.requires_nim && (
                                     <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
                                         <AlertCircle className="w-3 h-3 mr-1" />
-                                        NIM Required
+                                        {t('admin.requiresNim')}
                                     </span>
                                 )}
                                 <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${category.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                                    {category.active ? 'Active' : 'Disabled'}
+                                    {category.active ? t('admin.active') : t('admin.disable')}
                                 </span>
                             </div>
                         </div>
@@ -353,7 +355,7 @@ const CategoryManagement = () => {
                                 data-testid={`edit-category-${category.id}`}
                             >
                                 <Pencil className="w-4 h-4 mr-1" />
-                                Edit
+                                {t('common.edit')}
                             </Button>
                             <Button
                                 variant={category.active ? 'outline' : 'default'}
@@ -362,7 +364,7 @@ const CategoryManagement = () => {
                                 className={`flex-1 ${!category.active ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                                 data-testid={`toggle-category-${category.id}`}
                             >
-                                {category.active ? 'Disable' : 'Enable'}
+                                {category.active ? t('admin.disable') : t('admin.enable')}
                             </Button>
                         </div>
                     </Card>
@@ -372,14 +374,14 @@ const CategoryManagement = () => {
             {categories.length === 0 && (
                 <Card className="p-12 text-center">
                     <Ticket className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">No Categories Yet</h3>
-                    <p className="text-slate-600 mb-4">Create your first ticket category to get started</p>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2">{t('admin.noCategories')}</h3>
+                    <p className="text-slate-600 mb-4">{t('admin.createFirst')}</p>
                     <Button
                         onClick={() => setShowForm(true)}
                         className="bg-slate-900 hover:bg-slate-800"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Category
+                        {t('admin.addCategory')}
                     </Button>
                 </Card>
             )}

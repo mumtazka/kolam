@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { getLocations, createLocation, updateLocation, deleteLocation } from '../../services/adminService';
 
 const LocationManagement = () => {
+    const { t } = useLanguage();
     const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,7 +29,7 @@ const LocationManagement = () => {
             setLocations(data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load locations');
+            toast.error(t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -44,10 +45,10 @@ const LocationManagement = () => {
 
             if (editingLocation) {
                 await updateLocation(editingLocation.id, submitData);
-                toast.success('Location updated successfully');
+                toast.success(t('common.success'));
             } else {
                 await createLocation(submitData);
-                toast.success('Location created successfully');
+                toast.success(t('common.success'));
             }
             setDialogOpen(false);
             setEditingLocation(null);
@@ -55,19 +56,19 @@ const LocationManagement = () => {
             fetchLocations();
         } catch (error) {
             console.error(error);
-            toast.error(error.message || 'Operation failed');
+            toast.error(error.message || t('common.error'));
         }
     };
 
     const handleDelete = async (locationId) => {
-        if (window.confirm('Are you sure you want to delete this location?')) {
+        if (window.confirm(t('admin.confirmStatusChange'))) {
             try {
                 await deleteLocation(locationId);
-                toast.success('Location deleted');
+                toast.success(t('common.success'));
                 fetchLocations();
             } catch (error) {
                 console.error(error);
-                toast.error('Failed to delete location');
+                toast.error(t('common.error'));
             }
         }
     };
@@ -106,23 +107,23 @@ const LocationManagement = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Location Management</h1>
-                    <p className="text-slate-600 mt-1">Manage pool locations and capacities</p>
+                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.locations')}</h1>
+                    <p className="text-slate-600 mt-1">{t('admin.locationsSubtitle')}</p>
                 </div>
                 <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-location-button">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Location
+                    {t('admin.addLocation')}
                 </Button>
             </div>
 
             {locations.length === 0 ? (
                 <Card className="p-12 text-center">
                     <MapPin className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Locations</h3>
-                    <p className="text-slate-600 mb-4">Create your first location to get started</p>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('admin.noLocations')}</h3>
+                    <p className="text-slate-600 mb-4">{t('admin.createFirstLocation')}</p>
                     <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Location
+                        {t('admin.addLocation')}
                     </Button>
                 </Card>
             ) : (
@@ -131,10 +132,10 @@ const LocationManagement = () => {
                         <table className="w-full">
                             <thead className="bg-slate-50 border-b border-slate-200">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Location Name</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Capacity</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Created</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Actions</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.locationName')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.capacity')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.created')}</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200">
@@ -152,10 +153,10 @@ const LocationManagement = () => {
                                             {location.capacity ? (
                                                 <span className="inline-flex items-center text-sm text-slate-600">
                                                     <Users className="w-4 h-4 mr-1 text-slate-400" />
-                                                    {location.capacity} people
+                                                    {location.capacity} {t('admin.people')}
                                                 </span>
                                             ) : (
-                                                <span className="text-sm text-slate-400">Not set</span>
+                                                <span className="text-sm text-slate-400">{t('admin.notSet')}</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-600">
@@ -192,11 +193,11 @@ const LocationManagement = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent data-testid="location-form-dialog">
                     <DialogHeader>
-                        <DialogTitle>{editingLocation ? 'Edit Location' : 'Add New Location'}</DialogTitle>
+                        <DialogTitle>{editingLocation ? t('admin.editLocation') : t('admin.newLocation')}</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Location Name</Label>
+                            <Label htmlFor="name">{t('admin.locationName')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -208,7 +209,7 @@ const LocationManagement = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="capacity">Capacity (Optional)</Label>
+                            <Label htmlFor="capacity">{t('admin.capacityOptional')}</Label>
                             <Input
                                 id="capacity"
                                 type="number"
@@ -218,15 +219,15 @@ const LocationManagement = () => {
                                 placeholder="e.g., 50"
                                 data-testid="location-capacity-input"
                             />
-                            <p className="text-xs text-slate-500 mt-1">Maximum number of people allowed</p>
+                            <p className="text-xs text-slate-500 mt-1">{t('admin.maxPeople')}</p>
                         </div>
 
                         <div className="flex space-x-2 pt-4">
                             <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="location-form-submit">
-                                {editingLocation ? 'Update' : 'Create'}
+                                {editingLocation ? t('admin.update') : t('admin.create')}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </form>
