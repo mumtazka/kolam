@@ -29,7 +29,7 @@ const AdminLayout = () => {
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
     { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
     { path: '/admin/packages', label: t('admin.packages'), icon: Package },
-    { path: '/admin/locations', label: t('admin.locations'), icon: MapPin },
+    { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
   ];
 

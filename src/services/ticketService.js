@@ -127,7 +127,7 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
  * @param {Object} scanner - Scanner user object
  * @param {string} shift - Current scanner shift
  */
-export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown') => {
+export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', poolId = null) => {
     // Try to find ticket by ID first, then by ticket_code
     let ticket = null;
     let fetchError = null;
@@ -189,13 +189,14 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown') =
 
     if (updateError) throw updateError;
 
-    // Create scan log with shift attribution
+    // Create scan log with shift attribution and pool verification
     await supabase.from('scan_logs').insert({
         ticket_id: ticket.id,
         scanned_by: scanner.id,
         scanned_by_name: scanner.name,
         category_name: ticket.category_name,
-        shift: shift // Record the shift of the scanner
+        shift: shift, // Record the shift of the scanner
+        pool_id: poolId // Record the pool/location of the scan
     });
 
     return {

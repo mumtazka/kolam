@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { scanTicket } from '../../services/ticketService';
+import { getPools } from '../../services/adminService';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag } from 'lucide-react';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Droplets } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ScannerDashboard = () => {
@@ -16,7 +17,9 @@ const ScannerDashboard = () => {
     // State
     const [setupComplete, setSetupComplete] = useState(false);
     const [selectedShift, setSelectedShift] = useState('');
-    const [selectedLocation, setSelectedLocation] = useState('');
+    const [selectedPool, setSelectedPool] = useState(null); // Object: { id, name }
+    const [pools, setPools] = useState([]);
+    const [loadingPools, setLoadingPools] = useState(true);
 
     // Scan State: 'IDLE' | 'PROCESSING' | 'VALID' | 'USED' | 'INVALID' | 'ERROR'
     const [scanStatus, setScanStatus] = useState('IDLE');
@@ -27,6 +30,22 @@ const ScannerDashboard = () => {
     const barcodeBuffer = useRef('');
     const lastKeyTime = useRef(Date.now());
     const scanTimeout = useRef(null);
+
+    useEffect(() => {
+        const loadPools = async () => {
+            try {
+                const data = await getPools();
+                const activePools = data.filter(p => p.active);
+                setPools(activePools);
+            } catch (error) {
+                console.error("Failed to load pools", error);
+                toast.error("Failed to load pools");
+            } finally {
+                setLoadingPools(false);
+            }
+        };
+        loadPools();
+    }, []);
 
     // Play sound helper
     const playSound = (type) => {
@@ -51,8 +70,8 @@ const ScannerDashboard = () => {
             // Clean the code (some scanners add prefixes/suffixes)
             const cleanCode = code.trim();
 
-            // Call API
-            const result = await scanTicket(cleanCode, user, selectedShift);
+            // Call API with pool ID
+            const result = await scanTicket(cleanCode, user, selectedShift, selectedPool?.id);
 
             setScanResult(result);
             if (result.success) {
@@ -109,14 +128,14 @@ const ScannerDashboard = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [setupComplete, user, selectedShift, scanStatus]);
+    }, [setupComplete, user, selectedShift, scanStatus, selectedPool]);
 
     // Start Shift Handler
     const startShift = () => {
-        if (selectedShift && selectedLocation) {
+        if (selectedShift && selectedPool) {
             setSetupComplete(true);
         } else {
-            toast.error('Please select shift and location');
+            toast.error('Please select shift and pool');
         }
     };
 
@@ -150,24 +169,30 @@ const ScannerDashboard = () => {
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium text-slate-300 mb-3 block">{t('dashboard.selectLocation')}</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {['Gate 1', 'Gate 2'].map(l => (
-                                    <Button
-                                        key={l}
-                                        onClick={() => setSelectedLocation(l)}
-                                        variant={selectedLocation === l ? 'default' : 'outline'}
-                                        className={`h-12 ${selectedLocation === l ? 'bg-indigo-500 hover:bg-indigo-600 border-none' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
-                                    >
-                                        {l}
-                                    </Button>
-                                ))}
-                            </div>
+                            <label className="text-sm font-medium text-slate-300 mb-3 block">{t('admin.pools')}</label>
+                            {loadingPools ? (
+                                <div className="text-center text-slate-500 py-4">Loading pools...</div>
+                            ) : pools.length === 0 ? (
+                                <div className="text-center text-amber-500 py-4">No active pools found</div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {pools.map(pool => (
+                                        <Button
+                                            key={pool.id}
+                                            onClick={() => setSelectedPool(pool)}
+                                            variant={selectedPool?.id === pool.id ? 'default' : 'outline'}
+                                            className={`h-auto py-3 px-2 whitespace-normal text-center leading-tight ${selectedPool?.id === pool.id ? 'bg-indigo-500 hover:bg-indigo-600 border-none' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
+                                        >
+                                            {pool.name}
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <Button
                             onClick={startShift}
-                            disabled={!selectedShift || !selectedLocation}
+                            disabled={!selectedShift || !selectedPool}
                             className="w-full h-12 text-lg bg-emerald-500 hover:bg-emerald-600 font-bold text-white mt-4"
                         >
                             {t('scanner.startShift')}
@@ -202,7 +227,7 @@ const ScannerDashboard = () => {
                     <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
                         <span className="flex items-center"><User className="w-4 h-4 mr-1" /> {user.name}</span>
                         <span className="flex items-center"><Calendar className="w-4 h-4 mr-1" /> {selectedShift}</span>
-                        <span className="flex items-center"><Scan className="w-4 h-4 mr-1" /> {selectedLocation}</span>
+                        <span className="flex items-center"><Droplets className="w-4 h-4 mr-1" /> {selectedPool ? selectedPool.name : '-'}</span>
                     </div>
                 </div>
                 <div className="flex gap-2">

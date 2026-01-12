@@ -109,11 +109,11 @@ export const deletePackage = async (packageId) => {
 };
 
 /**
- * Get all locations
+ * Get all pools
  */
-export const getLocations = async () => {
+export const getPools = async () => {
     const { data, error } = await supabase
-        .from('locations')
+        .from('pools')
         .select('*')
         .order('name');
 
@@ -122,12 +122,12 @@ export const getLocations = async () => {
 };
 
 /**
- * Create location
+ * Create pool
  */
-export const createLocation = async (locationData) => {
+export const createPool = async (poolData) => {
     const { data, error } = await supabase
-        .from('locations')
-        .insert(locationData)
+        .from('pools')
+        .insert(poolData)
         .select()
         .single();
 
@@ -136,13 +136,13 @@ export const createLocation = async (locationData) => {
 };
 
 /**
- * Update location
+ * Update pool
  */
-export const updateLocation = async (locationId, locationData) => {
+export const updatePool = async (poolId, poolData) => {
     const { data, error } = await supabase
-        .from('locations')
-        .update(locationData)
-        .eq('id', locationId)
+        .from('pools')
+        .update(poolData)
+        .eq('id', poolId)
         .select()
         .single();
 
@@ -151,13 +151,41 @@ export const updateLocation = async (locationId, locationData) => {
 };
 
 /**
- * Delete location
+ * Delete pool
  */
-export const deleteLocation = async (locationId) => {
+export const deletePool = async (poolId) => {
     const { error } = await supabase
-        .from('locations')
+        .from('pools')
         .delete()
-        .eq('id', locationId);
+        .eq('id', poolId);
 
     if (error) throw error;
 };
+
+/**
+ * Upload pool image
+ * @param {File} file - File object to upload
+ */
+export const uploadPoolImage = async (file) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('pool-images')
+        .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+        .from('pool-images')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+};
+
+// Deprecated Location functions mapped to Pool functions for backward compatibility during migration
+export const getLocations = getPools;
+export const createLocation = createPool;
+export const updateLocation = updatePool;
+export const deleteLocation = deletePool;

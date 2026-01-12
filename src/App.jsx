@@ -13,7 +13,7 @@ import UserManagement from './pages/admin/UserManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import PackageManagement from './pages/admin/PackageManagement';
-import LocationManagement from './pages/admin/LocationManagement';
+import PoolManagement from './pages/admin/PoolManagement';
 import Reports from './pages/admin/Reports';
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
 import ScannerDashboard from './pages/scanner/ScannerDashboard';
@@ -73,10 +73,10 @@ function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="users" element={<UserManagement />} />
+                <Route path="pools" element={<PoolManagement />} />
                 <Route path="categories" element={<CategoryManagement />} />
                 <Route path="sessions" element={<SessionManagement />} />
                 <Route path="packages" element={<PackageManagement />} />
-                <Route path="locations" element={<LocationManagement />} />
                 <Route path="reports" element={<Reports />} />
               </Route>
 
