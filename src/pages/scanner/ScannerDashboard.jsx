@@ -145,6 +145,7 @@ const ScannerDashboard = () => {
             {scanResult.ticket && (
               <Card className="bg-white/20 backdrop-blur-sm p-4 text-left border-none text-white">
                 <div className="space-y-2 text-sm">
+                  {scanResult.ticket.ticket_code && <p><span className="font-semibold opacity-80">Code:</span> <span className="text-lg font-bold font-mono">{scanResult.ticket.ticket_code}</span></p>}
                   <p><span className="font-semibold opacity-80">Category:</span> <span className="text-lg font-bold">{scanResult.ticket.category_name}</span></p>
                   <p><span className="font-semibold opacity-80">Price:</span> Rp {scanResult.ticket.price?.toLocaleString()}</p>
                   <p><span className="font-semibold opacity-80">Scanner:</span> {user.name}</p>
@@ -220,7 +221,7 @@ const ScannerDashboard = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

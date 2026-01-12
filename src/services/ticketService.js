@@ -1,11 +1,56 @@
 import { supabase } from '../lib/supabase';
 
 /**
+ * Generate a random alphanumeric string
+ */
+const generateRandomCode = (length = 4) => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars: I, O, 0, 1
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+};
+
+/**
+ * Generate ticket code in format: [PREFIX]-[YYYYMMDD]-[BATCH]-[RANDOM]
+ * Example: VIP-20260112-0042-A9K2
+ */
+const generateTicketCode = async (prefix, batchNumber) => {
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const batchStr = String(batchNumber).padStart(4, '0');
+    const randomStr = generateRandomCode(4);
+
+    return `${prefix}-${dateStr}-${batchStr}-${randomStr}`;
+};
+
+/**
+ * Get the next batch number for today
+ */
+const getNextBatchNumber = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayStart = `${today}T00:00:00`;
+    const todayEnd = `${today}T23:59:59`;
+
+    const { count, error } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', todayStart)
+        .lte('created_at', todayEnd);
+
+    if (error) throw error;
+
+    // Batch number = total tickets today + 1
+    return (count || 0) + 1;
+};
+
+/**
  * Generate QR code data URL for a ticket
  */
-const generateQRCode = async (ticketId) => {
+const generateQRCode = async (ticketCode) => {
     // Using a simple QR code API - in production you might want to use a library
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketId}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticketCode)}`;
 };
 
 /**
@@ -18,32 +63,46 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
     // Generate batch ID
     const batchId = crypto.randomUUID();
 
-    // Get categories and prices
-    const { data: categories } = await supabase.from('categories').select('*');
-    const { data: prices } = await supabase.from('prices').select('*');
+    // Get categories for prefix lookup
+    const { data: categories, error: catError } = await supabase
+        .from('categories')
+        .select('*');
+
+    if (catError) throw catError;
+
+    // Get starting batch number
+    let batchNumber = await getNextBatchNumber();
 
     // Create all tickets
     const ticketsToInsert = [];
 
     for (const item of ticketItems) {
         const category = categories.find(c => c.id === item.category_id);
-        const price = prices.find(p => p.category_id === item.category_id)?.price || 0;
+
+        if (!category) {
+            throw new Error(`Category not found: ${item.category_id}`);
+        }
 
         for (let i = 0; i < item.quantity; i++) {
             const ticketId = crypto.randomUUID();
+            const ticketCode = await generateTicketCode(category.code_prefix, batchNumber);
+
             ticketsToInsert.push({
                 id: ticketId,
+                ticket_code: ticketCode,
                 batch_id: batchId,
                 category_id: item.category_id,
-                category_name: category?.name || 'Unknown',
+                category_name: category.name,
                 status: 'UNUSED',
-                price: price,
+                price: category.price,
                 nim: item.nim || null,
-                qr_code: await generateQRCode(ticketId),
+                qr_code: await generateQRCode(ticketCode),
                 created_by: user.id,
                 created_by_name: user.name,
                 shift: shift
             });
+
+            batchNumber++;
         }
     }
 
@@ -63,16 +122,35 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
 
 /**
  * Scan and validate a ticket
- * @param {string} ticketId - Ticket UUID
+ * @param {string} ticketIdentifier - Ticket UUID or ticket_code
  * @param {Object} scanner - Scanner user object
  */
-export const scanTicket = async (ticketId, scanner) => {
-    // First, get the ticket
-    const { data: ticket, error: fetchError } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('id', ticketId)
-        .single();
+export const scanTicket = async (ticketIdentifier, scanner) => {
+    // Try to find ticket by ID first, then by ticket_code
+    let ticket = null;
+    let fetchError = null;
+
+    // Check if it looks like a UUID
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ticketIdentifier);
+
+    if (isUUID) {
+        const result = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('id', ticketIdentifier)
+            .single();
+        ticket = result.data;
+        fetchError = result.error;
+    } else {
+        // Try by ticket_code
+        const result = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('ticket_code', ticketIdentifier.toUpperCase())
+            .single();
+        ticket = result.data;
+        fetchError = result.error;
+    }
 
     if (fetchError || !ticket) {
         return {
@@ -101,7 +179,7 @@ export const scanTicket = async (ticketId, scanner) => {
             scanned_at: new Date().toISOString(),
             scanned_by: scanner.id
         })
-        .eq('id', ticketId)
+        .eq('id', ticket.id)
         .select()
         .single();
 
@@ -109,7 +187,7 @@ export const scanTicket = async (ticketId, scanner) => {
 
     // Create scan log
     await supabase.from('scan_logs').insert({
-        ticket_id: ticketId,
+        ticket_id: ticket.id,
         scanned_by: scanner.id,
         scanned_by_name: scanner.name,
         category_name: ticket.category_name

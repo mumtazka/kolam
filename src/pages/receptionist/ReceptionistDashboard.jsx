@@ -10,7 +10,7 @@ import { LogOut, Printer, Plus, Minus, ShoppingCart, Ticket, Clock } from 'lucid
 import { toast } from 'sonner';
 
 // Import Supabase services
-import { getCategoriesWithPrices } from '../../services/categoryService';
+import { getActiveCategoriesWithPrices } from '../../services/categoryService';
 import { createBatchTickets } from '../../services/ticketService';
 
 const ReceptionistDashboard = () => {
@@ -30,7 +30,7 @@ const ReceptionistDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const data = await getCategoriesWithPrices();
+      const data = await getActiveCategoriesWithPrices();
       setCategories(data);
     } catch (error) {
       toast.error('Failed to load data: ' + error.message);
@@ -317,7 +317,7 @@ const ReceptionistDashboard = () => {
               </div>
 
               <div className="text-sm space-y-1 font-mono">
-                <p><strong>ID:</strong> {ticket.id.split('-')[0].toUpperCase()}</p>
+                <p><strong>Code:</strong> {ticket.ticket_code}</p>
                 <p><strong>Price:</strong> Rp {ticket.price.toLocaleString()}</p>
                 {ticket.nim && <p><strong>NIM:</strong> {ticket.nim}</p>}
                 <p><strong>Shift:</strong> {ticket.shift}</p>

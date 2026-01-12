@@ -40,7 +40,10 @@ CREATE INDEX idx_users_is_active ON users(is_active);
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
+    code_prefix VARCHAR(3) NOT NULL UNIQUE,
     requires_nim BOOLEAN NOT NULL DEFAULT FALSE,
+    price DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -108,6 +111,7 @@ CREATE TABLE locations (
 
 CREATE TABLE tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ticket_code VARCHAR(50) UNIQUE NOT NULL,
     batch_id UUID NOT NULL,
     category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
     category_name VARCHAR(255) NOT NULL,
@@ -124,6 +128,7 @@ CREATE TABLE tickets (
 );
 
 -- Indexes for common queries
+CREATE INDEX idx_tickets_ticket_code ON tickets(ticket_code);
 CREATE INDEX idx_tickets_batch_id ON tickets(batch_id);
 CREATE INDEX idx_tickets_status ON tickets(status);
 CREATE INDEX idx_tickets_category_id ON tickets(category_id);
@@ -265,12 +270,14 @@ INSERT INTO users (id, email, password_hash, name, role, is_active) VALUES
     TRUE
 );
 
--- Insert default categories
-INSERT INTO categories (name, requires_nim, description) VALUES
-    ('Umum', FALSE, 'Tiket umum'),
-    ('Mahasiswa', TRUE, 'Mahasiswa dengan NIM'),
-    ('Khusus', FALSE, 'Tiket khusus'),
-    ('Liburan', FALSE, 'Tiket hari libur (Sabtu & Minggu)');
+-- Insert default categories with prefixes and prices
+INSERT INTO categories (name, code_prefix, requires_nim, price, active, description) VALUES
+    ('Umum', 'U', FALSE, 15000, TRUE, 'Tiket umum'),
+    ('Mahasiswa', 'M', TRUE, 10000, TRUE, 'Mahasiswa dengan NIM'),
+    ('Khusus', 'K', FALSE, 20000, TRUE, 'Tiket khusus'),
+    ('Liburan', 'L', FALSE, 20000, TRUE, 'Tiket hari libur (Sabtu & Minggu)'),
+    ('VIP', 'VIP', FALSE, 50000, TRUE, 'Tiket VIP dengan akses premium'),
+    ('Event', 'EVT', FALSE, 25000, FALSE, 'Tiket event khusus');
 
 -- Insert default packages
 INSERT INTO packages (name, depth_range, description) VALUES

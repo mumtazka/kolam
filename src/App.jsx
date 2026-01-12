@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
-import PriceManagement from './pages/admin/PriceManagement';
+import CategoryManagement from './pages/admin/CategoryManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import PackageManagement from './pages/admin/PackageManagement';
 import LocationManagement from './pages/admin/LocationManagement';
@@ -68,7 +68,7 @@ function App() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<UserManagement />} />
-              <Route path="categories" element={<PriceManagement />} />
+              <Route path="categories" element={<CategoryManagement />} />
               <Route path="sessions" element={<SessionManagement />} />
               <Route path="packages" element={<PackageManagement />} />
               <Route path="locations" element={<LocationManagement />} />
