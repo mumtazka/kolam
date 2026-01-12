@@ -16,6 +16,10 @@ import PackageManagement from './pages/admin/PackageManagement';
 import PoolManagement from './pages/admin/PoolManagement';
 import Reports from './pages/admin/Reports';
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
+import ReceptionistLayout from './pages/receptionist/ReceptionistLayout';
+import ReceptionistPools from './pages/receptionist/ReceptionistPools';
+import ReceptionistSchedule from './pages/receptionist/ReceptionistSchedule';
+import ReceptionistHistory from './pages/receptionist/ReceptionistHistory';
 import ScannerDashboard from './pages/scanner/ScannerDashboard';
 
 const RoleBasedRedirect = () => {
@@ -85,10 +89,15 @@ function App() {
                 path="/receptionist"
                 element={
                   <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
-                    <ReceptionistDashboard />
+                    <ReceptionistLayout />
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={<ReceptionistDashboard />} />
+                <Route path="schedule" element={<ReceptionistSchedule />} />
+                <Route path="history" element={<ReceptionistHistory />} />
+                <Route path="pools" element={<ReceptionistPools />} />
+              </Route>
 
               {/* Scanner Route */}
               <Route
