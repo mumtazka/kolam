@@ -4,8 +4,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, X, Check, Ticket, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash, X, Check, Ticket, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
     getCategories,
@@ -58,6 +59,13 @@ const CategoryManagement = () => {
         });
         setEditingId(null);
         setShowForm(false);
+    };
+
+    const handleDataOpen = (isOpen) => {
+        setShowForm(isOpen);
+        if (!isOpen) {
+            resetForm();
+        }
     };
 
     const handleEdit = (category) => {
@@ -135,7 +143,7 @@ const CategoryManagement = () => {
     };
 
     const handleDelete = async (categoryId) => {
-        if (!confirm(t('admin.deleteConfirm'))) {
+        if (!window.confirm(t('admin.deleteConfirm') || "WARNING: This will delete the category AND ALL associated tickets/scan logs. This action cannot be undone. Are you sure?")) {
             return;
         }
 
@@ -167,36 +175,29 @@ const CategoryManagement = () => {
                     </h1>
                     <p className="text-slate-600 mt-1">{t('admin.categoriesSubtitle')}</p>
                 </div>
-                {!showForm && (
-                    <Button
-                        onClick={() => setShowForm(true)}
-                        className="bg-slate-900 hover:bg-slate-800"
-                        data-testid="add-category-button"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t('admin.addCategory')}
-                    </Button>
-                )}
+                <Button
+                    onClick={() => setShowForm(true)}
+                    className="bg-slate-900 hover:bg-slate-800"
+                    data-testid="add-category-button"
+                >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('admin.addCategory')}
+                </Button>
             </div>
 
-            {/* Add/Edit Form */}
-            {showForm && (
-                <Card className="p-6 border-2 border-sky-500" data-testid="category-form">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-slate-900">
-                                {editingId ? t('admin.editCategory') : t('admin.newCategory')}
-                            </h2>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={resetForm}
-                            >
-                                <X className="w-5 h-5" />
-                            </Button>
-                        </div>
+            {/* Add/Edit Dialog */}
+            <Dialog open={showForm} onOpenChange={handleDataOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingId ? t('admin.editCategory') : t('admin.newCategory')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {editingId ? "Update existing category details." : "Create a new ticket category."}
+                        </DialogDescription>
+                    </DialogHeader>
 
+                    <form onSubmit={handleSubmit} className="space-y-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label htmlFor="name">{t('admin.categoryName')} *</Label>
@@ -280,11 +281,11 @@ const CategoryManagement = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-4 border-t">
+                        <DialogFooter className="pt-4">
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={resetForm}
+                                onClick={() => handleDataOpen(false)}
                                 disabled={submitting}
                             >
                                 {t('common.cancel')}
@@ -297,10 +298,10 @@ const CategoryManagement = () => {
                             >
                                 {submitting ? t('admin.saving') : editingId ? t('admin.updateCategory') : t('admin.createCategory')}
                             </Button>
-                        </div>
+                        </DialogFooter>
                     </form>
-                </Card>
-            )}
+                </DialogContent>
+            </Dialog>
 
             {/* Categories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -365,6 +366,15 @@ const CategoryManagement = () => {
                                 data-testid={`toggle-category-${category.id}`}
                             >
                                 {category.active ? t('admin.disable') : t('admin.enable')}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleDelete(category.id)}
+                                className="w-9 h-9"
+                                title="Delete"
+                            >
+                                <Trash className="w-4 h-4" />
                             </Button>
                         </div>
                     </Card>
