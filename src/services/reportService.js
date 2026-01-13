@@ -1,6 +1,33 @@
 import { supabase } from '../lib/supabase';
 
 /**
+ * Helper function to fetch all records with pagination
+ * Supabase has a default limit of 1000 records per query
+ * This function fetches all records by paginating through results
+ */
+const fetchAllRecords = async (query, pageSize = 1000) => {
+    let allRecords = [];
+    let from = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+        const { data, error } = await query.range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            allRecords = [...allRecords, ...data];
+            from += pageSize;
+            hasMore = data.length === pageSize;
+        } else {
+            hasMore = false;
+        }
+    }
+
+    return allRecords;
+};
+
+/**
  * Get daily report
  * Revenue is calculated from PRINTED tickets (sales)
  * @param {string} date - Date in YYYY-MM-DD format
@@ -10,14 +37,14 @@ export const getDailyReport = async (date) => {
         const startOfDay = `${date}T00:00:00`;
         const endOfDay = `${date}T23:59:59`;
 
-        // Get printed tickets (by created_at)
-        const { data: printedTickets, error: printedError } = await supabase
+        // Get printed tickets (by created_at) - with pagination for large datasets
+        const printedQuery = supabase
             .from('tickets')
             .select('*')
             .gte('created_at', startOfDay)
             .lte('created_at', endOfDay);
 
-        if (printedError) throw printedError;
+        const printedTickets = await fetchAllRecords(printedQuery);
 
         // Handle case when no tickets found
         if (!printedTickets || printedTickets.length === 0) {
@@ -34,15 +61,15 @@ export const getDailyReport = async (date) => {
             };
         }
 
-        // Get scanned tickets (by scanned_at) for attendance stats
-        const { data: scannedTickets, error: scannedError } = await supabase
+        // Get scanned tickets (by scanned_at) for attendance stats - with pagination
+        const scannedQuery = supabase
             .from('tickets')
             .select('*')
             .eq('status', 'USED')
             .gte('scanned_at', startOfDay)
             .lte('scanned_at', endOfDay);
 
-        if (scannedError) throw scannedError;
+        const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate printed data
         const ticketsPrinted = printedTickets.length;
@@ -132,14 +159,14 @@ export const getMonthlyReport = async (year, month) => {
         const lastDay = new Date(year, month, 0).getDate();
         const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${lastDay}T23:59:59`;
 
-        // Get printed tickets (Sales)
-        const { data: printedTickets, error: printedError } = await supabase
+        // Get printed tickets (Sales) - with pagination for large datasets
+        const printedQuery = supabase
             .from('tickets')
             .select('*')
             .gte('created_at', startOfMonth)
             .lte('created_at', endOfMonth);
 
-        if (printedError) throw printedError;
+        const printedTickets = await fetchAllRecords(printedQuery);
 
         // Handle case when no tickets found
         if (!printedTickets || printedTickets.length === 0) {
@@ -157,15 +184,15 @@ export const getMonthlyReport = async (year, month) => {
             };
         }
 
-        // Get scanned tickets for attendance stats
-        const { data: scannedTickets, error: scannedError } = await supabase
+        // Get scanned tickets for attendance stats - with pagination
+        const scannedQuery = supabase
             .from('tickets')
             .select('*')
             .eq('status', 'USED')
             .gte('scanned_at', startOfMonth)
             .lte('scanned_at', endOfMonth);
 
-        if (scannedError) throw scannedError;
+        const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate data
         const ticketsPrinted = printedTickets.length;
@@ -253,13 +280,14 @@ export const getBatchReport = async (date) => {
         const startOfDay = `${date}T00:00:00`;
         const endOfDay = `${date}T23:59:59`;
 
-        const { data: tickets, error } = await supabase
+        // Use pagination for large datasets
+        const ticketsQuery = supabase
             .from('tickets')
             .select('*')
             .gte('created_at', startOfDay)
             .lte('created_at', endOfDay);
 
-        if (error) throw error;
+        const tickets = await fetchAllRecords(ticketsQuery);
 
         // Handle empty tickets
         if (!tickets || tickets.length === 0) {

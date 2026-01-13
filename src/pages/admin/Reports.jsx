@@ -3,7 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
+import Barcode from '../../components/ui/Barcode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport } from '../../services/reportService';
@@ -18,6 +19,7 @@ const Reports = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [historyPage, setHistoryPage] = useState(1);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const HISTORY_PER_PAGE = 20;
 
   const fetchReport = async () => {
@@ -60,13 +62,13 @@ const Reports = () => {
         const date = new Date(ticket.created_at);
         return [
           index + 1,
-          ticket.id,
+          ticket.ticket_code || `TKT-${ticket.id?.substring(0, 8)?.toUpperCase()}`,
           ticket.category_name,
           ticket.nim ? `\t${ticket.nim}` : '-', // Force text format for NIM
           ticket.created_by_name,
           ticket.quantity || 1,
           ticket.price,
-          ticket.status,
+          ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai',
           date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US'),
           date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US')
         ];
@@ -122,166 +124,167 @@ const Reports = () => {
           <h1 className="text-4xl font-bold text-slate-900">{t('reports.title')}</h1>
           <p className="text-slate-600 mt-1">{t('reports.viewReports')}</p>
         </div>
-
-        {/* Stats Cards */}
-        {reportData && !error && (
-          <div className="flex flex-wrap gap-4">
-            <div className="bg-white px-5 py-3 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4 min-w-[140px]">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                  <path d="M3 6h18" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
-                <p className="text-xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
-              </div>
-            </div>
-
-            <div className="bg-white px-5 py-3 rounded-xl border border-emerald-100 shadow-sm flex items-center gap-4 min-w-[140px]">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
-                <p className="text-xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
-              </div>
-            </div>
-
-            <div className="bg-white px-5 py-3 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4 min-w-[160px]">
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-                  <path d="M12 18V6" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
-                <p className="text-xl font-bold text-slate-800">
-                  Rp {(reportData.total_revenue || 0).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Main Content */}
       <div className="space-y-6">
-        {/* Chart */}
+        {/* Chart Section with Stats on Left */}
         {!loading && !error && reportData && reportData.by_category && reportData.by_category.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-            <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
-              <h4 className="text-xl font-bold text-slate-800">{t('reports.salesByCategory')}</h4>
-              <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
-                <span className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
-                <span className="font-medium">{t('reports.ticketCount')}</span>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Stats Cards - Left Side */}
+            <div className="flex flex-row lg:flex-col gap-4 lg:w-80 flex-shrink-0">
+              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                    <path d="M3 6h18" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                  <p className="text-2xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-emerald-100 shadow-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14" />
+                    <path d="M12 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                  <p className="text-2xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+                    <path d="M12 18V6" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                  <p className="text-xl font-bold text-slate-800">
+                    Rp {(reportData.total_revenue || 0).toLocaleString()}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="relative h-96 flex items-end justify-around gap-8 px-6">
-              {/* Grid Lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-12 pt-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="border-t border-slate-200/60 w-full"></div>
-                ))}
+            {/* Chart - Right Side */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex-1">
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
+                <h4 className="text-xl font-bold text-slate-800">{t('reports.salesByCategory')}</h4>
+                <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
+                  <span className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
+                  <span className="font-medium">{t('reports.ticketCount')}</span>
+                </div>
               </div>
 
-              {/* Y-axis */}
-              <div className="absolute left-0 top-0 bottom-12 flex flex-col justify-between text-xs text-slate-500 font-medium pr-2">
-                {(() => {
-                  const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
-                  const step = Math.ceil(maxCount / 5);
-                  return [...Array(6)].map((_, i) => (
-                    <span key={i} className="text-right">{step * (5 - i)}</span>
-                  ));
-                })()}
-              </div>
+              <div className="relative h-80 flex items-end justify-around gap-8 px-6">
+                {/* Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-12 pt-4">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="border-t border-slate-200/60 w-full"></div>
+                  ))}
+                </div>
 
-              {/* Bars */}
-              <div className="flex items-end justify-around gap-6 w-full ml-8 h-full">
-                {(() => {
-                  const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
-                  const colors = [
-                    'from-blue-400 to-blue-600',
-                    'from-emerald-400 to-emerald-600',
-                    'from-amber-400 to-amber-600',
-                    'from-purple-400 to-purple-600',
-                    'from-rose-400 to-rose-600',
-                    'from-cyan-400 to-cyan-600'
-                  ];
+                {/* Y-axis */}
+                <div className="absolute left-0 top-0 bottom-12 flex flex-col justify-between text-xs text-slate-500 font-medium pr-2">
+                  {(() => {
+                    const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
+                    const step = Math.ceil(maxCount / 5);
+                    return [...Array(6)].map((_, i) => (
+                      <span key={i} className="text-right">{step * (5 - i)}</span>
+                    ));
+                  })()}
+                </div>
 
-                  return reportData.by_category.map((cat, idx) => {
-                    const percentage = Math.max(5, (cat.count / maxCount) * 100);
-                    const isHighest = cat.count === maxCount;
+                {/* Bars */}
+                <div className="flex items-end justify-around gap-6 w-full ml-8 h-full">
+                  {(() => {
+                    const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
+                    const colors = [
+                      'from-blue-400 to-blue-600',
+                      'from-emerald-400 to-emerald-600',
+                      'from-amber-400 to-amber-600',
+                      'from-purple-400 to-purple-600',
+                      'from-rose-400 to-rose-600',
+                      'from-cyan-400 to-cyan-600'
+                    ];
 
-                    return (
-                      <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[160px] h-full justify-end pb-12">
-                        {/* Count Label */}
-                        <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                          {isHighest && (
-                            <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                              </svg>
-                              <span className="text-[10px] uppercase tracking-wide">{t('reports.highest')}</span>
-                            </div>
-                          )}
-                          <span className={`inline-block text-base font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
-                            ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
-                            : 'bg-white text-slate-700 border-slate-200'
-                            }`}>
-                            {cat.count}
-                          </span>
-                        </div>
+                    return reportData.by_category.map((cat, idx) => {
+                      const percentage = Math.max(5, (cat.count / maxCount) * 100);
+                      const isHighest = cat.count === maxCount;
 
-                        {/* Bar */}
-                        <div
-                          className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-xl transition-all duration-700 relative shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-105 hover:brightness-110`}
-                          style={{
-                            height: `${percentage}%`,
-                            minHeight: '40px'
-                          }}
-                        >
-                          {/* Tooltip */}
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900 text-white text-xs py-3 px-4 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none">
-                            <p className="font-bold mb-1.5 text-yellow-300 text-sm">{cat._id}</p>
-                            <div className="flex flex-col gap-1.5 text-slate-200">
-                              <div className="flex justify-between gap-4">
-                                <span className="text-slate-400">{t('reports.tickets')}:</span>
-                                <span className="font-mono font-bold">{cat.count}</span>
+                      return (
+                        <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[120px] h-full justify-end pb-12">
+                          {/* Count Label */}
+                          <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                            {isHighest && (
+                              <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <span className="text-[10px] uppercase tracking-wide">{t('reports.highest')}</span>
                               </div>
-                              <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
-                                <span className="text-slate-400">{t('reports.revenue')}:</span>
-                                <span className="font-mono font-bold text-emerald-300">
-                                  Rp {(cat.revenue || 0).toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900"></div>
+                            )}
+                            <span className={`inline-block text-base font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
+                              ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
+                              : 'bg-white text-slate-700 border-slate-200'
+                              }`}>
+                              {cat.count}
+                            </span>
                           </div>
 
-                          {/* Shine Effect */}
-                          <div className="absolute inset-0 rounded-t-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
+                          {/* Bar */}
+                          <div
+                            className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-xl transition-all duration-700 relative shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-105 hover:brightness-110`}
+                            style={{
+                              height: `${percentage}%`,
+                              minHeight: '40px'
+                            }}
+                          >
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900 text-white text-xs py-3 px-4 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none">
+                              <p className="font-bold mb-1.5 text-yellow-300 text-sm">{cat._id}</p>
+                              <div className="flex flex-col gap-1.5 text-slate-200">
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-slate-400">{t('reports.tickets')}:</span>
+                                  <span className="font-mono font-bold">{cat.count}</span>
+                                </div>
+                                <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
+                                  <span className="text-slate-400">{t('reports.revenue')}:</span>
+                                  <span className="font-mono font-bold text-emerald-300">
+                                    Rp {(cat.revenue || 0).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900"></div>
+                            </div>
 
-                        {/* X-Label */}
-                        <div className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-center">
-                          <span className={`text-xs font-bold text-center leading-tight px-2 transition-colors ${isHighest ? 'text-slate-900' : 'text-slate-600'
-                            }`} title={cat._id}>
-                            {cat._id.length > 15 ? cat._id.substring(0, 13) + '...' : cat._id}
-                          </span>
+                            {/* Shine Effect */}
+                            <div className="absolute inset-0 rounded-t-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          </div>
+
+                          {/* X-Label */}
+                          <div className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-center">
+                            <span className={`text-xs font-bold text-center leading-tight px-2 transition-colors ${isHighest ? 'text-slate-900' : 'text-slate-600'
+                              }`} title={cat._id}>
+                              {cat._id.length > 12 ? cat._id.substring(0, 10) + '...' : cat._id}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  });
-                })()}
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             </div>
           </div>
@@ -377,12 +380,16 @@ const Reports = () => {
                     {getPaginatedTickets().map((ticket, idx) => {
                       const date = new Date(ticket.created_at);
                       return (
-                        <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
+                        <tr
+                          key={ticket.id}
+                          className="hover:bg-slate-50 transition-colors cursor-pointer"
+                          onClick={() => setSelectedTicket(ticket)}
+                        >
                           <td className="px-4 py-3 text-slate-600">
                             {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
                           </td>
-                          <td className="px-4 py-3 font-mono text-xs text-slate-500">
-                            {ticket.id?.substring(0, 8)}
+                          <td className="px-4 py-3 font-mono text-xs text-blue-600 font-semibold">
+                            {ticket.ticket_code || ticket.id?.substring(0, 8)}
                           </td>
                           <td className="px-4 py-3 font-medium text-slate-800">
                             {ticket.category_name}
@@ -401,7 +408,7 @@ const Reports = () => {
                               ? 'bg-emerald-100 text-emerald-800'
                               : 'bg-slate-100 text-slate-600'
                               }`}>
-                              {ticket.status}
+                              {ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-slate-500 text-xs">
@@ -456,6 +463,106 @@ const Reports = () => {
           )}
         </Card>
       </div>
+
+      {/* Ticket Detail Modal */}
+      {selectedTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Detail Tiket</h3>
+                <p className="text-sm text-slate-500 mt-1">Informasi lengkap tiket</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedTicket(null)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Barcode Section */}
+              <div className="flex justify-center py-4 bg-white border border-slate-200 rounded-xl">
+                <Barcode
+                  value={selectedTicket.ticket_code || selectedTicket.id}
+                  width={1.5}
+                  height={60}
+                  displayValue={false}
+                />
+              </div>
+
+              {/* Ticket Code */}
+              <div className="text-center">
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Kode Tiket</p>
+                <p className="text-2xl font-bold font-mono text-slate-900 mt-1">
+                  {selectedTicket.ticket_code || selectedTicket.id?.substring(0, 8)}
+                </p>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-xl">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Kategori</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1">{selectedTicket.category_name}</p>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-xl">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Harga</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1">
+                    Rp {parseFloat(selectedTicket.price || 0).toLocaleString()}
+                  </p>
+                </div>
+
+                {selectedTicket.nim && (
+                  <div className="bg-blue-50 p-4 rounded-xl">
+                    <p className="text-xs text-blue-500 font-medium uppercase tracking-wider">NIM</p>
+                    <p className="text-sm font-bold text-blue-800 font-mono mt-1">{selectedTicket.nim}</p>
+                  </div>
+                )}
+
+                <div className="bg-slate-50 p-4 rounded-xl">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Petugas</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1">{selectedTicket.created_by_name}</p>
+                </div>
+
+                <div className={`p-4 rounded-xl ${selectedTicket.status === 'USED' ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+                  <p className={`text-xs font-medium uppercase tracking-wider ${selectedTicket.status === 'USED' ? 'text-emerald-500' : 'text-slate-500'}`}>Status</p>
+                  <p className={`text-sm font-bold mt-1 ${selectedTicket.status === 'USED' ? 'text-emerald-800' : 'text-slate-800'}`}>
+                    {selectedTicket.status === 'USED' ? 'Sudah Digunakan' : 'Belum Digunakan'}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-xl col-span-2">
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Waktu Pembuatan</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1">
+                    {new Date(selectedTicket.created_at).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                    {' - '}
+                    {new Date(selectedTicket.created_at).toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50">
+              <Button
+                onClick={() => setSelectedTicket(null)}
+                className="w-full bg-slate-900 hover:bg-slate-800"
+              >
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
