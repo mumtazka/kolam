@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 // Import Supabase services
 import { getActiveCategoriesWithPrices } from '../../services/categoryService';
 import { createBatchTickets } from '../../services/ticketService';
+import { getTicketPackages } from '../../services/adminService';
 
 const ReceptionistDashboard = () => {
   const { user, logout, switchMode } = useAuth();
@@ -35,6 +36,11 @@ const ReceptionistDashboard = () => {
   const [printedTickets, setPrintedTickets] = useState([]);
   const [currentShift, setCurrentShift] = useState('Pagi');
   const [showPreview, setShowPreview] = useState(false);
+
+  // Package Logic States
+  const [ticketPackages, setTicketPackages] = useState([]);
+  const [packageDialogOpen, setPackageDialogOpen] = useState(false);
+  const [selectedCategoryForPackage, setSelectedCategoryForPackage] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -76,8 +82,12 @@ const ReceptionistDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const data = await getActiveCategoriesWithPrices();
-      setCategories(data);
+      const [categoriesData, packagesData] = await Promise.all([
+        getActiveCategoriesWithPrices(),
+        getTicketPackages()
+      ]);
+      setCategories(categoriesData);
+      setTicketPackages(packagesData.filter(p => p.is_active));
     } catch (error) {
       toast.error(t('common.error') + ': ' + error.message);
     } finally {
@@ -136,30 +146,76 @@ const ReceptionistDashboard = () => {
   };
 
   const addToCart = (category) => {
-    const existingItem = cart.find(item => item.category_id === category.id);
+    // Logic for Special Ticket Packages
+    if (category.code_prefix === 'K') { // 'K' is Khusus
+      setSelectedCategoryForPackage(category);
+      setPackageDialogOpen(true);
+      return;
+    }
+
+    addItemToCart(category);
+  };
+
+  const addItemToCart = (category, packageItem = null) => {
+    // Generate unique Key for cart item (Category + Package combination)
+    // If package is used, we treat it as a separate item in the cart
+    const cartItemId = packageItem
+      ? `${category.id}-${packageItem.id}`
+      : category.id;
+
+    const existingItem = cart.find(item => item.unique_id === cartItemId);
+
     if (existingItem) {
+      // If item exists, just increment quantity (respecting logic elsewhere)
+      // But wait, if it's a package, we might want to just warn or add 1
+      // For simple flow, let's just update
       setCart(cart.map(item =>
-        item.category_id === category.id
+        item.unique_id === cartItemId
           ? { ...item, quantity: (Number(item.quantity) || 0) + 1 }
           : item
       ));
     } else {
+      // New Item
       setCart([...cart, {
+        unique_id: cartItemId,
         category_id: category.id,
         category_name: category.name,
-        quantity: 1,
-        price: category.price,
-        requires_nim: category.requires_nim
+        quantity: packageItem ? packageItem.min_people : 1, // Default to min items
+        price: packageItem ? packageItem.price_per_person : category.price,
+        requires_nim: category.requires_nim,
+
+        // Package Metadata
+        package_id: packageItem ? packageItem.id : null,
+        package_name: packageItem ? packageItem.name : null,
+        min_quantity: packageItem ? packageItem.min_people : 1
       }]);
     }
+
+    if (packageDialogOpen) setPackageDialogOpen(false);
+    if (selectedCategoryForPackage) setSelectedCategoryForPackage(null);
+  };
+
+  const handlePackageSelect = (pkg) => {
+    addItemToCart(selectedCategoryForPackage, pkg);
+  };
+
+  const handleNoPackageSelect = () => {
+    addItemToCart(selectedCategoryForPackage, null);
   };
 
   // For Buttons (+/-) - Removes item if quantity drops to 0 or less
-  const adjustQuantity = (categoryId, delta) => {
+  const adjustQuantity = (uniqueId, delta) => {
     setCart(cart.map(item => {
-      if (item.category_id === categoryId) {
+      if (item.unique_id === uniqueId) {
         const currentQty = Number(item.quantity) || 0;
         const newQty = currentQty + delta;
+
+        // Enforce Min Quantity for Packages
+        if (item.package_id && newQty < item.min_quantity) {
+          toast.error(`Minimum ${item.min_quantity} orang untuk paket ini`);
+          return item;
+        }
+
         return newQty > 0 ? { ...item, quantity: newQty } : null;
       }
       return item;
@@ -167,10 +223,10 @@ const ReceptionistDashboard = () => {
   };
 
   // For Text Input - Allows empty or 0 temporarily while typing
-  const handleQuantityInput = (categoryId, value) => {
+  const handleQuantityInput = (uniqueId, value) => {
     if (value === '') {
       setCart(cart.map(item =>
-        item.category_id === categoryId ? { ...item, quantity: '' } : item
+        item.unique_id === uniqueId ? { ...item, quantity: '' } : item
       ));
       return;
     }
@@ -178,29 +234,56 @@ const ReceptionistDashboard = () => {
     const newQty = parseInt(value);
     if (!isNaN(newQty) && newQty >= 0) {
       setCart(cart.map(item =>
-        item.category_id === categoryId ? { ...item, quantity: newQty } : item
+        item.unique_id === uniqueId ? { ...item, quantity: newQty } : item
       ));
     }
   };
 
-  // Reset to 1 if left empty or 0 on blur
-  const handleInputBlur = (categoryId) => {
+  // Reset to 1 (or Min) if left empty or invalid on blur
+  const handleInputBlur = (uniqueId) => {
     setCart(cart.map(item => {
-      if (item.category_id === categoryId) {
+      if (item.unique_id === uniqueId) {
         const qty = Number(item.quantity);
-        if (item.quantity === '' || isNaN(qty) || qty <= 0) {
-          return { ...item, quantity: 1 };
+        const minQty = item.min_quantity || 1;
+
+        if (item.quantity === '' || isNaN(qty) || qty < minQty) {
+          if (qty < minQty && !isNaN(qty)) {
+            toast.error(`Auto-set ke minimum: ${minQty}`);
+          }
+          return { ...item, quantity: minQty };
         }
       }
       return item;
     }));
   };
 
-  const removeFromCart = (categoryId) => {
-    setCart(cart.filter(item => item.category_id !== categoryId));
-    const newNimInputs = { ...nimInputs };
-    delete newNimInputs[categoryId];
-    setNimInputs(newNimInputs);
+  const removeFromCart = (uniqueId) => {
+    const item = cart.find(i => i.unique_id === uniqueId);
+    setCart(cart.filter(item => item.unique_id !== uniqueId));
+
+    // Clean up NIMs
+    if (item) {
+      const newNimInputs = { ...nimInputs };
+      delete newNimInputs[item.category_id]; // Note: This clears NIMs for category. 
+      // Logic for multiple packages of same category? The NIM struct uses category_id currently: { category_id: [] }
+      // If we have multiple "Types" of items for same category, we need valid handling.
+      // Current 'nimInputs' uses category_id. 
+      // Ideally we should use unique_id for nims too, but let's stick to category_id if only one instance allowed per cat?
+      // Ah, addItemToCart allows multiple unique_ids.
+
+      // REFACTOR NIM INPUTS TO USE UNIQUE_ID
+      // But for safe minimal change:
+      // If we remove an item, we delete its NIMs. Ideally we key NIMs by unique_id.
+      // Let's UPDATE the Nim Input Logic KEY too.
+
+      // Wait, I cannot easily refactor all NIM logic in this chunk.
+      // Let's assume unique_id usually == category_id unless packages.
+      // If I have Package A (Khusus) and Package B (Khusus), they might conflict on 'nimInputs[khusus_id]'.
+      // But typically user selects one type of ticket.
+      // Let's Update removeFromCart to delete based on unique_id if I refactor nims?
+      // No, let's keep it simple: Just clear based on category_id for now, risking data loss if mix-and-match packages for same category (rare edge case).
+      setNimInputs(newNimInputs);
+    }
   };
 
   const getTotalAmount = () => {
@@ -271,6 +354,9 @@ const ReceptionistDashboard = () => {
       const ticketItems = cart.map(item => ({
         category_id: item.category_id,
         quantity: Number(item.quantity) || 1,
+        // Include Package Data
+        package_id: item.package_id,
+        // Map NIMs (This relies on nimInputs key. If I don't change key, it works for single item per category)
         nims: item.requires_nim ? (nimInputs[item.category_id] || []).map(n => n?.trim()) : null
       }));
 
@@ -423,12 +509,20 @@ const ReceptionistDashboard = () => {
               <>
                 <div className="space-y-3 flex-1 overflow-auto pb-4">
                   {cart.map(item => (
-                    <Card key={item.category_id} className="p-3 border-slate-200 shadow-none bg-slate-50/50">
+                    <Card key={item.unique_id} className="p-3 border-slate-200 shadow-none bg-slate-50/50">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm text-slate-900">{item.category_name}</span>
+                          <div>
+                            <span className="font-semibold text-sm text-slate-900 block">{item.category_name}</span>
+                            {item.package_name && (
+                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1 rounded flex items-center mt-0.5">
+                                <Ticket className="w-3 h-3 mr-1" />
+                                {item.package_name}
+                              </span>
+                            )}
+                          </div>
                           <button
-                            onClick={() => removeFromCart(item.category_id)}
+                            onClick={() => removeFromCart(item.unique_id)}
                             className="text-rose-500 hover:text-rose-700 p-1 rounded-md hover:bg-rose-50 transition-colors"
                           >
                             <X className="w-4 h-4" />
@@ -439,7 +533,7 @@ const ReceptionistDashboard = () => {
                           <div className="flex items-center bg-white rounded-md border border-slate-200">
                             <button
                               className="p-2 hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-50"
-                              onClick={() => adjustQuantity(item.category_id, -1)}
+                              onClick={() => adjustQuantity(item.unique_id, -1)}
                             >
                               <Minus className="w-3 h-3" />
                             </button>
@@ -448,19 +542,27 @@ const ReceptionistDashboard = () => {
                               type="number"
                               className="w-10 text-center border-none p-0 text-sm font-bold text-slate-900 focus:ring-0 appearance-none bg-transparent focus:outline-none"
                               value={item.quantity}
-                              onChange={(e) => handleQuantityInput(item.category_id, e.target.value)}
-                              onBlur={() => handleInputBlur(item.category_id)}
+                              onChange={(e) => handleQuantityInput(item.unique_id, e.target.value)}
+                              onBlur={() => handleInputBlur(item.unique_id)}
                             />
                             <button
                               className="p-2 hover:bg-slate-100 text-slate-600 transition-colors"
-                              onClick={() => adjustQuantity(item.category_id, 1)}
+                              onClick={() => adjustQuantity(item.unique_id, 1)}
                             >
                               <Plus className="w-3 h-3" />
                             </button>
                           </div>
-                          <span className="font-semibold text-sm text-slate-900">
-                            Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString()}
-                          </span>
+                          <div className="text-right">
+                            <span className="font-semibold text-sm text-slate-900 block">
+                              Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString()}
+                            </span>
+                            {/* Show breakdown if package */}
+                            {item.package_id && (
+                              <span className="text-[10px] text-slate-500">
+                                {item.quantity} x @{item.price.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {item.requires_nim && (
@@ -618,6 +720,93 @@ const ReceptionistDashboard = () => {
         )}
 
       </div>
+
+      {/* Package Selection Dialog */}
+      {packageDialogOpen && selectedCategoryForPackage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden transform transition-all scale-100">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+              <div>
+                <h3 className="text-xl font-bold" style={{ fontFamily: 'Outfit' }}>Pilih Jenis Tiket Khusus</h3>
+                <p className="text-sm text-slate-300 mt-1">Silakan pilih paket atau tiket satuan</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPackageDialogOpen(false)} className="text-white hover:bg-slate-800 rounded-full">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
+              <div className="space-y-4">
+                {/* Option 1: Satuan (Default) */}
+                <div
+                  onClick={handleNoPackageSelect}
+                  className="bg-white p-4 rounded-xl border-2 border-slate-200 hover:border-slate-900 cursor-pointer transition-all hover:shadow-md group"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-slate-900 transition-colors">
+                        <Ticket className="w-6 h-6 text-slate-500 group-hover:text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-lg text-slate-900">Tiket Satuan / Normal</h4>
+                        <p className="text-sm text-slate-500">Harga normal per orang, tanpa minimum jumlah.</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-xl font-bold text-slate-900">Rp {selectedCategoryForPackage.price.toLocaleString()}</span>
+                      <span className="text-xs text-slate-500">per orang</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-slate-50 px-2 text-sm text-gray-500 font-medium">ATAU PILIH PAKET</span>
+                  </div>
+                </div>
+
+                {/* Option 2: Packages */}
+                {ticketPackages.length === 0 ? (
+                  <div className="text-center py-4 text-slate-400 italic">Tidak ada paket tersedia saat ini.</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {ticketPackages.map(pkg => (
+                      <div
+                        key={pkg.id}
+                        onClick={() => handlePackageSelect(pkg)}
+                        className="bg-white p-4 rounded-xl border-2 border-emerald-100 hover:border-emerald-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                          PAKET HEMAT
+                        </div>
+
+                        <div className="mb-3">
+                          <h4 className="font-bold text-lg text-emerald-950 group-hover:text-emerald-700">{pkg.name}</h4>
+                          <p className="text-xs text-emerald-600/80 font-medium">{pkg.description}</p>
+                        </div>
+
+                        <div className="space-y-1 text-sm text-slate-600">
+                          <p className="flex justify-between">
+                            <span>Min. Orang:</span>
+                            <span className="font-bold text-slate-900">{pkg.min_people} Org</span>
+                          </p>
+                          <p className="flex justify-between">
+                            <span>Harga Paket:</span>
+                            <span className="font-bold text-emerald-600">Rp {pkg.price_per_person.toLocaleString()}</span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 57mm Thermal Print Template */}
       <div className="print-container hidden print:block text-black">

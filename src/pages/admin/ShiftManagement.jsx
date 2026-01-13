@@ -3,14 +3,12 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { Sun, Moon, Edit, RefreshCw, Save, Users, Calendar } from 'lucide-react';
+import { Sunrise, Sunset, Edit, RefreshCw, Save, Users, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-    getActiveShift,
-    setActiveShift,
     getStaffSchedules,
     getUserSchedule,
     updateUserFullSchedule
@@ -37,28 +35,32 @@ const ShiftManagement = () => {
         return new Date().toLocaleDateString('en-US', { weekday: 'long' });
     });
     const [staffSchedules, setStaffSchedules] = useState([]);
-    const [activeShift, setActiveShiftState] = useState({ shift_label: 'MORNING' });
+
 
     // Edit Dialog State
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [weeklySchedule, setWeeklySchedule] = useState([]);
 
+    const [refreshing, setRefreshing] = useState(false);
+
     // Fetch data
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchData = async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true);
+        } else {
+            setLoading(true);
+        }
+
         try {
-            const [shiftData, schedules] = await Promise.all([
-                getActiveShift(),
-                getStaffSchedules(selectedDay)
-            ]);
-            setActiveShiftState(shiftData || { shift_label: 'MORNING' });
+            const schedules = await getStaffSchedules(selectedDay);
             setStaffSchedules(schedules || []);
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error(t('common.error'));
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -66,18 +68,7 @@ const ShiftManagement = () => {
         fetchData();
     }, [selectedDay]);
 
-    // Toggle active shift
-    const handleToggleShift = async () => {
-        const newShift = activeShift.shift_label === 'MORNING' ? 'AFTERNOON' : 'MORNING';
-        try {
-            await setActiveShift(newShift, user.id);
-            setActiveShiftState({ ...activeShift, shift_label: newShift });
-            toast.success(`${t('shift.activeShift')}: ${newShift === 'MORNING' ? t('shift.morning') : t('shift.afternoon')}`);
-        } catch (error) {
-            console.error('Error toggling shift:', error);
-            toast.error(t('common.error'));
-        }
-    };
+
 
     // Open edit dialog
     const handleOpenEdit = async (userData) => {
@@ -136,7 +127,7 @@ const ShiftManagement = () => {
             case 'SCANNER': return t('admin.roleStaff') || 'Staff';
             case 'OFF': return t('shift.off');
             // For subroles in shift schedule
-            case 'CASHIER': return 'Cashier';
+            case 'CASHIER': return t('admin.roleCashier');
             default: return role;
         }
     };
@@ -144,9 +135,9 @@ const ShiftManagement = () => {
     // Get subrole label (for shift dropdowns)
     const getSubRoleLabel = (role) => {
         switch (role) {
-            case 'CASHIER': return 'Cashier';
-            case 'RECEPTIONIST': return 'Cashier'; // Legacy mapping
-            case 'SCANNER': return 'Scanner';
+            case 'CASHIER': return t('admin.roleCashier');
+            case 'RECEPTIONIST': return t('admin.roleCashier'); // Legacy mapping
+            case 'SCANNER': return t('admin.roleScanner');
             case 'OFF': return t('shift.off');
             default: return role;
         }
@@ -207,40 +198,16 @@ const ShiftManagement = () => {
                     </h1>
                     <p className="text-slate-600 mt-1">{t('shift.subtitle')}</p>
                 </div>
-                <Button onClick={fetchData} variant="outline" size="icon">
-                    <RefreshCw className="w-4 h-4" />
+                <Button
+                    onClick={() => fetchData(true)}
+                    variant="outline"
+                    size="icon"
+                    disabled={refreshing}
+                >
+                    <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
                 </Button>
             </div>
 
-            {/* Active Shift Card */}
-            <Card className="p-6 bg-gradient-to-r from-sky-50 to-blue-50 border-sky-200">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "w-14 h-14 rounded-full flex items-center justify-center",
-                            activeShift.shift_label === 'MORNING' ? "bg-amber-100 text-amber-600" : "bg-indigo-100 text-indigo-600"
-                        )}>
-                            {activeShift.shift_label === 'MORNING' ? <Sun className="w-7 h-7" /> : <Moon className="w-7 h-7" />}
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">{t('shift.currentShift')}</p>
-                            <p className="text-2xl font-bold text-slate-900">
-                                {activeShift.shift_label === 'MORNING' ? t('shift.morning') : t('shift.afternoon')}
-                            </p>
-                        </div>
-                    </div>
-                    <Button
-                        onClick={handleToggleShift}
-                        className={cn("px-5", activeShift.shift_label === 'MORNING' ? "bg-indigo-600 hover:bg-indigo-700" : "bg-amber-500 hover:bg-amber-600")}
-                    >
-                        {activeShift.shift_label === 'MORNING' ? (
-                            <><Moon className="w-4 h-4 mr-2" />{t('shift.switchToAfternoon')}</>
-                        ) : (
-                            <><Sun className="w-4 h-4 mr-2" />{t('shift.switchToMorning')}</>
-                        )}
-                    </Button>
-                </div>
-            </Card>
 
             {/* Staff Schedule Card */}
             <Card className="overflow-hidden">
@@ -279,7 +246,18 @@ const ShiftManagement = () => {
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.name')}</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('auth.email')}</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.role')}</th>
-                                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">{t('scanner.shift')}</th>
+                                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <Sunrise className="w-4 h-4 text-amber-500" />
+                                        {t('shift.morning')}
+                                    </div>
+                                </th>
+                                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <Sunset className="w-4 h-4 text-indigo-500" />
+                                        {t('shift.afternoon')}
+                                    </div>
+                                </th>
                                 <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
                             </tr>
                         </thead>
@@ -302,25 +280,30 @@ const ShiftManagement = () => {
                                                 {getRoleLabel(staff.default_role)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4" colSpan={isAdmin ? 2 : 1}>
                                             {isAdmin ? (
                                                 <div className="text-center text-sm text-slate-500 italic">
                                                     {t('shift.alwaysAdmin') || 'Always Admin'}
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded border border-amber-200">
-                                                        <Sun className="w-3 h-3 text-amber-500" />
-                                                        <span className="text-xs font-medium text-amber-700">{getSubRoleLabel(staff.morning_role)}</span>
-                                                    </div>
-                                                    <span className="text-slate-400">/</span>
-                                                    <div className="flex items-center gap-1 px-2 py-1 bg-indigo-50 rounded border border-indigo-200">
-                                                        <Moon className="w-3 h-3 text-indigo-500" />
-                                                        <span className="text-xs font-medium text-indigo-700">{getSubRoleLabel(staff.afternoon_role)}</span>
+                                                <div className="flex items-center justify-center">
+                                                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-md border border-amber-200 min-w-[120px] justify-center shadow-sm">
+                                                        <Sunrise className="w-4 h-4 text-amber-500" />
+                                                        <span className="text-sm font-semibold text-amber-700">{getSubRoleLabel(staff.morning_role)}</span>
                                                     </div>
                                                 </div>
                                             )}
                                         </td>
+                                        {!isAdmin && (
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center justify-center">
+                                                    <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-md border border-indigo-200 min-w-[120px] justify-center shadow-sm">
+                                                        <Sunset className="w-4 h-4 text-indigo-500" />
+                                                        <span className="text-sm font-semibold text-indigo-700">{getSubRoleLabel(staff.afternoon_role)}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        )}
                                         <td className="px-6 py-4 text-right">
                                             {!isAdmin && (
                                                 <Button variant="outline" size="sm" onClick={() => handleOpenEdit(staff)}>
@@ -357,12 +340,12 @@ const ShiftManagement = () => {
                                     <th className="py-3 text-left text-sm font-semibold text-slate-700">{t('admin.days') || 'Day'}</th>
                                     <th className="py-3 text-center text-sm font-semibold text-slate-700">
                                         <span className="flex items-center justify-center gap-1">
-                                            <Sun className="w-4 h-4 text-amber-500" />{t('shift.morning')}
+                                            <Sunrise className="w-4 h-4 text-amber-500" />{t('shift.morning')}
                                         </span>
                                     </th>
                                     <th className="py-3 text-center text-sm font-semibold text-slate-700">
                                         <span className="flex items-center justify-center gap-1">
-                                            <Moon className="w-4 h-4 text-indigo-500" />{t('shift.afternoon')}
+                                            <Sunset className="w-4 h-4 text-indigo-500" />{t('shift.afternoon')}
                                         </span>
                                     </th>
                                 </tr>
@@ -399,9 +382,12 @@ const ShiftManagement = () => {
 
                     <div className="flex justify-end gap-3 mt-6">
                         <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleSaveSchedule} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
-                            <Save className="w-4 h-4 mr-2" />
-                            {saving ? t('admin.saving') : t('shift.saveSchedule')}
+                        <Button onClick={handleSaveSchedule} disabled={saving} className="bg-slate-900 hover:bg-slate-800">
+                            {saving ? (
+                                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />{t('common.saving')}...</>
+                            ) : (
+                                <><Save className="w-4 h-4 mr-2" />{t('shift.saveSchedule')}</>
+                            )}
                         </Button>
                     </div>
                 </DialogContent>

@@ -13,7 +13,8 @@ import {
   BarChart3,
   LogOut,
   Menu,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -29,6 +30,7 @@ const AdminLayout = () => {
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
     { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
     { path: '/admin/packages', label: t('admin.packages'), icon: Package },
+    { path: '/admin/ticket-packages', label: t('admin.ticketPackages'), icon: Layers },
     { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
