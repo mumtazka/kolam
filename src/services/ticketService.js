@@ -96,7 +96,7 @@ export const createBatchTickets = async (ticketItems, user, shift) => {
                 category_name: category.name,
                 status: 'UNUSED',
                 price: category.price,
-                nim: item.nim || null,
+                nim: (item.nims && item.nims[i]) ? item.nims[i] : null,
                 qr_code: generateBarcode(ticketCode),
                 created_by: user.id,
                 created_by_name: user.name,
