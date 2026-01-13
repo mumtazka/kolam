@@ -79,8 +79,9 @@ const UserManagement = () => {
   const getRoleLabel = (role) => {
     switch (role) {
       case 'ADMIN': return t('admin.roleAdmin');
-      case 'RECEPTIONIST': return t('admin.roleReceptionist');
-      case 'SCANNER': return t('admin.roleScanner');
+      // Both RECEPTIONIST and SCANNER are displayed as "Staff"
+      case 'RECEPTIONIST': return t('admin.roleStaff') || 'Staff';
+      case 'SCANNER': return t('admin.roleStaff') || 'Staff';
       default: return role;
     }
   };
@@ -137,15 +138,9 @@ const UserManagement = () => {
                   <td className="px-6 py-4 text-sm text-slate-900 font-medium">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                      user.role === 'RECEPTIONIST' ? 'bg-blue-100 text-blue-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
+                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                       {getRoleLabel(user.role)}
                     </span>
-                    {user.role !== 'ADMIN' && (
-                      <span className="ml-2 text-xs text-slate-400">({t('shift.managedByShift') || 'via Shift'})</span>
-                    )}
                   </td>
                   <td className="px-6 py-4">
                     {user.is_active ? (
@@ -230,19 +225,21 @@ const UserManagement = () => {
             </div>
             <div>
               <Label htmlFor="role">{t('admin.role')}</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+              <Select
+                value={formData.role === 'SCANNER' ? 'RECEPTIONIST' : formData.role} // Map SCANNER to RECEPTIONIST (Staff) in UI
+                onValueChange={(value) => setFormData({ ...formData, role: value })}
+              >
                 <SelectTrigger data-testid="user-role-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ADMIN">{t('admin.roleAdmin')}</SelectItem>
-                  <SelectItem value="RECEPTIONIST">{t('admin.roleReceptionist')}</SelectItem>
-                  <SelectItem value="SCANNER">{t('admin.roleScanner')}</SelectItem>
+                  <SelectItem value="RECEPTIONIST">{t('admin.roleStaff') || 'Staff'}</SelectItem>
                 </SelectContent>
               </Select>
               {formData.role !== 'ADMIN' && (
                 <p className="text-xs text-slate-500 mt-1">
-                  {t('shift.roleHint') || 'Actual permissions are managed in Shift Management'}
+                  {t('shift.roleHint') || 'Staff can work as Cashier or Scanner'}
                 </p>
               )}
             </div>

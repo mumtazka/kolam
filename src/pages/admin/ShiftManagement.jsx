@@ -16,7 +16,7 @@ import {
     updateUserFullSchedule
 } from '../../services/shiftService';
 
-const ROLES = ['OFF', 'RECEPTIONIST', 'SCANNER', 'ADMIN'];
+const ROLES = ['OFF', 'CASHIER', 'SCANNER'];
 const DAYS = [
     { key: 'Monday', label: 'Senin' },
     { key: 'Tuesday', label: 'Selasa' },
@@ -131,8 +131,22 @@ const ShiftManagement = () => {
     const getRoleLabel = (role) => {
         switch (role) {
             case 'ADMIN': return t('admin.roleAdmin');
-            case 'RECEPTIONIST': return t('admin.roleReceptionist');
-            case 'SCANNER': return t('admin.roleScanner');
+            // For the main role column, show "Staff" for non-admin
+            case 'RECEPTIONIST': return t('admin.roleStaff') || 'Staff';
+            case 'SCANNER': return t('admin.roleStaff') || 'Staff';
+            case 'OFF': return t('shift.off');
+            // For subroles in shift schedule
+            case 'CASHIER': return 'Cashier';
+            default: return role;
+        }
+    };
+
+    // Get subrole label (for shift dropdowns)
+    const getSubRoleLabel = (role) => {
+        switch (role) {
+            case 'CASHIER': return 'Cashier';
+            case 'RECEPTIONIST': return 'Cashier'; // Legacy mapping
+            case 'SCANNER': return 'Scanner';
             case 'OFF': return t('shift.off');
             default: return role;
         }
@@ -142,8 +156,9 @@ const ShiftManagement = () => {
     const getRoleBadgeColor = (role) => {
         switch (role) {
             case 'ADMIN': return 'bg-purple-100 text-purple-700';
+            // Staff gets blue
             case 'RECEPTIONIST': return 'bg-blue-100 text-blue-700';
-            case 'SCANNER': return 'bg-green-100 text-green-700';
+            case 'SCANNER': return 'bg-blue-100 text-blue-700';
             default: return 'bg-slate-100 text-slate-500';
         }
     };
@@ -296,12 +311,12 @@ const ShiftManagement = () => {
                                                 <div className="flex items-center justify-center gap-2">
                                                     <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded border border-amber-200">
                                                         <Sun className="w-3 h-3 text-amber-500" />
-                                                        <span className="text-xs font-medium text-amber-700">{getRoleLabel(staff.morning_role)}</span>
+                                                        <span className="text-xs font-medium text-amber-700">{getSubRoleLabel(staff.morning_role)}</span>
                                                     </div>
                                                     <span className="text-slate-400">/</span>
                                                     <div className="flex items-center gap-1 px-2 py-1 bg-indigo-50 rounded border border-indigo-200">
                                                         <Moon className="w-3 h-3 text-indigo-500" />
-                                                        <span className="text-xs font-medium text-indigo-700">{getRoleLabel(staff.afternoon_role)}</span>
+                                                        <span className="text-xs font-medium text-indigo-700">{getSubRoleLabel(staff.afternoon_role)}</span>
                                                     </div>
                                                 </div>
                                             )}
@@ -360,8 +375,8 @@ const ShiftManagement = () => {
                                             <Select value={day.morning_role} onValueChange={(v) => handleScheduleChange(idx, 'morning_role', v)}>
                                                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
-                                                    {ROLES.filter(r => r !== 'ADMIN').map(role => (
-                                                        <SelectItem key={role} value={role}>{getRoleLabel(role)}</SelectItem>
+                                                    {ROLES.map(role => (
+                                                        <SelectItem key={role} value={role}>{getSubRoleLabel(role)}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -370,8 +385,8 @@ const ShiftManagement = () => {
                                             <Select value={day.afternoon_role} onValueChange={(v) => handleScheduleChange(idx, 'afternoon_role', v)}>
                                                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
-                                                    {ROLES.filter(r => r !== 'ADMIN').map(role => (
-                                                        <SelectItem key={role} value={role}>{getRoleLabel(role)}</SelectItem>
+                                                    {ROLES.map(role => (
+                                                        <SelectItem key={role} value={role}>{getSubRoleLabel(role)}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>

@@ -204,6 +204,7 @@ export const translations = {
             roleAdmin: 'Admin',
             roleReceptionist: 'Resepsionis',
             roleScanner: 'Scanner',
+            roleStaff: 'Staff',
             update: 'Perbarui',
             create: 'Buat',
             // Admin Dashboard
@@ -506,6 +507,7 @@ export const translations = {
             roleAdmin: 'Admin',
             roleReceptionist: 'Receptionist',
             roleScanner: 'Scanner',
+            roleStaff: 'Staff',
             update: 'Update',
             create: 'Create',
             // Admin Dashboard

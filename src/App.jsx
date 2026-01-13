@@ -34,12 +34,12 @@ const RoleBasedRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect based on role
-  if (user.role === 'ADMIN') {
+  // Redirect based on active_mode
+  if (user.active_mode === 'ADMIN') {
     return <Navigate to="/admin" replace />;
-  } else if (user.role === 'RECEPTIONIST') {
+  } else if (user.active_mode === 'CASHIER') {
     return <Navigate to="/receptionist" replace />;
-  } else if (user.role === 'SCANNER') {
+  } else if (user.active_mode === 'SCANNER') {
     return <Navigate to="/scanner" replace />;
   }
 
@@ -82,21 +82,21 @@ function App() {
                 <Route path="reports" element={<Reports />} />
               </Route>
 
-              {/* Receptionist Route */}
+              {/* Receptionist Route - Requires CASHIER mode */}
               <Route
                 path="/receptionist"
                 element={
-                  <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
+                  <ProtectedRoute allowedRoles={['CASHIER']}>
                     <ReceptionistDashboard />
                   </ProtectedRoute>
                 }
               />
 
-              {/* Scanner Route */}
+              {/* Scanner Route - Requires SCANNER mode */}
               <Route
                 path="/scanner"
                 element={
-                  <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
+                  <ProtectedRoute allowedRoles={['SCANNER']}>
                     <ScannerDashboard />
                   </ProtectedRoute>
                 }

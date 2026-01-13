@@ -197,7 +197,8 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
         category_name: ticket.category_name,
         shift: shift, // Record the shift of the scanner (legacy - Pagi/Siang/Sore)
         shift_label: scanner.shift_label || null, // Record MORNING/AFTERNOON from active shift
-        role_at_scan: scanner.role || null, // Record the scanner's role at scan time
+        role_at_scan: scanner.role || null, // Record the scanner's role at scan time (likely 'SCANNER')
+        mode_used: scanner.active_mode || 'SCANNER', // Explicitly log the mode used
         pool_id: poolId // Record the pool/location of the scan
     });
 
