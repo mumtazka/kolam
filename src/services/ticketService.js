@@ -61,56 +61,7 @@ const generateBarcode = (ticketCode) => {
  * @param {string} shift - Current shift (Pagi/Siang/Sore)
  */
 export const createBatchTickets = async (ticketItems, user, shift) => {
-<<<<<<< Updated upstream
-    // Generate batch ID
-    const batchId = crypto.randomUUID();
-
-    // Get categories for prefix lookup
-    const { data: categories, error: catError } = await supabase
-        .from('categories')
-        .select('*');
-
-    if (catError) throw catError;
-
-    // Get starting batch number
-    let batchNumber = await getNextBatchNumber();
-
-    // Create all tickets
-    const ticketsToInsert = [];
-
-    for (const item of ticketItems) {
-        const category = categories.find(c => c.id === item.category_id);
-
-        if (!category) {
-            throw new Error(`Category not found: ${item.category_id}`);
-        }
-
-        for (let i = 0; i < item.quantity; i++) {
-            const ticketId = crypto.randomUUID();
-            const ticketCode = await generateTicketCode(category.code_prefix, batchNumber);
-
-            ticketsToInsert.push({
-                id: ticketId,
-                ticket_code: ticketCode,
-                batch_id: batchId,
-                category_id: item.category_id,
-                category_name: category.name,
-                status: 'UNUSED',
-                price: category.price,
-                nim: (item.nims && item.nims[i]) ? item.nims[i] : null,
-                qr_code: generateBarcode(ticketCode),
-                created_by: user.id,
-                created_by_name: user.name,
-                shift: shift
-            });
-
-            batchNumber++;
-        }
-    }
-
-=======
     // Call the RPC function to handle transaction securely on server
->>>>>>> Stashed changes
     const { data, error } = await supabase
         .rpc('process_ticket_transaction', {
             p_items: ticketItems,
