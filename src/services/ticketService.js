@@ -195,7 +195,9 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
         scanned_by: scanner.id,
         scanned_by_name: scanner.name,
         category_name: ticket.category_name,
-        shift: shift, // Record the shift of the scanner
+        shift: shift, // Record the shift of the scanner (legacy - Pagi/Siang/Sore)
+        shift_label: scanner.shift_label || null, // Record MORNING/AFTERNOON from active shift
+        role_at_scan: scanner.role || null, // Record the scanner's role at scan time
         pool_id: poolId // Record the pool/location of the scan
     });
 

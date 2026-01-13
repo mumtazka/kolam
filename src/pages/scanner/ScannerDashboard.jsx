@@ -23,16 +23,21 @@ const ScannerDashboard = () => {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
 
-    // Determine Shift based on time
-    const getShift = () => {
+    // Use shift label from user context (set at login based on active shift)
+    const getShiftLabel = () => {
+        // Use the shift_label from AuthContext (MORNING/AFTERNOON)
+        // Fall back to legacy label if not available
+        if (user?.shift_label) {
+            return user.shift_label === 'MORNING' ? 'Pagi' : 'Siang';
+        }
+        // Legacy fallback based on time
         const hour = new Date().getHours();
         if (hour < 12) return 'Pagi';
-        if (hour < 16) return 'Siang';
-        return 'Sore';
+        return 'Siang';
     };
 
     // State
-    const [selectedShift, setSelectedShift] = useState(getShift());
+    const [selectedShift, setSelectedShift] = useState(getShiftLabel());
     const [selectedLocation] = useState(t('scanner.scannerStation'));
 
     // Scan State
@@ -51,13 +56,9 @@ const ScannerDashboard = () => {
     const lastKeyTime = useRef(Date.now());
     const scanTimeout = useRef(null);
 
-    // Update shift periodically
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setSelectedShift(getShift());
-        }, 60000); // Check every minute
-        return () => clearInterval(interval);
-    }, []);
+
+    // Note: Shift is now set at login from global active shift, no need for periodic updates
+
 
     // Play sound helper
     const playSound = (type) => {
@@ -141,21 +142,28 @@ const ScannerDashboard = () => {
     // Keyboard listener for Scanner Hardware
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Don't capture if user is typing in the input field
-            if (e.target.tagName === 'INPUT') return;
-
+            // Check timing to differentiate fast scan from manual typing
             const currentTime = Date.now();
             if (currentTime - lastKeyTime.current > 100) {
+                // If slow, reset buffer (likely start of new input or manual typing)
                 barcodeBuffer.current = '';
             }
             lastKeyTime.current = currentTime;
 
             if (e.key === 'Enter') {
-                if (barcodeBuffer.current) {
+                // Only trigger if we have a valid buffer (burst input)
+                // We check for length >= 2 to avoid triggering on single accidental fast keys
+                if (barcodeBuffer.current && barcodeBuffer.current.length >= 2) {
+                    e.preventDefault(); // Prevent form submission / duplicate handling
+
+                    // If the scanner typed into the input, we might want to ensure we don't double process
+                    // But typically processBarcode clears the manual input anyway
+
                     processBarcode(barcodeBuffer.current);
                     barcodeBuffer.current = '';
                 }
             } else if (e.key.length === 1) {
+                // Accumulate characters
                 barcodeBuffer.current += e.key;
             }
         };

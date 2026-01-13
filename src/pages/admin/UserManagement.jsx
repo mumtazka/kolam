@@ -20,7 +20,7 @@ const UserManagement = () => {
     name: '',
     email: '',
     password: '',
-    role: 'RECEPTIONIST'
+    role: 'RECEPTIONIST' // Default role for new users, but shifts determine actual permissions
   });
 
   useEffect(() => {
@@ -143,6 +143,9 @@ const UserManagement = () => {
                       }`}>
                       {getRoleLabel(user.role)}
                     </span>
+                    {user.role !== 'ADMIN' && (
+                      <span className="ml-2 text-xs text-slate-400">({t('shift.managedByShift') || 'via Shift'})</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     {user.is_active ? (
@@ -237,6 +240,11 @@ const UserManagement = () => {
                   <SelectItem value="SCANNER">{t('admin.roleScanner')}</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.role !== 'ADMIN' && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {t('shift.roleHint') || 'Actual permissions are managed in Shift Management'}
+                </p>
+              )}
             </div>
             <div className="flex space-x-2 pt-4">
               <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="user-form-submit">

@@ -14,6 +14,7 @@ import CategoryManagement from './pages/admin/CategoryManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import PackageManagement from './pages/admin/PackageManagement';
 import PoolManagement from './pages/admin/PoolManagement';
+import ShiftManagement from './pages/admin/ShiftManagement';
 import Reports from './pages/admin/Reports';
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
 import ScannerDashboard from './pages/scanner/ScannerDashboard';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="categories" element={<CategoryManagement />} />
                 <Route path="sessions" element={<SessionManagement />} />
                 <Route path="packages" element={<PackageManagement />} />
+                <Route path="shifts" element={<ShiftManagement />} />
                 <Route path="reports" element={<Reports />} />
               </Route>
 

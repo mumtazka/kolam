@@ -30,6 +30,7 @@ const AdminLayout = () => {
     { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
     { path: '/admin/packages', label: t('admin.packages'), icon: Package },
     { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
+    { path: '/admin/shifts', label: t('shift.management'), icon: Clock },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
   ];
 
