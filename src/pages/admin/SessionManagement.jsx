@@ -2,17 +2,95 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '../../components/ui/calendar';
 import { getSessions, createSession, updateSession, deleteSession } from '../../services/adminService';
 import { id, enUS } from 'date-fns/locale';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
+import { ScrollArea } from '../../components/ui/scroll-area';
 
 
+
+const TimeBlock = ({ val, type, max, onUpdate }) => (
+    <div className="flex items-center gap-1">
+        <Input
+            className="w-[4.5rem] h-12 text-center font-mono text-xl font-bold p-0 transition-all"
+            value={val}
+            onChange={(e) => {
+                let v = e.target.value;
+                if (v.length > 2) v = v.slice(0, 2);
+                onUpdate(v);
+            }}
+            onBlur={(e) => {
+                let v = e.target.value.replace(/\D/g, '').padStart(2, '0');
+                if (parseInt(v) > max) v = max.toString().padStart(2, '0');
+                if (isNaN(parseInt(v))) v = '00';
+                onUpdate(v);
+            }}
+            placeholder={type === 'hour' ? 'HH' : 'MM'}
+            maxLength={2}
+        />
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-600 rounded-full"
+                    tabIndex={-1}
+                >
+                    <ChevronDown className="w-4 h-4" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-24 p-0" align="center" sideOffset={5}>
+                <div className="h-64 overflow-y-auto p-1 custom-scrollbar">
+                    {(type === 'hour'
+                        ? Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
+                        : ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
+                    ).map((item) => (
+                        <div
+                            key={item}
+                            className={`px-2 py-2 text-center text-lg font-medium cursor-pointer rounded-md hover:bg-slate-100 transition-colors ${val === item ? 'bg-slate-900 text-white hover:bg-slate-800' : 'text-slate-700'}`}
+                            onClick={() => onUpdate(item)}
+                        >
+                            {item}
+                        </div>
+                    ))}
+                </div>
+            </PopoverContent>
+        </Popover>
+    </div>
+);
+
+const TimePickerInput = ({ value, onChange, label }) => {
+    // Ensure value is valid
+    const [hh = '00', mm = '00'] = (value || '00:00').split(':');
+
+    // Helper to update specific part
+    const updateTime = (part, newVal) => {
+        if (part === 'hour') {
+            onChange(`${newVal}:${mm}`);
+        } else {
+            onChange(`${hh}:${newVal}`);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <Label className="font-semibold text-slate-700">{label}</Label>
+            <div className="flex items-center gap-2">
+                <TimeBlock val={hh} type="hour" max={23} onUpdate={(v) => updateTime('hour', v)} />
+                <span className="text-xl font-bold text-slate-300 pb-1">:</span>
+                <TimeBlock val={mm} type="minute" max={59} onUpdate={(v) => updateTime('minute', v)} />
+            </div>
+        </div>
+    );
+};
 
 const SessionManagement = () => {
     const { t, language } = useLanguage();
@@ -101,7 +179,9 @@ const SessionManagement = () => {
             start_time: '07:00',
             end_time: '08:30',
             days: [],
-            is_recurring: true
+            is_recurring: true,
+            valid_from: null,
+            valid_until: null
         });
     };
 
@@ -112,7 +192,9 @@ const SessionManagement = () => {
             start_time: session.start_time,
             end_time: session.end_time,
             days: session.days || [],
-            is_recurring: session.is_recurring
+            is_recurring: session.is_recurring,
+            valid_from: session.valid_from,
+            valid_until: session.valid_until
         });
         setDialogOpen(true);
     };
@@ -140,9 +222,18 @@ const SessionManagement = () => {
 
     // Filter sessions for selected date
     const selectedDayName = date ? getDayName(date) : '';
-    const filteredSessions = sessions.filter(session =>
-        session.days && session.days.includes(selectedDayName)
-    );
+
+    const filteredSessions = sessions.filter(session => {
+        const matchesDay = session.days && session.days.includes(selectedDayName);
+        if (!matchesDay) return false;
+
+        // Contract logic
+        if (session.valid_until) {
+            const today = new Date().toISOString().split('T')[0];
+            if (session.valid_until < today) return false;
+        }
+        return true;
+    });
 
     // Format date for display
     const formattedDate = date ? date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -213,7 +304,22 @@ const SessionManagement = () => {
                                     DayContent: (props) => {
                                         const { date: dayDate } = props;
                                         const dayName = getDayName(dayDate);
-                                        const count = sessions.filter(s => s.days && s.days.includes(dayName)).length;
+
+                                        // Format calendar date to YYYY-MM-DD for comparison
+                                        const year = dayDate.getFullYear();
+                                        const month = String(dayDate.getMonth() + 1).padStart(2, '0');
+                                        const day = String(dayDate.getDate()).padStart(2, '0');
+                                        const dateStr = `${year}-${month}-${day}`;
+
+                                        const count = sessions.filter(s => {
+                                            if (!s.days || !s.days.includes(dayName)) return false;
+
+                                            // Check contract validity
+                                            if (s.valid_from && dateStr < s.valid_from) return false;
+                                            if (s.valid_until && dateStr > s.valid_until) return false;
+
+                                            return true;
+                                        }).length;
 
                                         return (
                                             <div className="relative w-full h-full flex items-center justify-center">
@@ -279,10 +385,16 @@ const SessionManagement = () => {
 
                                             <div className="text-right">
                                                 <div className="inline-flex items-center bg-sky-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
-                                                    {session.start_time} - {session.end_time}
+                                                    {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                 </div>
                                                 <p className="text-slate-400 text-xs font-medium">
-                                                    {session.is_recurring ? t('admin.recurring') : t('admin.oneTime')}
+                                                    {session.valid_until && session.valid_until < new Date().toISOString().split('T')[0] ? (
+                                                        <span className="text-red-500 font-bold flex items-center justify-end gap-1">
+                                                            <Trash2 className="w-3 h-3" /> Expired
+                                                        </span>
+                                                    ) : (
+                                                        session.is_recurring ? t('admin.recurring') : t('admin.oneTime')
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -312,6 +424,100 @@ const SessionManagement = () => {
                         )}
                     </Card>
                 </div>
+
+                {/* Bottom Section: All Sessions List */}
+                <div className="col-span-1 lg:col-span-12">
+                    <Card className="p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-900">{t('admin.allSessions')}</h2>
+                        </div>
+
+                        <div className="rounded-md border border-slate-200 overflow-hidden">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                                    <tr>
+                                        <th className="px-4 py-3">{t('admin.sessionName')}</th>
+                                        <th className="px-4 py-3">{t('admin.days')}</th>
+                                        <th className="px-4 py-3">{t('admin.time')}</th>
+                                        <th className="px-4 py-3">{t('admin.contract')}</th>
+                                        <th className="px-4 py-3 text-right">{t('admin.actions')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {sessions.filter(s => {
+                                        if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                        return true;
+                                    }).length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                                {t('admin.noSessions')}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        sessions.filter(s => {
+                                            if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                            return true;
+                                        }).map((session) => (
+                                            <tr key={session.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="px-4 py-3 font-medium text-slate-900">{session.name}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {session.days?.map(day => (
+                                                            <span key={day} className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200">
+                                                                {t(`common.days.${day.substring(0, 3)}`)}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 font-mono text-slate-600">
+                                                    {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {session.valid_from || session.valid_until ? (
+                                                        <div className="text-xs space-y-0.5">
+                                                            {session.valid_from && (
+                                                                <div className="text-emerald-600">
+                                                                    <span className="font-semibold">From:</span> {new Date(session.valid_from).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB')}
+                                                                </div>
+                                                            )}
+                                                            {session.valid_until && (
+                                                                <div className="text-amber-600">
+                                                                    <span className="font-semibold">Until:</span> {new Date(session.valid_until).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB')}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 italic">{t('admin.noContract')}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end space-x-1">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 hover:bg-slate-100 hover:text-sky-600"
+                                                            onClick={() => openEditDialog(session)}
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                                                            onClick={() => handleDelete(session.id)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                </div>
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -335,29 +541,17 @@ const SessionManagement = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label htmlFor="start_time">{t('admin.startTime')}</Label>
-                                <Input
-                                    id="start_time"
-                                    type="time"
-                                    value={formData.start_time}
-                                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                                    required
-                                    data-testid="session-start-time-input"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="end_time">{t('admin.endTime')}</Label>
-                                <Input
-                                    id="end_time"
-                                    type="time"
-                                    value={formData.end_time}
-                                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                                    required
-                                    data-testid="session-end-time-input"
-                                />
-                            </div>
+                        <div className="grid grid-cols-2 gap-6 pt-2">
+                            <TimePickerInput
+                                label={t('admin.startTime')}
+                                value={formData.start_time}
+                                onChange={(val) => setFormData({ ...formData, start_time: val })}
+                            />
+                            <TimePickerInput
+                                label={t('admin.endTime')}
+                                value={formData.end_time}
+                                onChange={(val) => setFormData({ ...formData, end_time: val })}
+                            />
                         </div>
 
                         <div>
@@ -390,7 +584,57 @@ const SessionManagement = () => {
                             />
                         </div>
 
-                        <div className="flex space-x-2 pt-4">
+                        <div className="flex items-center justify-between py-2 border-t border-slate-100 mt-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="has_contract" className="text-base font-semibold text-slate-900">{t('admin.enableContract')}</Label>
+                                <p className="text-sm text-slate-500">{t('admin.contractDescription')}</p>
+                            </div>
+                            <Switch
+                                id="has_contract"
+                                checked={!!formData.valid_until}
+                                onCheckedChange={(checked) => {
+                                    if (!checked) {
+                                        setFormData(prev => ({ ...prev, valid_from: null, valid_until: null }));
+                                    } else {
+                                        // Default to today + 1 month
+                                        const now = new Date();
+                                        const nextMonth = new Date(now);
+                                        nextMonth.setMonth(now.getMonth() + 1);
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            valid_from: now.toISOString().split('T')[0],
+                                            valid_until: nextMonth.toISOString().split('T')[0]
+                                        }));
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        {formData.valid_until && (
+                            <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="valid_from">{t('admin.validFrom')}</Label>
+                                    <Input
+                                        id="valid_from"
+                                        type="date"
+                                        value={formData.valid_from || ''}
+                                        onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="valid_until">{t('admin.validUntil')}</Label>
+                                    <Input
+                                        id="valid_until"
+                                        type="date"
+                                        value={formData.valid_until || ''}
+                                        onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                                        min={formData.valid_from}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex space-x-2 pt-6 border-t border-slate-100">
                             <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="session-form-submit">
                                 {editingSession ? t('admin.update') : t('admin.create')}
                             </Button>
