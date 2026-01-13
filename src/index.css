@@ -94,6 +94,24 @@ h6 {
     }
 }
 
+/* Custom Scrollbar for Sidebar */
+.sidebar-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #334155; /* slate-700 */
+    border-radius: 3px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #475569; /* slate-600 */
+}
+
 /* Thermal Printing Styles */
 @media print {
     body * {

@@ -5,27 +5,33 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { Plus, Edit, Trash2, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash } from 'lucide-react';
 import { toast } from 'sonner';
+import { Calendar } from '../../components/ui/calendar';
 import { getSessions, createSession, updateSession, deleteSession } from '../../services/adminService';
+import { id, enUS } from 'date-fns/locale';
 
-const DAYS_OF_WEEK = [
-    { id: 'Monday', label: 'Mon' },
-    { id: 'Tuesday', label: 'Tue' },
-    { id: 'Wednesday', label: 'Wed' },
-    { id: 'Thursday', label: 'Thu' },
-    { id: 'Friday', label: 'Fri' },
-    { id: 'Saturday', label: 'Sat' },
-    { id: 'Sunday', label: 'Sun' }
-];
+
 
 const SessionManagement = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+
+    const DAYS_OF_WEEK = [
+        { id: 'Monday', label: t('common.days.Mon') },
+        { id: 'Tuesday', label: t('common.days.Tue') },
+        { id: 'Wednesday', label: t('common.days.Wed') },
+        { id: 'Thursday', label: t('common.days.Thu') },
+        { id: 'Friday', label: t('common.days.Fri') },
+        { id: 'Saturday', label: t('common.days.Sat') },
+        { id: 'Sunday', label: t('common.days.Sun') }
+    ];
+
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
+    const [date, setDate] = useState(new Date());
     const [formData, setFormData] = useState({
         name: '',
         start_time: '07:00',
@@ -126,6 +132,22 @@ const SessionManagement = () => {
         }));
     };
 
+    // Helper to get day name from date
+    const getDayName = (d) => {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return days[d.getDay()];
+    };
+
+    // Filter sessions for selected date
+    const selectedDayName = date ? getDayName(date) : '';
+    const filteredSessions = sessions.filter(session =>
+        session.days && session.days.includes(selectedDayName)
+    );
+
+    // Format date for display
+    const formattedDate = date ? date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const formattedDay = date ? date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long' }) : '';
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -147,91 +169,158 @@ const SessionManagement = () => {
                 </Button>
             </div>
 
-            {sessions.length === 0 ? (
-                <Card className="p-12 text-center">
-                    <Clock className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('admin.noSessions')}</h3>
-                    <p className="text-slate-600 mb-4">{t('admin.createFirstSession')}</p>
-                    <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800">
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t('admin.addSession')}
-                    </Button>
-                </Card>
-            ) : (
-                <Card className="overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.sessionName')}</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('common.time')}</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.days')}</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.recurring')}</th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200">
-                                {sessions.map((session) => (
-                                    <tr key={session.id} className="hover:bg-slate-50" data-testid={`session-row-${session.id}`}>
-                                        <td className="px-6 py-4 text-sm text-slate-900 font-medium">{session.name}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-600">
-                                            <span className="inline-flex items-center">
-                                                <Clock className="w-4 h-4 mr-1 text-slate-400" />
-                                                {session.start_time} - {session.end_time}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-1">
-                                                {session.days?.map(day => (
-                                                    <span key={day} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-sky-100 text-sky-700">
-                                                        {day.substring(0, 3)}
-                                                    </span>
-                                                ))}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left Column: Calendar */}
+                <div className="lg:col-span-6 xl:col-span-6">
+                    <Card className="p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center space-x-2 text-slate-900">
+                                <CalendarIcon className="w-5 h-5 text-sky-600" />
+                                <h2 className="text-xl font-bold">{t('common.calendar')}</h2>
+                            </div>
+                        </div>
+                        <div className="flex-1 flex justify-center">
+                            <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                className="rounded-md border shadow-sm p-6 w-full flex justify-center"
+                                classNames={{
+                                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                                    month: "space-y-4",
+                                    caption: "flex justify-center pt-1 relative items-center",
+                                    caption_label: "text-xl font-bold text-slate-900",
+                                    nav: "space-x-1 flex items-center",
+                                    nav_button: "h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100",
+                                    nav_button_previous: "absolute left-1",
+                                    nav_button_next: "absolute right-1",
+                                    table: "w-full border-collapse space-y-1",
+                                    head_row: "flex",
+                                    head_cell: "text-slate-500 rounded-md w-14 font-bold text-lg",
+                                    row: "flex w-full mt-2",
+                                    cell: "h-14 w-14 text-center text-lg p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-14 w-14 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors text-lg",
+                                    day_range_end: "day-range-end",
+                                    day_selected: "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white",
+                                    day_today: "bg-slate-100 text-slate-900 font-bold",
+                                    day_outside: "day-outside text-slate-300 opacity-50 aria-selected:bg-slate-100/50 aria-selected:text-slate-500 aria-selected:opacity-30",
+                                    day_disabled: "text-slate-300 opacity-50",
+                                    day_range_middle: "aria-selected:bg-slate-100 aria-selected:text-slate-900",
+                                    day_hidden: "invisible",
+                                }}
+                                locale={language === 'id' ? id : enUS}
+                                components={{
+                                    DayContent: (props) => {
+                                        const { date: dayDate } = props;
+                                        const dayName = getDayName(dayDate);
+                                        const count = sessions.filter(s => s.days && s.days.includes(dayName)).length;
+
+                                        return (
+                                            <div className="relative w-full h-full flex items-center justify-center">
+                                                {props.date.getDate()}
+                                                {count > 0 && (
+                                                    <div className="absolute bottom-1 w-1.5 h-1.5 bg-sky-500 rounded-full" title={`${count} sessions`}></div>
+                                                )}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {session.is_recurring ? (
-                                                <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
-                                                    {t('common.yes')}
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
-                                                    {t('common.no')}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex space-x-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => openEditDialog(session)}
-                                                    data-testid={`edit-session-${session.id}`}
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={() => handleDelete(session.id)}
-                                                    data-testid={`delete-session-${session.id}`}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                        );
+                                    }
+                                }}
+                            />
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Right Column: Session List */}
+                <div className="lg:col-span-6 xl:col-span-6">
+                    <Card className="p-6 min-h-[500px] flex flex-col">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center space-x-2">
+                                <CalendarIcon className="w-5 h-5 text-sky-600" />
+                                <h2 className="text-xl font-bold text-slate-900">{t('admin.sessionList')}: {formattedDate}</h2>
+                            </div>
+                            <span className="px-3 py-1 bg-slate-100 text-slate-900 font-medium rounded-md border border-slate-200">
+                                {formattedDay}
+                            </span>
+                        </div>
+
+                        {filteredSessions.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                                <Clock className="w-12 h-12 text-slate-300 mb-3" />
+                                <p className="text-slate-500 font-medium text-lg">{t('admin.noSessionsScheduled')}</p>
+                                <p className="text-sm text-slate-400 mb-6">{t('admin.noSessionsForDay')}</p>
+                                <Button onClick={openCreateDialog} variant="outline" className="border-slate-300 hover:bg-white text-slate-600">
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    {t('admin.addSession')}
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {filteredSessions.map((session) => (
+                                    <div
+                                        key={session.id}
+                                        className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-sky-300"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-sky-700 transition-colors">
+                                                    {session.name}
+                                                </h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {session.days?.map(day => (
+                                                        <span key={day} className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${day === selectedDayName
+                                                            ? 'bg-sky-100 text-sky-700 border-sky-200'
+                                                            : 'bg-slate-50 text-slate-400 border-slate-100'
+                                                            }`}>
+                                                            {t(`common.days.${day.substring(0, 3)}`)}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </td>
-                                    </tr>
+
+                                            <div className="text-right">
+                                                <div className="inline-flex items-center bg-sky-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                    {session.start_time} - {session.end_time}
+                                                </div>
+                                                <p className="text-slate-400 text-xs font-medium">
+                                                    {session.is_recurring ? t('admin.recurring') : t('admin.oneTime')}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1">
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-8 w-8 hover:bg-slate-50 hover:text-sky-600"
+                                                onClick={() => openEditDialog(session)}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                                                onClick={() => handleDelete(session.id)}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-            )}
+                            </div>
+                        )}
+                    </Card>
+                </div>
+            </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent data-testid="session-form-dialog">
                     <DialogHeader>
                         <DialogTitle>{editingSession ? t('admin.editSession') : t('admin.newSession')}</DialogTitle>
+                        <DialogDescription className="text-sm text-slate-500">
+                            {editingSession ? t('admin.sessionFormDescriptionUpdate') : t('admin.sessionFormDescriptionCreate')}
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

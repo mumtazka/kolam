@@ -129,9 +129,10 @@ export const createPool = async (poolData) => {
         .from('pools')
         .insert(poolData)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('Failed to create pool: No data returned');
     return data;
 };
 
@@ -144,9 +145,10 @@ export const updatePool = async (poolId, poolData) => {
         .update(poolData)
         .eq('id', poolId)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('Pool not found or access denied');
     return data;
 };
 

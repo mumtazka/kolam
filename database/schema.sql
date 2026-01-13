@@ -201,31 +201,52 @@ CREATE POLICY "Allow authenticated delete users" ON users FOR DELETE TO authenti
 
 -- Categories policies
 CREATE POLICY "Allow anon read categories" ON categories FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all categories" ON categories FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select categories" ON categories FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert categories" ON categories FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update categories" ON categories FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete categories" ON categories FOR DELETE TO authenticated USING (true);
 
 -- Prices policies
 CREATE POLICY "Allow anon read prices" ON prices FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all prices" ON prices FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select prices" ON prices FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert prices" ON prices FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update prices" ON prices FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete prices" ON prices FOR DELETE TO authenticated USING (true);
 
 -- Sessions policies
 CREATE POLICY "Allow anon read sessions" ON sessions FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all sessions" ON sessions FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select sessions" ON sessions FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert sessions" ON sessions FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update sessions" ON sessions FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete sessions" ON sessions FOR DELETE TO authenticated USING (true);
 
 -- Packages policies
 CREATE POLICY "Allow anon read packages" ON packages FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all packages" ON packages FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select packages" ON packages FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert packages" ON packages FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update packages" ON packages FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete packages" ON packages FOR DELETE TO authenticated USING (true);
 
 -- Locations policies
 CREATE POLICY "Allow anon read locations" ON locations FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all locations" ON locations FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select locations" ON locations FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert locations" ON locations FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update locations" ON locations FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete locations" ON locations FOR DELETE TO authenticated USING (true);
 
 -- Tickets policies
 CREATE POLICY "Allow anon read tickets" ON tickets FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all tickets" ON tickets FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select tickets" ON tickets FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert tickets" ON tickets FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update tickets" ON tickets FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete tickets" ON tickets FOR DELETE TO authenticated USING (true);
 
 -- Scan logs policies
 CREATE POLICY "Allow anon read scan_logs" ON scan_logs FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow authenticated all scan_logs" ON scan_logs FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated select scan_logs" ON scan_logs FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert scan_logs" ON scan_logs FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update scan_logs" ON scan_logs FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete scan_logs" ON scan_logs FOR DELETE TO authenticated USING (true);
 
 -- =============================================
 -- SEED DATA
@@ -315,3 +336,34 @@ SELECT
 FROM tickets
 GROUP BY created_by_name, DATE(created_at)
 ORDER BY DATE(created_at) DESC, tickets_sold DESC;
+-- =============================================
+-- POOLS TABLE
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS pools (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    depth VARCHAR(50) NOT NULL,
+    area DECIMAL(10, 2),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- =============================================
+-- POOLS RLS
+-- =============================================
+
+ALTER TABLE pools ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow anon read pools" ON pools FOR SELECT TO anon USING (true);
+CREATE POLICY "Allow authenticated select pools" ON pools FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated insert pools" ON pools FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow authenticated update pools" ON pools FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow authenticated delete pools" ON pools FOR DELETE TO authenticated USING (true);
+
+-- Trigger for updated_at
+CREATE TRIGGER update_pools_updated_at BEFORE UPDATE ON pools FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+

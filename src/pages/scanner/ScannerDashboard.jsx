@@ -33,7 +33,7 @@ const ScannerDashboard = () => {
 
     // State
     const [selectedShift, setSelectedShift] = useState(getShift());
-    const [selectedLocation] = useState('Scanner Station');
+    const [selectedLocation] = useState(t('scanner.scannerStation'));
 
     // Scan State
     const [scanStatus, setScanStatus] = useState('IDLE');
@@ -102,7 +102,7 @@ const ScannerDashboard = () => {
             if (result.success) {
                 setScanStatus('VALID');
                 playSound('success');
-                toast.success(t('scanner.valid') || 'Scan Berhasil!');
+                toast.success(t('scanner.valid'));
             } else if (result.status === 'USED') {
                 setScanStatus('USED');
                 playSound('error');
@@ -110,7 +110,7 @@ const ScannerDashboard = () => {
             } else {
                 setScanStatus('INVALID');
                 playSound('error');
-                toast.error(result.message || 'Tiket Tidak Valid');
+                toast.error(result.message || t('scanner.invalid'));
             }
 
         } catch (error) {
@@ -120,7 +120,7 @@ const ScannerDashboard = () => {
             setScanResult(errorResult);
             addToHistory(errorResult, code);
             playSound('error');
-            toast.error('System Error');
+            toast.error(t('scanner.systemError'));
         }
 
         // Reset to IDLE after delay
@@ -233,8 +233,8 @@ const ScannerDashboard = () => {
                                         <Scan className="w-16 h-16 text-slate-400" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-bold text-slate-900 mb-2">Ready to Scan</h1>
-                                        <p className="text-lg text-slate-500">Point scanner at QR Code or enter manually below</p>
+                                        <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('scanner.ready')}</h1>
+                                        <p className="text-lg text-slate-500">{t('scanner.pointScanner')}</p>
                                     </div>
                                 </div>
                             )}
@@ -242,7 +242,7 @@ const ScannerDashboard = () => {
                             {scanStatus === 'PROCESSING' && (
                                 <div className="space-y-6">
                                     <div className="w-24 h-24 border-4 border-slate-200 border-t-sky-600 rounded-full animate-spin mx-auto"></div>
-                                    <h2 className="text-2xl font-bold text-slate-700">Verifying...</h2>
+                                    <h2 className="text-2xl font-bold text-slate-700">{t('scanner.processing')}</h2>
                                 </div>
                             )}
 
@@ -253,21 +253,21 @@ const ScannerDashboard = () => {
                                     </div>
                                     <div>
                                         <h1 className="text-5xl font-bold text-emerald-600 mb-2">{t('scanner.valid')}</h1>
-                                        <p className="text-xl text-emerald-800">Access Granted</p>
+                                        <p className="text-xl text-emerald-800">{t('scanner.accessGranted')}</p>
                                     </div>
                                     <Card className="bg-white/80 backdrop-blur border-emerald-200 shadow-lg text-left">
                                         <CardContent className="p-6 grid grid-cols-2 gap-6">
                                             <div>
-                                                <p className="text-slate-500 text-sm font-medium uppercase">Category</p>
+                                                <p className="text-slate-500 text-sm font-medium uppercase">{t('scanner.category')}</p>
                                                 <p className="text-2xl font-bold text-slate-900">{scanResult?.ticket?.category_name}</p>
                                             </div>
                                             <div>
-                                                <p className="text-slate-500 text-sm font-medium uppercase">Code</p>
+                                                <p className="text-slate-500 text-sm font-medium uppercase">{t('common.code')}</p>
                                                 <p className="text-lg font-mono text-slate-700">{scanResult?.ticket?.ticket_code}</p>
                                             </div>
                                             {scanResult?.ticket?.nim && (
                                                 <div className="col-span-2 pt-4 border-t border-slate-100">
-                                                    <p className="text-slate-500 text-sm font-medium uppercase mb-1">Student ID (NIM)</p>
+                                                    <p className="text-slate-500 text-sm font-medium uppercase mb-1">{t('scanner.studentId')}</p>
                                                     <div className="inline-block bg-sky-50 px-3 py-1 rounded text-xl font-mono font-bold text-sky-700 border border-sky-100">
                                                         {scanResult.ticket.nim}
                                                     </div>
@@ -285,7 +285,7 @@ const ScannerDashboard = () => {
                                     </div>
                                     <div>
                                         <h1 className="text-4xl font-bold text-amber-600 mb-2">{t('scanner.used')}</h1>
-                                        <p className="text-lg text-amber-800">Scanned at {new Date(scanResult?.ticket?.scanned_at).toLocaleTimeString()}</p>
+                                        <p className="text-lg text-amber-800">{t('scanner.scannedAt')} {new Date(scanResult?.ticket?.scanned_at).toLocaleTimeString()}</p>
                                     </div>
                                 </div>
                             )}
@@ -310,14 +310,14 @@ const ScannerDashboard = () => {
                                     <Keyboard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <Input
                                         type="text"
-                                        placeholder="Enter ticket code manual..."
+                                        placeholder={t('scanner.enterCode')}
                                         className="pl-9 h-12 text-lg uppercase bg-white border-slate-300 focus:border-sky-500 text-slate-900 placeholder:text-slate-400"
                                         value={manualCode}
                                         onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                                     />
                                 </div>
                                 <Button type="submit" size="lg" className="h-12 bg-slate-900 hover:bg-slate-800 text-white">
-                                    Scan
+                                    {t('scanner.scan')}
                                 </Button>
                             </form>
                         </div>
@@ -330,7 +330,7 @@ const ScannerDashboard = () => {
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                         <h3 className="font-bold text-slate-900 flex items-center">
                             <History className="w-4 h-4 mr-2 text-slate-500" />
-                            Recent Scans
+                            {t('scanner.recentScans')}
                         </h3>
                     </div>
 
@@ -338,7 +338,7 @@ const ScannerDashboard = () => {
                         <div className="space-y-3">
                             {scanHistory.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <p className="text-slate-400 text-sm">No scans yet.</p>
+                                    <p className="text-slate-400 text-sm">{t('scanner.noScans')}</p>
                                 </div>
                             ) : (
                                 scanHistory.map((item) => (

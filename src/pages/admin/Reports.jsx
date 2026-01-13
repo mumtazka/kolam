@@ -9,7 +9,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport } from '../../services/reportService';
 
 const Reports = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [reportType, setReportType] = useState('daily');
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,7 @@ const Reports = () => {
 
     try {
       const tickets = reportData.tickets;
-      const headers = ['No', 'Ticket ID', 'Category', 'NIM', 'Staff', 'Quantity', 'Price (Rp)', 'Status', 'Date', 'Time'];
+      const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
       const rows = tickets.map((ticket, index) => {
         const date = new Date(ticket.created_at);
         return [
@@ -67,8 +67,8 @@ const Reports = () => {
           ticket.quantity || 1,
           ticket.price,
           ticket.status,
-          date.toLocaleDateString('id-ID'),
-          date.toLocaleTimeString('id-ID')
+          date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US'),
+          date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US')
         ];
       });
 
@@ -181,7 +181,7 @@ const Reports = () => {
               <h4 className="text-xl font-bold text-slate-800">{t('reports.salesByCategory')}</h4>
               <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
                 <span className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
-                <span className="font-medium">Ticket Count</span>
+                <span className="font-medium">{t('reports.ticketCount')}</span>
               </div>
             </div>
 
@@ -230,7 +230,7 @@ const Reports = () => {
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                               </svg>
-                              <span className="text-[10px] uppercase tracking-wide">Highest</span>
+                              <span className="text-[10px] uppercase tracking-wide">{t('reports.highest')}</span>
                             </div>
                           )}
                           <span className={`inline-block text-base font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
@@ -254,11 +254,11 @@ const Reports = () => {
                             <p className="font-bold mb-1.5 text-yellow-300 text-sm">{cat._id}</p>
                             <div className="flex flex-col gap-1.5 text-slate-200">
                               <div className="flex justify-between gap-4">
-                                <span className="text-slate-400">Tickets:</span>
+                                <span className="text-slate-400">{t('reports.tickets')}:</span>
                                 <span className="font-mono font-bold">{cat.count}</span>
                               </div>
                               <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
-                                <span className="text-slate-400">Revenue:</span>
+                                <span className="text-slate-400">{t('reports.revenue')}:</span>
                                 <span className="font-mono font-bold text-emerald-300">
                                   Rp {(cat.revenue || 0).toLocaleString()}
                                 </span>
@@ -351,7 +351,7 @@ const Reports = () => {
               </div>
               <p className="text-sm font-medium text-red-600">{error}</p>
               <Button onClick={fetchReport} variant="outline" size="sm" className="mt-4">
-                Try Again
+                {t('common.back')}
               </Button>
             </div>
           ) : reportData && reportData.tickets && reportData.tickets.length > 0 ? (
@@ -406,8 +406,8 @@ const Reports = () => {
                           </td>
                           <td className="px-4 py-3 text-slate-500 text-xs">
                             {reportType === 'monthly'
-                              ? `${date.toLocaleDateString('id-ID')} ${date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
-                              : date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                              ? `${date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')} ${date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`
+                              : date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
                       );

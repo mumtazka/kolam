@@ -193,7 +193,7 @@ const CategoryManagement = () => {
                             {editingId ? t('admin.editCategory') : t('admin.newCategory')}
                         </DialogTitle>
                         <DialogDescription>
-                            {editingId ? "Update existing category details." : "Create a new ticket category."}
+                            {editingId ? t('admin.categoryFormDescriptionUpdate') : t('admin.categoryFormDescriptionCreate')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -223,7 +223,7 @@ const CategoryManagement = () => {
                                     data-testid="category-prefix-input"
                                 />
                                 <p className="text-xs text-slate-500 mt-1">
-                                    Ticket Code Example: {formData.code_prefix || 'XXX'}-20260112-0001-A1B2
+                                    {t('admin.ticketCodeExample')}: {formData.code_prefix || 'XXX'}-20260112-0001-A1B2
                                 </p>
                             </div>
 
@@ -329,7 +329,7 @@ const CategoryManagement = () => {
                                 <span className="font-semibold text-slate-900">Rp {(category.price || 0).toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Ticket Code:</span>
+                                <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>
                                 <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">
                                     {category.code_prefix}-YYYYMMDD-XXXX
                                 </span>
