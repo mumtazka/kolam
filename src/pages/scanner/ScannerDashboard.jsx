@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { ScrollArea } from '../../components/ui/scroll-area';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown } from 'lucide-react';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown, Monitor } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 const ScannerDashboard = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, switchMode } = useAuth();
     const { t } = useLanguage();
 
     // Use shift label from user context (set at login based on active shift)
@@ -214,11 +214,26 @@ const ScannerDashboard = () => {
                             <DropdownMenuLabel>
                                 <div className="flex flex-col space-y-1">
                                     <p className="text-sm font-medium leading-none">{user?.name}</p>
-                                    <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">{t('auth.modeScanner')}</p>
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={logout} className="text-rose-600 focus:text-rose-600 cursor-pointer">
+                            <DropdownMenuItem
+                                onClick={async () => {
+                                    try {
+                                        await switchMode('CASHIER');
+                                        navigate('/receptionist');
+                                    } catch (e) {
+                                        toast.error(e.message);
+                                    }
+                                }}
+                                className="cursor-pointer"
+                            >
+                                <Monitor className="w-4 h-4 mr-2" />
+                                <span>{t('auth.switchMode')}: {t('auth.modeCashier')}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => { logout(); navigate('/login'); }} className="text-rose-600 focus:text-rose-600 cursor-pointer">
                                 <LogOut className="w-4 h-4 mr-2" />
                                 <span>{t('common.logout')}</span>
                             </DropdownMenuItem>

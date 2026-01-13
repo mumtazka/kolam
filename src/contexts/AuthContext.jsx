@@ -25,9 +25,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password, selectedMode) => {
+  // Unified login - no mode selection required upfront
+  const login = async (email, password) => {
     try {
-      console.log('Attempting login for:', email, 'Mode:', selectedMode);
+      console.log('Attempting login for:', email);
 
       // 1. Fetch user from Supabase
       const { data: userData, error } = await supabase
@@ -44,42 +45,26 @@ export const AuthProvider = ({ children }) => {
       const isValidPassword = await bcrypt.compare(password, userData.password_hash);
       if (!isValidPassword) throw new Error('Invalid password');
 
-      // 3. User Type Enforcement
+      // 3. Determine user type
       // ADMIN -> ADMIN
-      // RECEPTIONIST/SCANNER -> STAFF
+      // RECEPTIONIST/SCANNER/STAFF -> STAFF
       let userType = 'STAFF';
+      let activeMode = null;
+
       if (userData.role === 'ADMIN') {
         userType = 'ADMIN';
+        activeMode = 'ADMIN'; // Admin mode is set automatically
       }
+      // For staff, mode will be set later via setActiveMode
 
-      // 4. Validate Mode Selection
-      if (selectedMode === 'ADMIN') {
-        if (userType !== 'ADMIN') {
-          throw new Error('Access Denied: Only Admins can login to Admin mode.');
-        }
-      } else if (selectedMode === 'CASHIER' || selectedMode === 'SCANNER') {
-        if (userType !== 'STAFF') {
-          // Optional: Strict rule -> Admins cannot use Staff modes? 
-          // Project context said: "If selected = Admin: allow only if user.type === ADMIN"
-          // "If selected = Cashier or Scanner: allow only if user.type === STAFF"
-          // So yes, strictly enforce types.
-          throw new Error('Access Denied: Only Staff can login to Cashier/Scanner mode.');
-        }
-      } else {
-        throw new Error('Invalid login mode selected.');
-      }
-
-      // 5. Create safe user object with active_mode
+      // 4. Create safe user object
       const safeUser = {
         id: userData.id,
         email: userData.email,
         name: userData.name,
-        type: userType,          // Derived type
-        active_mode: selectedMode, // The mode they chose
-
-        // Keep original role just in case, but rely on active_mode for UI
+        type: userType,
+        active_mode: activeMode, // null for staff until they choose
         original_role: userData.role,
-
         is_active: userData.is_active,
         created_at: userData.created_at
       };
@@ -95,13 +80,50 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Set active mode for staff users after login
+  const setActiveMode = async (mode) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    if (user.type === 'ADMIN') {
+      throw new Error('Admin users cannot switch modes');
+    }
+
+    if (mode !== 'CASHIER' && mode !== 'SCANNER') {
+      throw new Error('Invalid mode. Must be CASHIER or SCANNER');
+    }
+
+    const updatedUser = {
+      ...user,
+      active_mode: mode
+    };
+
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+
+    return updatedUser;
+  };
+
+  // Switch mode for staff users (can be used from dashboards)
+  const switchMode = async (newMode) => {
+    return setActiveMode(newMode);
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      logout,
+      setActiveMode,
+      switchMode
+    }}>
       {children}
     </AuthContext.Provider>
   );

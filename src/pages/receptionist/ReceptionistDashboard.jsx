@@ -6,7 +6,7 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { LogOut, Printer, Plus, Minus, Ticket, User, ChevronDown, X, Eye } from 'lucide-react';
+import { LogOut, Printer, Plus, Minus, Ticket, User, ChevronDown, X, Eye, ScanLine } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ import { getActiveCategoriesWithPrices } from '../../services/categoryService';
 import { createBatchTickets } from '../../services/ticketService';
 
 const ReceptionistDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, switchMode } = useAuth();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
@@ -339,9 +339,24 @@ const ReceptionistDashboard = () => {
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{t('admin.roleReceptionist')}</p>
                   </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => {
+                    try {
+                      await switchMode('SCANNER');
+                      navigate('/scanner');
+                    } catch (e) {
+                      toast.error(e.message);
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  <ScanLine className="w-4 h-4 mr-2" />
+                  <span>{t('auth.switchMode')}: {t('auth.modeScanner')}</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-600 cursor-pointer">
                   <LogOut className="w-4 h-4 mr-2" />

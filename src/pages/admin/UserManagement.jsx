@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { Plus, Edit, UserX, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUsers, createUser, updateUser, deactivateUser, activateUser } from '../../services/userService';
@@ -186,9 +186,12 @@ const UserManagement = () => {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent data-testid="user-form-dialog">
+        <DialogContent data-testid="user-form-dialog" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>{editingUser ? t('admin.editStaff') : t('admin.addStaff')}</DialogTitle>
+            <DialogDescription>
+              {editingUser ? t('admin.usersSubtitle') : t('admin.usersSubtitle')}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
