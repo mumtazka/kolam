@@ -7,7 +7,7 @@ import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X } 
 import Barcode from '../../components/ui/Barcode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getDailyReport, getMonthlyReport } from '../../services/reportService';
+import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
 
 const Reports = () => {
   const { t, language } = useLanguage();
@@ -32,6 +32,10 @@ const Reports = () => {
         data = await getDailyReport(selectedDate);
       } else if (reportType === 'monthly') {
         data = await getMonthlyReport(selectedYear, selectedMonth);
+      } else if (reportType === 'yearly') {
+        data = await getYearlyReport(selectedYear);
+      } else if (reportType === 'lifetime') {
+        data = await getLifetimeReport();
       }
       setReportData(data);
       setHistoryPage(1);
@@ -56,7 +60,7 @@ const Reports = () => {
     }
 
     try {
-      const tickets = reportData.tickets;
+      const tickets = [...reportData.tickets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
       const rows = tickets.map((ticket, index) => {
         const date = new Date(ticket.created_at);
@@ -83,9 +87,16 @@ const Reports = () => {
 
       const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      const filename = reportType === 'daily'
-        ? `ticket_history_${selectedDate}.csv`
-        : `ticket_history_${selectedYear}-${String(selectedMonth).padStart(2, '0')}.csv`;
+      let filename;
+      if (reportType === 'daily') {
+        filename = `ticket_history_${selectedDate}.csv`;
+      } else if (reportType === 'monthly') {
+        filename = `ticket_history_${selectedYear}-${String(selectedMonth).padStart(2, '0')}.csv`;
+      } else if (reportType === 'yearly') {
+        filename = `ticket_history_${selectedYear}.csv`;
+      } else {
+        filename = `ticket_history_lifetime.csv`;
+      }
 
       link.setAttribute('href', URL.createObjectURL(blob));
       link.setAttribute('download', filename);
@@ -130,47 +141,46 @@ const Reports = () => {
       <div className="space-y-6">
         {/* Chart Section with Stats on Left */}
         {!loading && !error && reportData && reportData.by_category && reportData.by_category.length > 0 && (
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col xl:flex-row gap-8">
             {/* Stats Cards - Left Side */}
-            <div className="flex flex-row lg:flex-col gap-4 lg:w-80 flex-shrink-0">
-              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                    <path d="M3 6h18" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
+            <div className="flex flex-col sm:flex-row xl:flex-col gap-4 xl:w-72 flex-shrink-0">
+              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                    <path d="M13 5v2" />
+                    <path d="M13 17v2" />
+                    <path d="M13 11v2" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
-                  <p className="text-2xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
+                  <p className="text-[11px] text-blue-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.sold')}</p>
+                  <p className="text-2xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-emerald-100 shadow-sm flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14" />
-                    <path d="M12 5l7 7-7 7" />
+              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
-                  <p className="text-2xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
+                  <p className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.scanned')}</p>
+                  <p className="text-2xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-                    <path d="M12 18V6" />
-                  </svg>
+              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                  <span className="text-lg font-bold">Rp</span>
                 </div>
                 <div>
-                  <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
-                  <p className="text-xl font-bold text-slate-800">
+                  <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.revenue')}</p>
+                  <p className="text-xl font-bold text-slate-900">
                     Rp {(reportData.total_revenue || 0).toLocaleString()}
                   </p>
                 </div>
@@ -178,25 +188,28 @@ const Reports = () => {
             </div>
 
             {/* Chart - Right Side */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex-1">
-              <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
-                <h4 className="text-xl font-bold text-slate-800">{t('reports.salesByCategory')}</h4>
-                <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
-                  <span className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
-                  <span className="font-medium">{t('reports.ticketCount')}</span>
+            <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-sm flex-1">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 pb-6 border-b border-slate-50 gap-4">
+                <div>
+                  <h4 className="text-2xl font-bold text-slate-900 mb-1">{t('reports.salesByCategory')}</h4>
+                  <p className="text-sm text-slate-500">Overview of ticket sales distribution</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-100 px-4 py-2 rounded-full">
+                  <span className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"></span>
+                  <span>{t('reports.ticketCount')}</span>
                 </div>
               </div>
 
-              <div className="relative h-80 flex items-end justify-around gap-8 px-6">
+              <div className="relative h-96 flex items-end justify-around gap-8 px-6">
                 {/* Grid Lines */}
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-12 pt-4">
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-14 pt-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="border-t border-slate-200/60 w-full"></div>
+                    <div key={i} className="border-t border-slate-100 w-full"></div>
                   ))}
                 </div>
 
                 {/* Y-axis */}
-                <div className="absolute left-0 top-0 bottom-12 flex flex-col justify-between text-xs text-slate-500 font-medium pr-2">
+                <div className="absolute left-0 top-0 bottom-14 flex flex-col justify-between text-xs text-slate-400 font-medium pr-4">
                   {(() => {
                     const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
                     const step = Math.ceil(maxCount / 5);
@@ -207,16 +220,16 @@ const Reports = () => {
                 </div>
 
                 {/* Bars */}
-                <div className="flex items-end justify-around gap-6 w-full ml-8 h-full">
+                <div className="flex items-end justify-around gap-4 xl:gap-12 w-full ml-10 h-full">
                   {(() => {
                     const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
                     const colors = [
-                      'from-blue-400 to-blue-600',
-                      'from-emerald-400 to-emerald-600',
-                      'from-amber-400 to-amber-600',
-                      'from-purple-400 to-purple-600',
-                      'from-rose-400 to-rose-600',
-                      'from-cyan-400 to-cyan-600'
+                      'from-blue-500 to-blue-600 shadow-blue-200',
+                      'from-emerald-500 to-emerald-600 shadow-emerald-200',
+                      'from-amber-500 to-amber-600 shadow-amber-200',
+                      'from-purple-500 to-purple-600 shadow-purple-200',
+                      'from-rose-500 to-rose-600 shadow-rose-200',
+                      'from-cyan-500 to-cyan-600 shadow-cyan-200'
                     ];
 
                     return reportData.by_category.map((cat, idx) => {
@@ -224,20 +237,19 @@ const Reports = () => {
                       const isHighest = cat.count === maxCount;
 
                       return (
-                        <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[120px] h-full justify-end pb-12">
+                        <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[140px] h-full justify-end pb-14">
                           {/* Count Label */}
-                          <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className={`mb-4 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-2 ${isHighest ? 'translate-y-0' : 'translate-y-2 opacity-0 group-hover:opacity-100 is-highest-label'}`}>
                             {isHighest && (
-                              <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg>
-                                <span className="text-[10px] uppercase tracking-wide">{t('reports.highest')}</span>
+                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce duration-1000">
+                                <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border border-amber-200 whitespace-nowrap mb-1">
+                                  {t('reports.highest')}
+                                </span>
                               </div>
                             )}
-                            <span className={`inline-block text-base font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
-                              ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
-                              : 'bg-white text-slate-700 border-slate-200'
+                            <span className={`inline-block text-lg font-bold px-4 py-1.5 rounded-xl shadow-sm border transition-all ${isHighest
+                              ? 'bg-white text-slate-800 border-slate-200'
+                              : 'bg-white text-slate-600 border-slate-100'
                               }`}>
                               {cat.count}
                             </span>
@@ -245,39 +257,39 @@ const Reports = () => {
 
                           {/* Bar */}
                           <div
-                            className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-xl transition-all duration-700 relative shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-105 hover:brightness-110`}
+                            className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-2xl transition-all duration-700 relative shadow-lg group-hover:shadow-xl cursor-help transform group-hover:scale-105 group-hover:brightness-105`}
                             style={{
                               height: `${percentage}%`,
                               minHeight: '40px'
                             }}
                           >
+                            {/* Inner Shine */}
+                            <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent rounded-t-2xl"></div>
+
                             {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-slate-900 text-white text-xs py-3 px-4 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none">
-                              <p className="font-bold mb-1.5 text-yellow-300 text-sm">{cat._id}</p>
-                              <div className="flex flex-col gap-1.5 text-slate-200">
-                                <div className="flex justify-between gap-4">
-                                  <span className="text-slate-400">{t('reports.tickets')}:</span>
-                                  <span className="font-mono font-bold">{cat.count}</span>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-slate-900/95 backdrop-blur text-white text-xs py-3 px-4 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
+                              <p className="font-bold mb-2 text-base text-white">{cat._id}</p>
+                              <div className="flex flex-col gap-1.5 text-slate-300">
+                                <div className="flex justify-between gap-6">
+                                  <span>{t('reports.tickets')}:</span>
+                                  <span className="font-mono font-bold text-white">{cat.count}</span>
                                 </div>
-                                <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
-                                  <span className="text-slate-400">{t('reports.revenue')}:</span>
-                                  <span className="font-mono font-bold text-emerald-300">
+                                <div className="flex justify-between gap-6 pt-1.5 border-t border-slate-700">
+                                  <span>{t('reports.revenue')}:</span>
+                                  <span className="font-mono font-bold text-emerald-400">
                                     Rp {(cat.revenue || 0).toLocaleString()}
                                   </span>
                                 </div>
                               </div>
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900"></div>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900/95"></div>
                             </div>
-
-                            {/* Shine Effect */}
-                            <div className="absolute inset-0 rounded-t-xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </div>
 
                           {/* X-Label */}
-                          <div className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-center">
-                            <span className={`text-xs font-bold text-center leading-tight px-2 transition-colors ${isHighest ? 'text-slate-900' : 'text-slate-600'
+                          <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center pt-2">
+                            <span className={`text-xs font-bold text-center leading-snug px-2 transition-colors ${isHighest ? 'text-slate-900' : 'text-slate-500'
                               }`} title={cat._id}>
-                              {cat._id.length > 12 ? cat._id.substring(0, 10) + '...' : cat._id}
+                              {cat._id}
                             </span>
                           </div>
                         </div>
@@ -291,50 +303,72 @@ const Reports = () => {
         )}
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Tabs value={reportType} onValueChange={setReportType}>
-            <TabsList>
-              <TabsTrigger value="daily">{t('reports.dailyReport')}</TabsTrigger>
-              <TabsTrigger value="monthly">{t('reports.monthlyReport')}</TabsTrigger>
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-40 backdrop-blur-md bg-white/90">
+          <Tabs value={reportType} onValueChange={setReportType} className="w-full sm:w-auto">
+            <TabsList className="bg-slate-100 p-1 rounded-lg w-full sm:w-auto flex-wrap">
+              <TabsTrigger value="daily" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.dailyReport')}</TabsTrigger>
+              <TabsTrigger value="monthly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.monthlyReport')}</TabsTrigger>
+              <TabsTrigger value="yearly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.yearlyReport')}</TabsTrigger>
+              <TabsTrigger value="lifetime" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.lifetimeReport')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            {reportType === 'daily' ? (
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            ) : (
-              <>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+            {reportType === 'daily' && (
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="h-10 px-4 pl-10 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all hover:border-slate-300"
+                />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            )}
+            {reportType === 'monthly' && (
+              <div className="flex gap-2">
                 <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                  <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-32 h-10 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Array.from({ length: 12 }, (_, i) => (
                       <SelectItem key={i + 1} value={(i + 1).toString()}>
-                        {new Date(0, i).toLocaleString('default', { month: 'short' })}
+                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                  <SelectTrigger className="w-20 h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-24 h-10 border-slate-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2024, 2025, 2026].map(y => (
+                    {[2024, 2025, 2026, 2027].map(y => (
                       <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </>
+              </div>
             )}
-            <Button onClick={fetchReport} size="sm" className="bg-slate-900 hover:bg-slate-800">
+            {reportType === 'yearly' && (
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                <SelectTrigger className="w-28 h-10 border-slate-200"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map(y => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {reportType === 'lifetime' && (
+              <span className="text-sm text-slate-500 font-medium px-3 py-2 bg-slate-100 rounded-lg">Semua Data</span>
+            )}
+
+            <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+            <Button onClick={fetchReport} size="sm" className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all">
               {t('common.refresh')}
             </Button>
             {reportData?.tickets?.length > 0 && (
-              <Button onClick={exportToExcel} variant="outline" size="sm">
-                <FileSpreadsheet className="w-4 h-4 mr-1" />
+              <Button onClick={exportToExcel} variant="outline" size="sm" className="h-10 px-4 border-slate-200 hover:bg-slate-50 hover:text-emerald-700 hover:border-emerald-200 rounded-lg transition-all">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
                 {t('reports.exportExcel')}
               </Button>
             )}
@@ -342,78 +376,90 @@ const Reports = () => {
         </div>
 
         {/* Table */}
-        <Card className="p-6 rounded-xl shadow-sm border-slate-200">
+        <Card className="rounded-2xl border-slate-200 overflow-hidden shadow-sm">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex flex-col items-center justify-center py-20 bg-white">
+              <div className="w-12 h-12 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-500 animate-pulse font-medium">{t('common.loading')}</p>
             </div>
           ) : error ? (
-            <div className="text-center py-16">
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-500" />
+            <div className="text-center py-20 bg-white">
+              <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="w-10 h-10 text-red-500" />
               </div>
-              <p className="text-sm font-medium text-red-600">{error}</p>
-              <Button onClick={fetchReport} variant="outline" size="sm" className="mt-4">
-                {t('common.back')}
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Error Loading Report</h3>
+              <p className="text-slate-500 mb-6 max-w-md mx-auto">{error}</p>
+              <Button onClick={fetchReport} variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">
+                try again
               </Button>
             </div>
           ) : reportData && reportData.tickets && reportData.tickets.length > 0 ? (
-            <div>
-              <h3 className="text-lg font-bold text-slate-800 mb-4">
-                {t('reports.ticketHistory')} ({reportData.tickets.length})
-              </h3>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="bg-white">
+              <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">
+                    {t('reports.ticketHistory')}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {reportData.tickets.length} total records found
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="bg-slate-50/50 border-b border-slate-100">
                     <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">No</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.category')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">NIM</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.staff')}</th>
-                      <th className="px-4 py-3 text-right font-semibold text-slate-700">{t('reports.price')}</th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-700">{t('admin.status')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('reports.time')}</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">No</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.category')}</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">NIM</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.staff')}</th>
+                      <th className="px-6 py-4 text-right font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.price')}</th>
+                      <th className="px-6 py-4 text-center font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('admin.status')}</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.time')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-50">
                     {getPaginatedTickets().map((ticket, idx) => {
                       const date = new Date(ticket.created_at);
                       return (
                         <tr
                           key={ticket.id}
-                          className="hover:bg-slate-50 transition-colors cursor-pointer"
+                          className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                           onClick={() => setSelectedTicket(ticket)}
                         >
-                          <td className="px-4 py-3 text-slate-600">
+                          <td className="px-6 py-4 text-slate-500 font-medium">
                             {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
                           </td>
-                          <td className="px-4 py-3 font-mono text-xs text-blue-600 font-semibold">
-                            {ticket.ticket_code || ticket.id?.substring(0, 8)}
-                          </td>
-                          <td className="px-4 py-3 font-medium text-slate-800">
-                            {ticket.category_name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 font-mono text-xs">
-                            {ticket.nim || '-'}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {ticket.created_by_name}
-                          </td>
-                          <td className="px-4 py-3 font-medium text-right text-slate-800">
-                            Rp {parseFloat(ticket.price || 0).toLocaleString()}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-100 text-slate-600'
-                              }`}>
-                              {ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai'}
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 group-hover:border-blue-200 transition-colors">
+                              {ticket.ticket_code || ticket.id?.substring(0, 8)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-500 text-xs">
-                            {reportType === 'monthly'
-                              ? `${date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')} ${date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`
+                          <td className="px-6 py-4">
+                            <span className="font-medium text-slate-700">{ticket.category_name}</span>
+                          </td>
+                          <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                            {ticket.nim || <span className="text-slate-300">-</span>}
+                          </td>
+                          <td className="px-6 py-4 text-slate-600">
+                            {ticket.created_by_name}
+                          </td>
+                          <td className="px-6 py-4 font-bold text-right text-slate-700">
+                            Rp {parseFloat(ticket.price || 0).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={`px-3 py-1 text-[10px] font-bold rounded-full border ${ticket.status === 'USED'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                              {ticket.status === 'USED' ? 'DIPAKAI' : 'BELUM'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-slate-500 text-xs font-medium">
+                            {(reportType === 'monthly' || reportType === 'yearly' || reportType === 'lifetime')
+                              ? `${date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')} • ${date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`
                               : date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                           </td>
                         </tr>
@@ -425,9 +471,9 @@ const Reports = () => {
 
               {/* Pagination */}
               {getTotalPages() > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-xs text-slate-500">
-                    {((historyPage - 1) * HISTORY_PER_PAGE) + 1} - {Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)} of {reportData.tickets.length}
+                <div className="flex items-center justify-between px-8 py-5 border-t border-slate-100 bg-slate-50/50">
+                  <p className="text-xs text-slate-500 font-medium">
+                    Showing <span className="text-slate-900 font-bold">{((historyPage - 1) * HISTORY_PER_PAGE) + 1}</span> to <span className="text-slate-900 font-bold">{Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)}</span> of {reportData.tickets.length} entries
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -435,17 +481,19 @@ const Reports = () => {
                       size="sm"
                       onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
                       disabled={historyPage === 1}
+                      className="h-8 w-8 p-0 border-slate-200 hover:bg-white hover:text-slate-900"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <span className="text-xs font-medium text-slate-700">
-                      {historyPage} / {getTotalPages()}
-                    </span>
+                    <div className="px-4 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-sm">
+                      Page {historyPage} of {getTotalPages()}
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setHistoryPage(p => Math.min(getTotalPages(), p + 1))}
                       disabled={historyPage === getTotalPages()}
+                      className="h-8 w-8 p-0 border-slate-200 hover:bg-white hover:text-slate-900"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>

@@ -3,10 +3,14 @@ import { supabase } from '../lib/supabase';
 /**
  * Get all categories
  */
+/**
+ * Get all categories (excluding soft-deleted ones)
+ */
 export const getCategories = async () => {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .is('deleted_at', null)
         .order('name');
 
     if (error) throw error;
@@ -20,6 +24,7 @@ export const getActiveCategories = async () => {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .is('deleted_at', null)
         .eq('active', true)
         .order('name');
 
@@ -35,6 +40,7 @@ export const getCategoriesWithPrices = async () => {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .is('deleted_at', null)
         .order('name');
 
     if (error) throw error;
@@ -48,6 +54,7 @@ export const getActiveCategoriesWithPrices = async () => {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .is('deleted_at', null)
         .eq('active', true)
         .order('name');
 
@@ -71,12 +78,14 @@ export const getCategoryById = async (categoryId) => {
 
 /**
  * Check if a prefix is already in use
+ * Only checks non-deleted categories
  */
 export const isPrefixUnique = async (prefix, excludeId = null) => {
     let query = supabase
         .from('categories')
         .select('id')
-        .eq('code_prefix', prefix.toUpperCase());
+        .eq('code_prefix', prefix.toUpperCase())
+        .is('deleted_at', null);
 
     if (excludeId) {
         query = query.neq('id', excludeId);
@@ -155,23 +164,18 @@ export const toggleCategoryActive = async (categoryId, active) => {
 };
 
 /**
- * Delete a category and ALL associated tickets
- * Note: Database has ON DELETE RESTRICT for safety, so we must manually delete tickets first
+ * Soft Delete a category
+ * Archives the category so it doesn't appear in lists but stays for reports.
+ * Also archives associated tickets (optional, but good practice if tickets need to be hidden too)
  */
 export const deleteCategory = async (categoryId) => {
-    // 1. Delete associated tickets first
-    // Scan logs will be deleted automatically via ON DELETE CASCADE on tickets table
-    const { error: ticketError } = await supabase
-        .from('tickets')
-        .delete()
-        .eq('category_id', categoryId);
-
-    if (ticketError) throw ticketError;
-
-    // 2. Delete the category
+    // Soft delete: Set active=false and deleted_at=NOW
     const { error } = await supabase
         .from('categories')
-        .delete()
+        .update({
+            active: false,
+            deleted_at: new Date().toISOString()
+        })
         .eq('id', categoryId);
 
     if (error) throw error;

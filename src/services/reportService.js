@@ -155,9 +155,13 @@ export const getDailyReport = async (date) => {
  */
 export const getMonthlyReport = async (year, month) => {
     try {
-        const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01T00:00:00`;
+        // Pad month to 2 digits
+        const monthStr = String(month).padStart(2, '0');
+        // Calculate last day of month
         const lastDay = new Date(year, month, 0).getDate();
-        const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${lastDay}T23:59:59`;
+
+        const startOfMonth = `${year}-${monthStr}-01T00:00:00`;
+        const endOfMonth = `${year}-${monthStr}-${lastDay}T23:59:59`;
 
         // Get printed tickets (Sales) - with pagination for large datasets
         const printedQuery = supabase
@@ -184,7 +188,7 @@ export const getMonthlyReport = async (year, month) => {
             };
         }
 
-        // Get scanned tickets for attendance stats - with pagination
+        // Get scanned tickets (by scanned_at) for attendance stats - with pagination
         const scannedQuery = supabase
             .from('tickets')
             .select('*')
@@ -199,7 +203,7 @@ export const getMonthlyReport = async (year, month) => {
         const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
         const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
 
-        // Revenue from SALES
+        // Revenue from ALL printed tickets (Sales)
         const totalRevenue = printedTickets.reduce((sum, t) => {
             const price = parseFloat(t.price || 0);
             return sum + (isNaN(price) ? 0 : price);
@@ -220,7 +224,7 @@ export const getMonthlyReport = async (year, month) => {
         // Group sales by day
         const byDay = {};
         printedTickets.forEach(ticket => {
-            const day = ticket.created_at.split('T')[0];
+            const day = ticket.created_at.substring(0, 10); // YYYY-MM-DD
             if (!byDay[day]) {
                 byDay[day] = { count: 0, revenue: 0 };
             }
@@ -229,7 +233,7 @@ export const getMonthlyReport = async (year, month) => {
             byDay[day].revenue += isNaN(price) ? 0 : price;
         });
 
-        // Group sales by staff (who SOLD/printed the tickets)
+        // Group sales by staff
         const byStaff = {};
         printedTickets.forEach(ticket => {
             const staffName = ticket.created_by_name || 'Unknown';
@@ -253,20 +257,247 @@ export const getMonthlyReport = async (year, month) => {
                 _id: name,
                 count: data.count,
                 revenue: data.revenue
-            })).sort((a, b) => b.count - a.count), // Sort by count descending
-            by_day: Object.entries(byDay).map(([date, data]) => ({
-                date,
+            })).sort((a, b) => b.count - a.count),
+            by_day: Object.entries(byDay).map(([day, data]) => ({
+                day,
                 count: data.count,
                 revenue: data.revenue
-            })).sort((a, b) => a.date.localeCompare(b.date)),
+            })).sort((a, b) => a.day.localeCompare(b.day)),
             by_staff: Object.entries(byStaff).map(([name, data]) => ({
                 staff_name: name,
                 count: data.count,
                 revenue: data.revenue
-            })).sort((a, b) => b.revenue - a.revenue) // Sort by revenue descending
+            })).sort((a, b) => b.revenue - a.revenue)
         };
     } catch (error) {
         console.error('Error in getMonthlyReport:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get yearly report
+ * Revenue is calculated from SALES (printed tickets)
+ * @param {number} year 
+ */
+export const getYearlyReport = async (year) => {
+    try {
+        const startOfYear = `${year}-01-01T00:00:00`;
+        const endOfYear = `${year}-12-31T23:59:59`;
+
+        // Get printed tickets (Sales) - using existing logic
+        const printedQuery = supabase
+            .from('tickets')
+            .select('*')
+            .gte('created_at', startOfYear)
+            .lte('created_at', endOfYear);
+
+        const printedTickets = await fetchAllRecords(printedQuery);
+
+        if (!printedTickets || printedTickets.length === 0) {
+            return {
+                year,
+                tickets: [],
+                tickets_sold: 0,
+                tickets_scanned: 0,
+                tickets_unused: 0,
+                total_revenue: 0,
+                by_category: [],
+                by_month: [], // Changed from by_day to by_month
+                by_staff: []
+            };
+        }
+
+        // Get scanned tickets
+        const scannedQuery = supabase
+            .from('tickets')
+            .select('*')
+            .eq('status', 'USED')
+            .gte('scanned_at', startOfYear)
+            .lte('scanned_at', endOfYear);
+
+        const scannedTickets = await fetchAllRecords(scannedQuery);
+
+        // Aggregate data
+        const ticketsPrinted = printedTickets.length;
+        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
+
+        // Revenue
+        const totalRevenue = printedTickets.reduce((sum, t) => {
+            const price = parseFloat(t.price || 0);
+            return sum + (isNaN(price) ? 0 : price);
+        }, 0);
+
+        // Group by Category
+        const byCategory = {};
+        printedTickets.forEach(ticket => {
+            const categoryName = ticket.category_name || 'Unknown';
+            if (!byCategory[categoryName]) {
+                byCategory[categoryName] = { count: 0, revenue: 0 };
+            }
+            byCategory[categoryName].count++;
+            const price = parseFloat(ticket.price || 0);
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+        });
+
+        // Group by Month (unique to yearly report)
+        const byMonth = {};
+        printedTickets.forEach(ticket => {
+            // Extract YYYY-MM
+            const month = ticket.created_at.substring(0, 7);
+            if (!byMonth[month]) {
+                byMonth[month] = { count: 0, revenue: 0 };
+            }
+            byMonth[month].count++;
+            const price = parseFloat(ticket.price || 0);
+            byMonth[month].revenue += isNaN(price) ? 0 : price;
+        });
+
+        // Group by Staff
+        const byStaff = {};
+        printedTickets.forEach(ticket => {
+            const staffName = ticket.created_by_name || 'Unknown';
+            if (!byStaff[staffName]) {
+                byStaff[staffName] = { count: 0, revenue: 0 };
+            }
+            byStaff[staffName].count++;
+            const price = parseFloat(ticket.price || 0);
+            byStaff[staffName].revenue += isNaN(price) ? 0 : price;
+        });
+
+        return {
+            year,
+            tickets: printedTickets,
+            tickets_sold: ticketsPrinted,
+            tickets_scanned: ticketsScanned,
+            tickets_unused: ticketsUnused,
+            total_revenue: totalRevenue,
+            by_category: Object.entries(byCategory).map(([name, data]) => ({
+                _id: name,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => b.count - a.count),
+            by_month: Object.entries(byMonth).map(([month, data]) => ({
+                month,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => a.month.localeCompare(b.month)),
+            by_staff: Object.entries(byStaff).map(([name, data]) => ({
+                staff_name: name,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => b.revenue - a.revenue)
+        };
+    } catch (error) {
+        console.error('Error in getYearlyReport:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get Lifetime report (All Time)
+ */
+export const getLifetimeReport = async () => {
+    try {
+        // Fetch ALL printed tickets
+        const printedQuery = supabase
+            .from('tickets')
+            .select('*');
+
+        const printedTickets = await fetchAllRecords(printedQuery);
+
+        if (!printedTickets || printedTickets.length === 0) {
+            return {
+                tickets: [],
+                tickets_sold: 0,
+                tickets_scanned: 0,
+                tickets_unused: 0,
+                total_revenue: 0,
+                by_category: [],
+                by_year: [],
+                by_staff: []
+            };
+        }
+
+        // Fetch ALL scanned tickets
+        const scannedQuery = supabase
+            .from('tickets')
+            .select('*')
+            .eq('status', 'USED');
+
+        const scannedTickets = await fetchAllRecords(scannedQuery);
+
+        // Aggregate
+        const ticketsPrinted = printedTickets.length;
+        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
+
+        const totalRevenue = printedTickets.reduce((sum, t) => {
+            const price = parseFloat(t.price || 0);
+            return sum + (isNaN(price) ? 0 : price);
+        }, 0);
+
+        // Group by Category
+        const byCategory = {};
+        printedTickets.forEach(ticket => {
+            const categoryName = ticket.category_name || 'Unknown';
+            if (!byCategory[categoryName]) {
+                byCategory[categoryName] = { count: 0, revenue: 0 };
+            }
+            byCategory[categoryName].count++;
+            const price = parseFloat(ticket.price || 0);
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+        });
+
+        // Group by Year
+        const byYear = {};
+        printedTickets.forEach(ticket => {
+            const year = ticket.created_at.substring(0, 4);
+            if (!byYear[year]) {
+                byYear[year] = { count: 0, revenue: 0 };
+            }
+            byYear[year].count++;
+            const price = parseFloat(ticket.price || 0);
+            byYear[year].revenue += isNaN(price) ? 0 : price;
+        });
+
+        // Group by Staff
+        const byStaff = {};
+        printedTickets.forEach(ticket => {
+            const staffName = ticket.created_by_name || 'Unknown';
+            if (!byStaff[staffName]) {
+                byStaff[staffName] = { count: 0, revenue: 0 };
+            }
+            byStaff[staffName].count++;
+            const price = parseFloat(ticket.price || 0);
+            byStaff[staffName].revenue += isNaN(price) ? 0 : price;
+        });
+
+        return {
+            tickets: printedTickets,
+            tickets_sold: ticketsPrinted,
+            tickets_scanned: ticketsScanned,
+            tickets_unused: ticketsUnused,
+            total_revenue: totalRevenue,
+            by_category: Object.entries(byCategory).map(([name, data]) => ({
+                _id: name,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => b.count - a.count),
+            by_year: Object.entries(byYear).map(([year, data]) => ({
+                year,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => a.year.localeCompare(b.year)),
+            by_staff: Object.entries(byStaff).map(([name, data]) => ({
+                staff_name: name,
+                count: data.count,
+                revenue: data.revenue
+            })).sort((a, b) => b.revenue - a.revenue)
+        };
+    } catch (error) {
+        console.error('Error in getLifetimeReport:', error);
         throw error;
     }
 };

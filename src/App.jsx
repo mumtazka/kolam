@@ -119,7 +119,7 @@ function App() {
           </div>
         </BrowserRouter>
       </AuthProvider>
-    </LanguageProvider >
+    </LanguageProvider>
   );
 }
 
