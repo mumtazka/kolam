@@ -181,7 +181,7 @@ const Reports = () => {
                 <div>
                   <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.revenue')}</p>
                   <p className="text-xl font-bold text-slate-900">
-                    Rp {(reportData.total_revenue || 0).toLocaleString()}
+                    Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                   </p>
                 </div>
               </div>
@@ -277,7 +277,7 @@ const Reports = () => {
                                 <div className="flex justify-between gap-6 pt-1.5 border-t border-slate-700">
                                   <span>{t('reports.revenue')}:</span>
                                   <span className="font-mono font-bold text-emerald-400">
-                                    Rp {(cat.revenue || 0).toLocaleString()}
+                                    Rp {(cat.revenue || 0).toLocaleString('id-ID')}
                                   </span>
                                 </div>
                               </div>
@@ -447,7 +447,7 @@ const Reports = () => {
                             {ticket.created_by_name}
                           </td>
                           <td className="px-6 py-4 font-bold text-right text-slate-700">
-                            Rp {parseFloat(ticket.price || 0).toLocaleString()}
+                            Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <span className={`px-3 py-1 text-[10px] font-bold rounded-full border ${ticket.status === 'USED'
@@ -557,7 +557,7 @@ const Reports = () => {
                 <div className="bg-slate-50 p-4 rounded-xl">
                   <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Harga</p>
                   <p className="text-sm font-bold text-slate-800 mt-1">
-                    Rp {parseFloat(selectedTicket.price || 0).toLocaleString()}
+                    Rp {parseFloat(selectedTicket.price || 0).toLocaleString('id-ID')}
                   </p>
                 </div>
 

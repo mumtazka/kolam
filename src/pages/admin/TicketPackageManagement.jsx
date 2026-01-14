@@ -144,7 +144,7 @@ const TicketPackageManagement = () => {
                                     <div>
                                         <h3 className="font-semibold text-slate-900 text-lg">{pkg.name}</h3>
                                         <div className="flex gap-2 text-sm">
-                                            <span className="text-emerald-600 font-bold">Rp {pkg.price_per_person?.toLocaleString()} / org</span>
+                                            <span className="text-emerald-600 font-bold">Rp {pkg.price_per_person?.toLocaleString('id-ID')} / org</span>
                                         </div>
                                     </div>
                                 </div>

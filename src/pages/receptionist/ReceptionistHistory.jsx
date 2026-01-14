@@ -444,7 +444,7 @@ const ReceptionistHistory = () => {
                                 <div>
                                     <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
                                     <p className="text-xl font-bold text-slate-800">
-                                        Rp {(reportData.total_revenue || 0).toLocaleString()}
+                                        Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                                     </p>
                                 </div>
                             </div>
@@ -538,7 +538,7 @@ const ReceptionistHistory = () => {
                                                                 <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
                                                                     <span className="text-slate-400">{t('reports.revenue')}:</span>
                                                                     <span className="font-mono font-bold text-emerald-300">
-                                                                        Rp {(cat.revenue || 0).toLocaleString()}
+                                                                        Rp {(cat.revenue || 0).toLocaleString('id-ID')}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -695,7 +695,7 @@ const ReceptionistHistory = () => {
                                                             {ticket.created_by_name}
                                                         </td>
                                                         <td className="px-4 py-3 font-medium text-right text-slate-800">
-                                                            Rp {parseFloat(ticket.price || 0).toLocaleString()}
+                                                            Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
                                                             <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
@@ -801,7 +801,7 @@ const ReceptionistHistory = () => {
                                     <div className="bg-slate-50 p-4 rounded-xl">
                                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Harga</p>
                                         <p className="text-sm font-bold text-slate-800 mt-1">
-                                            Rp {parseFloat(selectedTicket.price || 0).toLocaleString()}
+                                            Rp {parseFloat(selectedTicket.price || 0).toLocaleString('id-ID')}
                                         </p>
                                     </div>
 

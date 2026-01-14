@@ -326,7 +326,7 @@ const CategoryManagement = () => {
                         <div className="space-y-2 mb-4">
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-600">{t('dashboard.price')}:</span>
-                                <span className="font-semibold text-slate-900">Rp {(category.price || 0).toLocaleString()}</span>
+                                <span className="font-semibold text-slate-900">Rp {(category.price || 0).toLocaleString('id-ID')}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>

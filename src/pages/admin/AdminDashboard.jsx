@@ -28,12 +28,43 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const [users, report, totalVisits, visitsData] = await Promise.all([
-        getUsers(),
-        getDailyReport(today),
-        getTotalVisits(),
-        getVisitsLast7Days()
-      ]);
+
+      // Fetch each data source with individual error handling
+      let users = [];
+      let report = null;
+      let totalVisits = 0;
+      let visitsData = [];
+
+      try {
+        users = await getUsers();
+      } catch (e) {
+        console.warn('Failed to fetch users:', e);
+      }
+
+      try {
+        report = await getDailyReport(today);
+      } catch (e) {
+        console.warn('Failed to fetch daily report:', e);
+      }
+
+      try {
+        totalVisits = await getTotalVisits();
+      } catch (e) {
+        console.warn('Failed to fetch total visits (scan_logs may not exist):', e);
+        totalVisits = 0;
+      }
+
+      try {
+        visitsData = await getVisitsLast7Days();
+      } catch (e) {
+        console.warn('Failed to fetch visits chart data (scan_logs may not exist):', e);
+        // Generate empty 7-day data as fallback
+        visitsData = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (6 - i));
+          return { date: d.toISOString().split('T')[0], total_scan: 0 };
+        });
+      }
 
       setStats({
         totalStaff: users.filter(u => u.is_active).length,
@@ -54,9 +85,9 @@ const AdminDashboard = () => {
   const statCards = [
     { label: t('admin.activeStaff'), value: stats.totalStaff, icon: Users, color: 'bg-blue-500' },
     { label: t('admin.todayTickets'), value: stats.todayTickets, icon: Ticket, color: 'bg-emerald-500' },
-    { label: t('admin.todayRevenue'), value: `Rp ${stats.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-amber-500' },
+    { label: t('admin.todayRevenue'), value: `Rp ${stats.todayRevenue.toLocaleString('id-ID')}`, icon: DollarSign, color: 'bg-amber-500' },
     { label: t('admin.todayScans'), value: stats.todayScans, icon: Activity, color: 'bg-purple-500' },
-    { label: t('admin.totalVisits'), value: stats.totalVisits.toLocaleString(), icon: TrendingUp, color: 'bg-cyan-500' },
+    { label: t('admin.totalVisits'), value: stats.totalVisits.toLocaleString('id-ID'), icon: TrendingUp, color: 'bg-cyan-500' },
   ];
 
   // Format date for display (e.g., "08 Jan" or "Jan 08")
@@ -146,8 +177,8 @@ const AdminDashboard = () => {
                   {/* Count Label */}
                   <div className="mb-2 transition-all duration-300 group-hover:scale-110">
                     <span className={`inline-block text-sm font-bold px-2 py-0.5 rounded-md ${isToday
-                        ? 'bg-cyan-100 text-cyan-800'
-                        : 'bg-slate-100 text-slate-700'
+                      ? 'bg-cyan-100 text-cyan-800'
+                      : 'bg-slate-100 text-slate-700'
                       }`}>
                       {day.total_scan}
                     </span>
@@ -156,8 +187,8 @@ const AdminDashboard = () => {
                   {/* Bar */}
                   <div
                     className={`w-full rounded-t-lg transition-all duration-500 relative cursor-pointer transform hover:scale-105 ${isToday
-                        ? 'bg-gradient-to-t from-cyan-500 to-cyan-400 shadow-lg'
-                        : 'bg-gradient-to-t from-slate-400 to-slate-300'
+                      ? 'bg-gradient-to-t from-cyan-500 to-cyan-400 shadow-lg'
+                      : 'bg-gradient-to-t from-slate-400 to-slate-300'
                       }`}
                     style={{
                       height: `${percentage}%`,

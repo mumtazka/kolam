@@ -430,7 +430,7 @@ const ReceptionistDashboard = () => {
                     <Ticket className="w-6 h-6 text-sky-500 opacity-80" />
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                    <span className="text-lg font-bold text-slate-900">Rp {category.price.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-slate-900">Rp {category.price.toLocaleString('id-ID')}</span>
                     <Button size="icon" className="h-7 w-7 rounded-full bg-slate-900 hover:bg-slate-800">
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -506,12 +506,12 @@ const ReceptionistDashboard = () => {
                           </div>
                           <div className="text-right">
                             <span className="font-semibold text-sm text-slate-900 block">
-                              Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString()}
+                              Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString('id-ID')}
                             </span>
                             {/* Show breakdown if package */}
                             {item.package_id && (
                               <span className="text-[10px] text-slate-500">
-                                {item.quantity} x @{item.price.toLocaleString()}
+                                {item.quantity} x @{item.price.toLocaleString('id-ID')}
                               </span>
                             )}
                           </div>
@@ -564,7 +564,7 @@ const ReceptionistDashboard = () => {
                 <div className="pt-4 border-t-2 border-slate-100 mt-auto">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-base font-semibold text-slate-600">{t('dashboard.total')}</span>
-                    <span className="text-2xl font-bold text-slate-900">Rp {getTotalAmount().toLocaleString()}</span>
+                    <span className="text-2xl font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
                   </div>
                   {hasNimErrors() && (
                     <div className="mb-3 p-2 bg-rose-50 border border-rose-200 rounded-md">
@@ -652,7 +652,7 @@ const ReceptionistDashboard = () => {
                       </div>
                       <div className="flex justify-between">
                         <span>Price:</span>
-                        <span className="font-bold">Rp {ticket.price.toLocaleString()}</span>
+                        <span className="font-bold">Rp {ticket.price.toLocaleString('id-ID')}</span>
                       </div>
                       {ticket.nim && (
                         <div className="flex justify-between text-blue-600">
@@ -719,7 +719,7 @@ const ReceptionistDashboard = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="block text-xl font-bold text-slate-900">Rp {selectedCategoryForPackage.price.toLocaleString()}</span>
+                      <span className="block text-xl font-bold text-slate-900">Rp {selectedCategoryForPackage.price.toLocaleString('id-ID')}</span>
                       <span className="text-xs text-slate-500">per orang</span>
                     </div>
                   </div>
@@ -761,7 +761,7 @@ const ReceptionistDashboard = () => {
                           </p>
                           <p className="flex justify-between">
                             <span>Harga Paket:</span>
-                            <span className="font-bold text-emerald-600">Rp {pkg.price_per_person.toLocaleString()}</span>
+                            <span className="font-bold text-emerald-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
                           </p>
                         </div>
                       </div>
@@ -843,7 +843,7 @@ const ReceptionistDashboard = () => {
             {/* Ticket Details */}
             <div className="space-y-0.5 font-mono text-[10px] uppercase px-1 leading-tight">
               <p className="flex justify-between"><span>CODE:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
-              <p className="flex justify-between"><span>PRICE:</span> <span>Rp {ticket.price.toLocaleString()}</span></p>
+              <p className="flex justify-between"><span>PRICE:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
               {ticket.nim && <p className="flex justify-between"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
               <p className="flex justify-between"><span>DATE:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
                 day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'

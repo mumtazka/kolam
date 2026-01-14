@@ -88,7 +88,7 @@ const PriceManagement = () => {
                       Update
                     </Button>
                   </div>
-                  <p className="text-sm text-slate-500 mt-1">Current: Rp {(category.price || 0).toLocaleString()}</p>
+                  <p className="text-sm text-slate-500 mt-1">Current: Rp {(category.price || 0).toLocaleString('id-ID')}</p>
                 </div>
               </div>
             </Card>
