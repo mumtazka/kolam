@@ -21,11 +21,11 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { path: '/admin', label: t('admin.dashboard'), icon: LayoutDashboard },
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/admin/users', label: t('admin.staffManagement'), icon: Users },
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
-    { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
-    { path: '/admin/ticket-packages', label: t('admin.ticketPackages'), icon: Layers },
+    { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: Clock },
+    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: Layers },
     { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },

@@ -24,7 +24,7 @@ const ReceptionistLayout = () => {
         { path: '/receptionist', label: 'Cetak Tiket', icon: Printer },
         { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: Calendar },
         { path: '/receptionist/pools', label: 'Info Kolam', icon: MapPin },
-        { path: '/receptionist/history', label: 'Laporan Staff', icon: BarChart3 },
+        { path: '/receptionist/history', label: 'Laporan', icon: BarChart3 },
     ];
 
     // Determine Page Title
