@@ -35,6 +35,7 @@ const ReceptionistDashboard = () => {
   const [printedTickets, setPrintedTickets] = useState([]);
   const [currentShift, setCurrentShift] = useState('Pagi');
   const [showPreview, setShowPreview] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false); // New state to track if we are in preview mode
 
   // Package Logic States
   const [ticketPackages, setTicketPackages] = useState([]);
@@ -318,8 +319,19 @@ const ReceptionistDashboard = () => {
       setPrintedTickets(result.tickets);
       toast.success(`${result.total_tickets} ${t('dashboard.printSuccess')}`);
 
-      // Instead of printing immediately, show preview
-      setShowPreview(true);
+      // DIRECT PRINT: Skip modal, just print
+      // We need a small timeout to allow React to render the printedTickets into the hidden print container
+      setTimeout(() => {
+        window.print();
+
+        // Clear cart after printing dialog is likely opened/closed
+        // 1 second delay to be safe
+        setTimeout(() => {
+          setCart([]);
+          setNimInputs({});
+          setPrintedTickets([]);
+        }, 1000);
+      }, 500);
 
     } catch (error) {
       console.error(error);
@@ -327,6 +339,35 @@ const ReceptionistDashboard = () => {
     } finally {
       setPrinting(false);
     }
+  };
+
+  const handlePreviewTickets = () => {
+    if (!validateCart()) return;
+
+    // Generate PREVIEW tickets (not saved to DB)
+    const previewTickets = [];
+    const now = new Date();
+
+    cart.forEach(item => {
+      const qty = Number(item.quantity) || 1;
+      const nims = item.requires_nim ? (nimInputs[item.category_id] || []) : [];
+
+      for (let i = 0; i < qty; i++) {
+        previewTickets.push({
+          id: `preview-${item.unique_id}-${i}`,
+          category_name: item.category_name,
+          ticket_code: 'PREVIEW',
+          price: item.price,
+          nim: nims[i] || null,
+          created_at: now.toISOString(),
+          is_preview: true
+        });
+      }
+    });
+
+    setPrintedTickets(previewTickets);
+    setIsPreviewMode(true);
+    setShowPreview(true);
   };
 
   const handlePrintConfirm = () => {
@@ -337,6 +378,7 @@ const ReceptionistDashboard = () => {
       setCart([]);
       setNimInputs({});
       setPrintedTickets([]);
+      setIsPreviewMode(false); // Reset mode
     }, 1000);
   };
 
@@ -575,20 +617,9 @@ const ReceptionistDashboard = () => {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={handleProcessTickets} // This opens preview now effectively via the flow? No, used to have separate.
-                      // Wait, handleProcessTickets -> Sets Validated -> Sets tickets -> showPreview?
-                      // Actually in 'Incoming' logic: handlePreview was separate.
-                      // Let's check handlePreview function.
-                      // Oh, Incoming has handlePreview!
-                      // But I missed copying handlePreview in the code above?
-                      // Let me re-check.
-                      // I copied handleProcessTickets which sets showPreview(true).
-                      // But the button calls handlePreview?
-                      // Let's use handleProcessTickets for the main button.
-                      // The eye button can call handlePreview if I define it.
-                      // I'll add handlePreview back.
+                      onClick={handlePreviewTickets}
                       disabled={printing || cart.length === 0 || hasNimErrors()}
-                      className="hidden" // Hiding Eye for now to avoid complexity or un-hide if needed.
+                      className="w-12 h-12 bg-white border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-50"
                       title={t('scanner.ticketPreview')}
                     >
                       <Eye className="w-5 h-5" />
@@ -616,8 +647,12 @@ const ReceptionistDashboard = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">{t('scanner.ticketPreview')}</h3>
-                <p className="text-sm text-slate-500 mt-1">{t('scanner.reviewTickets')}</p>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {isPreviewMode ? 'Pratinjau Tiket' : t('scanner.ticketPreview')}
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  {isPreviewMode ? 'Silakan periksa tiket sebelum mencetak' : t('scanner.reviewTickets')}
+                </p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setShowPreview(false)}>
                 <X className="w-5 h-5" />
@@ -677,11 +712,15 @@ const ReceptionistDashboard = () => {
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-white flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowPreview(false)}>{t('common.cancel')}</Button>
-              <Button onClick={handlePrintConfirm} className="bg-slate-900 hover:bg-slate-800 min-w-[150px]">
-                <Printer className="w-4 h-4 mr-2" />
-                {t('scanner.confirmPrint')}
+              <Button variant="outline" onClick={() => setShowPreview(false)}>
+                {isPreviewMode ? 'Tutup' : t('common.cancel')}
               </Button>
+              {!isPreviewMode && (
+                <Button onClick={handlePrintConfirm} className="bg-slate-900 hover:bg-slate-800 min-w-[150px]">
+                  <Printer className="w-4 h-4 mr-2" />
+                  {t('scanner.confirmPrint')}
+                </Button>
+              )}
             </div>
           </div>
         </div>

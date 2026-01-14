@@ -73,13 +73,16 @@ export const getDailyReport = async (date) => {
 
         // Aggregate printed data
         const ticketsPrinted = printedTickets.length;
-        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
-        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
+        // For scanned count: sum usage_count from all printed tickets (handles package tickets with multiple scans)
+        const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
 
         // Revenue from ALL printed tickets (Sales)
+        // For package tickets, total = price * max_usage (one ticket covers multiple people)
         const totalRevenue = printedTickets.reduce((sum, t) => {
             const price = parseFloat(t.price || 0);
-            return sum + (isNaN(price) ? 0 : price);
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + (isNaN(price) ? 0 : price * multiplier);
         }, 0);
 
         // Group sales by category (for revenue) - using printedTickets
@@ -89,9 +92,11 @@ export const getDailyReport = async (date) => {
             if (!byCategory[categoryName]) {
                 byCategory[categoryName] = { count: 0, revenue: 0 };
             }
-            byCategory[categoryName].count++;
+            // For package tickets, count the max_usage as quantity sold
+            const multiplier = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+            byCategory[categoryName].count += multiplier;
             const price = parseFloat(ticket.price || 0);
-            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price * multiplier;
         });
 
         // Group sales by shift (from printed tickets)
@@ -200,13 +205,16 @@ export const getMonthlyReport = async (year, month) => {
 
         // Aggregate data
         const ticketsPrinted = printedTickets.length;
-        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
-        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
+        // For scanned count: sum usage_count from all printed tickets
+        const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
 
         // Revenue from ALL printed tickets (Sales)
+        // For package tickets, total = price * max_usage
         const totalRevenue = printedTickets.reduce((sum, t) => {
             const price = parseFloat(t.price || 0);
-            return sum + (isNaN(price) ? 0 : price);
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + (isNaN(price) ? 0 : price * multiplier);
         }, 0);
 
         // Group sales by category
@@ -216,9 +224,10 @@ export const getMonthlyReport = async (year, month) => {
             if (!byCategory[categoryName]) {
                 byCategory[categoryName] = { count: 0, revenue: 0 };
             }
-            byCategory[categoryName].count++;
+            const multiplier = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+            byCategory[categoryName].count += multiplier;
             const price = parseFloat(ticket.price || 0);
-            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price * multiplier;
         });
 
         // Group sales by day
@@ -320,13 +329,15 @@ export const getYearlyReport = async (year) => {
 
         // Aggregate data
         const ticketsPrinted = printedTickets.length;
-        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
-        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
+        // For scanned count: sum usage_count from all printed tickets
+        const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
 
         // Revenue
         const totalRevenue = printedTickets.reduce((sum, t) => {
             const price = parseFloat(t.price || 0);
-            return sum + (isNaN(price) ? 0 : price);
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + (isNaN(price) ? 0 : price * multiplier);
         }, 0);
 
         // Group by Category
@@ -336,9 +347,10 @@ export const getYearlyReport = async (year) => {
             if (!byCategory[categoryName]) {
                 byCategory[categoryName] = { count: 0, revenue: 0 };
             }
-            byCategory[categoryName].count++;
+            const multiplier = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+            byCategory[categoryName].count += multiplier;
             const price = parseFloat(ticket.price || 0);
-            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price * multiplier;
         });
 
         // Group by Month (unique to yearly report)
@@ -430,12 +442,14 @@ export const getLifetimeReport = async () => {
 
         // Aggregate
         const ticketsPrinted = printedTickets.length;
-        const ticketsScanned = scannedTickets ? scannedTickets.length : 0;
-        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED').length;
+        const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
+        // For scanned count: sum usage_count from all printed tickets
+        const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
 
         const totalRevenue = printedTickets.reduce((sum, t) => {
             const price = parseFloat(t.price || 0);
-            return sum + (isNaN(price) ? 0 : price);
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + (isNaN(price) ? 0 : price * multiplier);
         }, 0);
 
         // Group by Category
@@ -445,9 +459,10 @@ export const getLifetimeReport = async () => {
             if (!byCategory[categoryName]) {
                 byCategory[categoryName] = { count: 0, revenue: 0 };
             }
-            byCategory[categoryName].count++;
+            const multiplier = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+            byCategory[categoryName].count += multiplier;
             const price = parseFloat(ticket.price || 0);
-            byCategory[categoryName].revenue += isNaN(price) ? 0 : price;
+            byCategory[categoryName].revenue += isNaN(price) ? 0 : price * multiplier;
         });
 
         // Group by Year

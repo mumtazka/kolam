@@ -649,6 +649,7 @@ const Reports = () => {
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.category')}</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">NIM</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.staff')}</th>
+                      <th className="px-6 py-4 text-center font-semibold text-slate-600 text-xs uppercase tracking-wider">Jumlah</th>
                       <th className="px-6 py-4 text-right font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.price')}</th>
                       <th className="px-6 py-4 text-center font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('admin.status')}</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.time')}</th>
@@ -680,16 +681,43 @@ const Reports = () => {
                           <td className="px-6 py-4 text-slate-600">
                             {ticket.created_by_name}
                           </td>
+                          <td className="px-6 py-4 text-center">
+                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                              <span className="font-mono text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200 font-bold">
+                                {ticket.usage_count || 0}/{ticket.max_usage}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">1</span>
+                            )}
+                          </td>
                           <td className="px-6 py-4 font-bold text-right text-slate-700">
-                            Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}
+                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                              <>
+                                <span>Rp {(parseFloat(ticket.price || 0) * ticket.max_usage).toLocaleString('id-ID')}</span>
+                                <span className="text-[10px] text-slate-400 block">({ticket.max_usage} x @{parseFloat(ticket.price || 0).toLocaleString('id-ID')})</span>
+                              </>
+                            ) : (
+                              <>Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-slate-100 text-slate-600'
-                              }`}>
-                              {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
-                            </span>
+                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                              <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : (ticket.usage_count || 0) > 0
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                {(ticket.usage_count || 0) >= ticket.max_usage ? 'Habis' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
+                              </span>
+                            ) : (
+                              <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-slate-500 text-xs font-medium">
                             {(reportType === 'monthly' || reportType === 'yearly' || reportType === 'lifetime')

@@ -270,18 +270,30 @@ const ReceptionistHistory = () => {
             const userTickets = data.tickets ? data.tickets.filter(ticket => ticket.created_by_name === user.name) : [];
 
             // Recalculate stats based on filtered tickets
-            const ticketsSold = userTickets.length;
-            const ticketsScanned = userTickets.filter(t => t.status === 'USED').length;
-            const totalRevenue = userTickets.reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
+            // For tickets_sold: count max_usage for package tickets
+            const ticketsSold = userTickets.reduce((sum, t) => {
+                const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+                return sum + multiplier;
+            }, 0);
+            // For tickets_scanned: sum usage_count from all tickets
+            const ticketsScanned = userTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
+            // For revenue: multiply price by max_usage for package tickets
+            const totalRevenue = userTickets.reduce((sum, t) => {
+                const price = parseFloat(t.price || 0);
+                const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+                return sum + (isNaN(price) ? 0 : price * multiplier);
+            }, 0);
 
-            // Recalculate categories
+            // Recalculate categories with package-aware logic
             const categoryMap = {};
             userTickets.forEach(t => {
                 if (!categoryMap[t.category_name]) {
                     categoryMap[t.category_name] = { _id: t.category_name, count: 0, revenue: 0 };
                 }
-                categoryMap[t.category_name].count += 1;
-                categoryMap[t.category_name].revenue += parseFloat(t.price || 0);
+                const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+                categoryMap[t.category_name].count += multiplier;
+                const price = parseFloat(t.price || 0);
+                categoryMap[t.category_name].revenue += isNaN(price) ? 0 : price * multiplier;
             });
             const byCategory = Object.values(categoryMap);
 
@@ -665,6 +677,7 @@ const ReceptionistHistory = () => {
                                                 <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.category')}</th>
                                                 <th className="px-4 py-3 text-left font-semibold text-slate-700">NIM</th>
                                                 <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.staff')}</th>
+                                                <th className="px-4 py-3 text-center font-semibold text-slate-700">Jumlah</th>
                                                 <th className="px-4 py-3 text-right font-semibold text-slate-700">{t('reports.price')}</th>
                                                 <th className="px-4 py-3 text-center font-semibold text-slate-700">{t('admin.status')}</th>
                                                 <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('reports.time')}</th>
@@ -694,16 +707,43 @@ const ReceptionistHistory = () => {
                                                         <td className="px-4 py-3 text-slate-600">
                                                             {ticket.created_by_name}
                                                         </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                                <span className="font-mono text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200 font-bold">
+                                                                    {ticket.usage_count || 0}/{ticket.max_usage}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-slate-400">1</span>
+                                                            )}
+                                                        </td>
                                                         <td className="px-4 py-3 font-medium text-right text-slate-800">
-                                                            Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}
+                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                                <>
+                                                                    <span>Rp {(parseFloat(ticket.price || 0) * ticket.max_usage).toLocaleString('id-ID')}</span>
+                                                                    <span className="text-[10px] text-slate-400 block">({ticket.max_usage} x @{parseFloat(ticket.price || 0).toLocaleString('id-ID')})</span>
+                                                                </>
+                                                            ) : (
+                                                                <>Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</>
+                                                            )}
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
-                                                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
-                                                                ? 'bg-emerald-100 text-emerald-800'
-                                                                : 'bg-slate-100 text-slate-600'
-                                                                }`}>
-                                                                {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
-                                                            </span>
+                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
+                                                                        ? 'bg-emerald-100 text-emerald-800'
+                                                                        : (ticket.usage_count || 0) > 0
+                                                                            ? 'bg-amber-100 text-amber-800'
+                                                                            : 'bg-slate-100 text-slate-600'
+                                                                    }`}>
+                                                                    {(ticket.usage_count || 0) >= ticket.max_usage ? 'Habis' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
+                                                                </span>
+                                                            ) : (
+                                                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
+                                                                    ? 'bg-emerald-100 text-emerald-800'
+                                                                    : 'bg-slate-100 text-slate-600'
+                                                                    }`}>
+                                                                    {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
+                                                                </span>
+                                                            )}
                                                         </td>
                                                         <td className="px-4 py-3 text-slate-500 text-xs">
                                                             {date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}

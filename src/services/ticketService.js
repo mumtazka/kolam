@@ -123,9 +123,10 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
 
     // --- SPECIAL TICKET LOGIC MAIN IMPLEMENTATION ---
 
-    // 1. Determine Limits based on Prefix
+    // 1. Determine Limits based on max_usage column (set by RPC when creating ticket)
+    // Fallback: K prefix = 100, others = 1
     const isSpecial = ticket.ticket_code.toUpperCase().startsWith('K');
-    const maxLimit = isSpecial ? 100 : 1;
+    const maxLimit = ticket.max_usage || (isSpecial ? 100 : 1);
     const currentUsage = ticket.usage_count || 0;
 
     // 2. Validate Usage
