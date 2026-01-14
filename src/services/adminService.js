@@ -54,59 +54,7 @@ export const deleteSession = async (sessionId) => {
     if (error) throw error;
 };
 
-/**
- * Get all packages
- */
-export const getPackages = async () => {
-    const { data, error } = await supabase
-        .from('packages')
-        .select('*')
-        .order('name');
 
-    if (error) throw error;
-    return data;
-};
-
-/**
- * Create package
- */
-export const createPackage = async (packageData) => {
-    const { data, error } = await supabase
-        .from('packages')
-        .insert(packageData)
-        .select()
-        .single();
-
-    if (error) throw error;
-    return data;
-};
-
-/**
- * Update package
- */
-export const updatePackage = async (packageId, packageData) => {
-    const { data, error } = await supabase
-        .from('packages')
-        .update(packageData)
-        .eq('id', packageId)
-        .select()
-        .single();
-
-    if (error) throw error;
-    return data;
-};
-
-/**
- * Delete package
- */
-export const deletePackage = async (packageId) => {
-    const { error } = await supabase
-        .from('packages')
-        .delete()
-        .eq('id', packageId);
-
-    if (error) throw error;
-};
 
 /**
  * Get all pools
