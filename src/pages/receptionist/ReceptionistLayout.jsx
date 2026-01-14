@@ -21,13 +21,13 @@ const ReceptionistLayout = () => {
 
     // Define menu items for Receptionist
     const menuItems = [
-        { path: '/receptionist', label: 'Cetak Tiket', icon: Printer },
-        { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: Calendar },
-        { path: '/receptionist/pools', label: 'Info Kolam', icon: MapPin },
-        { path: '/receptionist/history', label: 'Laporan Staff', icon: BarChart3 },
+        { path: '/receptionist', label: 'Cetak Tiket', icon: Printer, subtitle: 'Pilih kategori tiket untuk dicetak' },
+        { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: Calendar, subtitle: 'Lihat jadwal dan sesi kolam renang' },
+        { path: '/receptionist/pools', label: 'Info Kolam', icon: MapPin, subtitle: 'Informasi fasilitas kolam renang' },
+        { path: '/receptionist/history', label: 'Laporan Staff', icon: BarChart3, subtitle: 'Laporan harian penjualan tiket anda' },
     ];
 
-    // Determine Page Title
+    // Determine Page Title and Subtitle
     const activeItem = menuItems.find(item =>
         item.path === '/receptionist'
             ? location.pathname === '/receptionist'
@@ -35,6 +35,7 @@ const ReceptionistLayout = () => {
     ) || menuItems[0];
 
     const pageTitle = activeItem ? activeItem.label : 'Kolam Renang UNY';
+    const pageSubtitle = activeItem ? activeItem.subtitle : '';
 
     return (
         <div className="flex h-screen bg-slate-50" data-testid="receptionist-layout">
@@ -91,6 +92,7 @@ const ReceptionistLayout = () => {
                 {/* Header */}
                 <Header
                     title={pageTitle}
+                    subtitle={pageSubtitle}
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
                 />

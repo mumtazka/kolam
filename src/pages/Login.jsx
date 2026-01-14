@@ -94,8 +94,8 @@ const Login = () => {
               <h2 className="text-3xl font-bold text-slate-900 mb-2" style={{ fontFamily: 'Outfit' }}>
                 {t('auth.selectMode') || 'Pilih Mode Kerja'}
               </h2>
-              <p className="text-slate-600">
-                {t('auth.welcomeStaff', { name: loggedInUser.name }) || `Selamat datang, ${loggedInUser.name}!`}
+              <p className="text-slate-600 text-lg">
+                {(t('auth.welcomeStaff') || 'Selamat datang, {{name}}!').replace('{{name}}', loggedInUser.name)}
               </p>
               <p className="text-sm text-slate-500 mt-1">
                 {t('auth.selectModeDescription') || 'Silakan pilih mode kerja Anda'}
@@ -105,23 +105,31 @@ const Login = () => {
             <div className="space-y-4">
               <Button
                 onClick={() => handleModeSelect('CASHIER')}
-                className="w-full h-20 text-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-4"
+                className="w-full h-24 text-lg bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-between px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
               >
-                <Monitor className="w-8 h-8" />
-                <div className="text-left">
-                  <div className="font-bold text-lg">{t('auth.modeCashier') || 'Kasir / Resepsionis'}</div>
-                  <div className="text-sm opacity-90">{t('auth.modeCashierDesc') || 'Penjualan tiket dan transaksi'}</div>
+                <div className="flex items-center gap-5">
+                  <div className="bg-slate-800 p-3 rounded-xl group-hover:bg-slate-700 transition-colors">
+                    <Monitor className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-xl">{t('auth.modeCashier') || 'Kasir / Resepsionis'}</div>
+                    <div className="text-sm font-light opacity-80">{t('auth.modeCashierDesc') || 'Penjualan tiket dan transaksi'}</div>
+                  </div>
                 </div>
               </Button>
 
               <Button
                 onClick={() => handleModeSelect('SCANNER')}
-                className="w-full h-20 text-lg bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-4"
+                className="w-full h-24 text-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-between px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
               >
-                <ScanLine className="w-8 h-8" />
-                <div className="text-left">
-                  <div className="font-bold text-lg">{t('auth.modeScanner') || 'Scanner'}</div>
-                  <div className="text-sm opacity-90">{t('auth.modeScannerDesc') || 'Scan dan validasi tiket'}</div>
+                <div className="flex items-center gap-5">
+                  <div className="bg-emerald-500 p-3 rounded-xl group-hover:bg-emerald-400 transition-colors">
+                    <ScanLine className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-xl">{t('auth.modeScanner') || 'Scanner'}</div>
+                    <div className="text-sm font-light opacity-80">{t('auth.modeScannerDesc') || 'Scan dan validasi tiket'}</div>
+                  </div>
                 </div>
               </Button>
             </div>

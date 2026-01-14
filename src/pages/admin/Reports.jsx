@@ -344,14 +344,6 @@ const Reports = () => {
 
   return (
     <div className="space-y-6 p-6 bg-slate-50 min-h-screen">
-      {/* Top Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-        <div>
-          <h1 className="text-4xl font-bold text-slate-900">{t('reports.title')}</h1>
-          <p className="text-slate-600 mt-1">{t('reports.viewReports')}</p>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="space-y-6">
         {/* Chart Section with Stats on Left */}

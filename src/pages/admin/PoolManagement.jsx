@@ -142,11 +142,7 @@ const PoolManagement = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.pools')}</h1>
-                    <p className="text-slate-600 mt-1">{t('admin.poolsSubtitle')}</p>
-                </div>
+            <div className="flex items-center justify-end">
                 <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-pool-button">
                     <Plus className="w-4 h-4 mr-2" />
                     {t('admin.addPool')}

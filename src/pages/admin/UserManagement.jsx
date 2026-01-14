@@ -109,10 +109,7 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-slate-600 mt-1">{t('admin.usersSubtitle')}</p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800" data-testid="create-user-button">
           <Plus className="w-4 h-4 mr-2" />
           {t('admin.addStaff')}
