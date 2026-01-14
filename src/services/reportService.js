@@ -566,3 +566,64 @@ export const getBatchReport = async (date) => {
         throw error;
     }
 };
+
+/**
+ * Get total visits (all-time scan count from scan_logs)
+ * This represents actual visitors who entered the pool
+ */
+export const getTotalVisits = async () => {
+    try {
+        const { count, error } = await supabase
+            .from('scan_logs')
+            .select('*', { count: 'exact', head: true });
+
+        if (error) throw error;
+        return count || 0;
+    } catch (error) {
+        console.error('Error in getTotalVisits:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get visits for last 7 days grouped by date
+ * Returns array of { date, total_scan } for chart display
+ */
+export const getVisitsLast7Days = async () => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        const startDate = sevenDaysAgo.toISOString();
+
+        const { data, error } = await supabase
+            .from('scan_logs')
+            .select('scanned_at')
+            .gte('scanned_at', startDate);
+
+        if (error) throw error;
+
+        // Group by date
+        const byDate = {};
+        (data || []).forEach(log => {
+            const date = log.scanned_at.split('T')[0];
+            byDate[date] = (byDate[date] || 0) + 1;
+        });
+
+        // Generate 7 days array with zero-fill for missing dates
+        const result = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            result.push({
+                date: dateStr,
+                total_scan: byDate[dateStr] || 0
+            });
+        }
+        return result;
+    } catch (error) {
+        console.error('Error in getVisitsLast7Days:', error);
+        throw error;
+    }
+};

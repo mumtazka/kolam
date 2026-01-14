@@ -309,9 +309,9 @@ const ReceptionistDashboard = () => {
         category_id: item.category_id,
         quantity: Number(item.quantity) || 1,
         // Include Package Data
-        package_id: item.package_id,
-        // Map NIMs (This relies on nimInputs key. If I don't change key, it works for single item per category)
-        nims: item.requires_nim ? (nimInputs[item.category_id] || []).map(n => n?.trim()) : null
+        package_id: item.package_id || null,
+        // Map NIMs - MUST be an array (even empty) for Supabase RPC
+        nims: item.requires_nim ? (nimInputs[item.category_id] || []).map(n => n?.trim()) : []
       }));
 
       const result = await createBatchTickets(ticketItems, user, currentShift);
@@ -627,25 +627,28 @@ const ReceptionistDashboard = () => {
             <div className="p-8 overflow-y-auto flex-1 bg-slate-100/50">
               <div className="flex flex-wrap gap-8 justify-center">
                 {printedTickets.map((ticket) => (
-                  <div key={ticket.id} className="bg-white p-6 rounded-none shadow-md border border-slate-200 w-[300px] flex flex-col items-center relative">
+                  <div key={ticket.id} className="bg-white p-4 rounded-none shadow-md border border-slate-200 flex flex-col items-center justify-between relative overflow-hidden" style={{ width: '302px', height: '302px' }}>
                     {/* Cut lines */}
                     <div className="absolute -left-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
                     <div className="absolute -right-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
 
-                    <div className="text-center mb-4">
-                      <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide">Kolam Renang UNY</h2>
-                      <div className="w-full h-px bg-slate-200 my-2"></div>
-                      <h3 className="text-lg font-bold text-slate-800">{ticket.category_name}</h3>
+                    {/* Header */}
+                    <div className="text-center w-full">
+                      <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wide">Kolam Renang UNY</h2>
+                      <div className="w-full h-px bg-slate-200 my-1"></div>
+                      <h3 className="text-base font-bold text-slate-800">{ticket.category_name}</h3>
                     </div>
 
-                    <div className="my-2 w-full flex justify-center py-2 bg-white">
-                      <Barcode value={ticket.ticket_code} width={1.5} height={50} displayValue={false} />
+                    {/* Barcode - constrained width */}
+                    <div className="w-full flex justify-center py-1 overflow-hidden">
+                      <Barcode value={ticket.ticket_code} width={1.2} height={40} displayValue={false} />
                     </div>
 
-                    <div className="w-full space-y-2 font-mono text-sm text-slate-600 mt-2">
+                    {/* Details */}
+                    <div className="w-full space-y-1 font-mono text-xs text-slate-600">
                       <div className="flex justify-between">
                         <span>Code:</span>
-                        <span className="font-bold text-slate-900">{ticket.ticket_code}</span>
+                        <span className="font-bold text-slate-900 text-[11px]">{ticket.ticket_code}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Price:</span>
@@ -657,15 +660,16 @@ const ReceptionistDashboard = () => {
                           <span className="font-bold">{ticket.nim}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-xs text-slate-400">
+                      <div className="flex justify-between text-[10px] text-slate-400">
                         <span>{t('admin.date')}:</span>
-                        <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}</span>
+                        <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t-2 border-dashed border-slate-200 text-center w-full">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('scanner.ticketValidOneTime')}</p>
-                      <p className="text-[10px] text-slate-300 mt-1">{t('scanner.ticketNoRefund')}</p>
+                    {/* Footer */}
+                    <div className="pt-2 border-t-2 border-dashed border-slate-200 text-center w-full">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('scanner.ticketValidOneTime')}</p>
+                      <p className="text-[9px] text-slate-300">{t('scanner.ticketNoRefund')}</p>
                     </div>
                   </div>
                 ))}
@@ -774,15 +778,15 @@ const ReceptionistDashboard = () => {
       <div className="print-container hidden print:block text-black">
         <style type="text/css" media="print">
           {`
-             @page { size: 57mm auto; margin: 0; }
+             @page { size: 80mm 80mm; margin: 0; }
              html, body { 
-               width: 57mm; 
-               height: auto;
+               width: 80mm; 
+               height: 80mm;
                margin: 0; 
                padding: 0; 
              }
              .print-container {
-               width: 57mm;
+               width: 80mm;
                margin: 0;
                padding: 0;
                display: block;
@@ -790,11 +794,14 @@ const ReceptionistDashboard = () => {
              }
 
              .printable-ticket { 
-               width: 57mm;
-               padding: 5px 0; 
+               width: 80mm;
+               height: 80mm;
+               padding: 8px; 
                margin: 0;
                box-sizing: border-box;
-               display: block;
+               display: flex;
+               flex-direction: column;
+               justify-content: space-between;
                page-break-after: always; 
                break-after: page;
                border-bottom: 1px dashed #000; 
@@ -821,13 +828,13 @@ const ReceptionistDashboard = () => {
               <h3 className="text-xs font-semibold mt-0.5 uppercase">{ticket.category_name}</h3>
             </div>
 
-            {/* Barcode - Centered & Safe Range */}
-            <div className="flex justify-center my-1 overflow-hidden" style={{ maxWidth: '48mm', margin: '0 auto' }}>
+            {/* Barcode - Centered & Safe Range for 80mm */}
+            <div className="flex justify-center my-2 overflow-hidden" style={{ maxWidth: '70mm', margin: '0 auto' }}>
               <Barcode
                 value={ticket.ticket_code}
-                width={0.6}
-                height={35}
-                fontSize={9}
+                width={1.0}
+                height={45}
+                fontSize={10}
                 displayValue={false}
                 margin={0}
               />
