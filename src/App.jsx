@@ -91,13 +91,8 @@ function App() {
               <Route
                 path="/receptionist"
                 element={
-<<<<<<< HEAD
-                  <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
-                    <ReceptionistLayout />
-=======
                   <ProtectedRoute allowedRoles={['CASHIER']}>
-                    <ReceptionistDashboard />
->>>>>>> a7c225a619e7b4c75c02c696f6943fa638d99d62
+                    <ReceptionistLayout />
                   </ProtectedRoute>
                 }
               >
@@ -124,7 +119,7 @@ function App() {
           </div>
         </BrowserRouter>
       </AuthProvider>
-    </LanguageProvider>
+    </LanguageProvider >
   );
 }
 
