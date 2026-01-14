@@ -709,7 +709,7 @@ const ReceptionistHistory = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
                                                             {ticket.max_usage && ticket.max_usage > 1 ? (
-                                                                <span className="font-mono text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200 font-bold">
+                                                                <span className="font-mono text-sm text-slate-700">
                                                                     {ticket.usage_count || 0}/{ticket.max_usage}
                                                                 </span>
                                                             ) : (
@@ -729,12 +729,12 @@ const ReceptionistHistory = () => {
                                                         <td className="px-4 py-3 text-center">
                                                             {ticket.max_usage && ticket.max_usage > 1 ? (
                                                                 <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
-                                                                        ? 'bg-emerald-100 text-emerald-800'
-                                                                        : (ticket.usage_count || 0) > 0
-                                                                            ? 'bg-amber-100 text-amber-800'
-                                                                            : 'bg-slate-100 text-slate-600'
+                                                                    ? 'bg-emerald-100 text-emerald-800'
+                                                                    : (ticket.usage_count || 0) > 0
+                                                                        ? 'bg-amber-100 text-amber-800'
+                                                                        : 'bg-slate-100 text-slate-600'
                                                                     }`}>
-                                                                    {(ticket.usage_count || 0) >= ticket.max_usage ? 'Habis' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
+                                                                    {(ticket.usage_count || 0) >= ticket.max_usage ? 'Dipakai' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
                                                                 </span>
                                                             ) : (
                                                                 <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
