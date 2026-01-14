@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { Switch } from '../../components/ui/switch';
 import { Plus, Edit, Trash2, Droplets, Ruler, CheckCircle, XCircle, Image as ImageIcon, ZoomIn, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ const PoolManagement = () => {
     const [zoomImage, setZoomImage] = useState(null); // URL of image to zoom
     const [editingPool, setEditingPool] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, poolId: null });
     const [formData, setFormData] = useState({
         name: '',
         depth: '',
@@ -89,16 +91,20 @@ const PoolManagement = () => {
         }
     };
 
-    const handleDelete = async (poolId) => {
-        if (window.confirm(t('admin.confirmStatusChange'))) {
-            try {
-                await deletePool(poolId);
-                toast.success(t('common.success'));
-                fetchPools();
-            } catch (error) {
-                console.error(error);
-                toast.error(t('common.error'));
-            }
+    const handleDelete = (poolId) => {
+        setConfirmDialog({ open: true, poolId });
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deletePool(confirmDialog.poolId);
+            toast.success(t('common.success'));
+            fetchPools();
+        } catch (error) {
+            console.error(error);
+            toast.error(t('common.error'));
+        } finally {
+            setConfirmDialog({ open: false, poolId: null });
         }
     };
 
@@ -359,6 +365,19 @@ const PoolManagement = () => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                title="Hapus Data Kolam"
+                description="Apakah Anda yakin ingin menghapus data kolam ini? Semua informasi terkait kolam akan dihapus secara permanen dari sistem."
+                onConfirm={confirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, poolId: null })}
+                confirmText="Ya, Hapus Data"
+                cancelText="Batal"
+                variant="danger"
+            />
         </div>
     );
 };

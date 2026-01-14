@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '../../components/ui/calendar';
@@ -110,6 +111,7 @@ const SessionManagement = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
     const [date, setDate] = useState(new Date());
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, sessionId: null });
     const [formData, setFormData] = useState({
         name: '',
         start_time: '07:00',
@@ -160,16 +162,20 @@ const SessionManagement = () => {
         }
     };
 
-    const handleDelete = async (sessionId) => {
-        if (window.confirm(t('admin.confirmStatusChange'))) {
-            try {
-                await deleteSession(sessionId);
-                toast.success(t('common.success'));
-                fetchSessions();
-            } catch (error) {
-                console.error(error);
-                toast.error(t('common.error'));
-            }
+    const handleDelete = (sessionId) => {
+        setConfirmDialog({ open: true, sessionId });
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteSession(confirmDialog.sessionId);
+            toast.success(t('common.success'));
+            fetchSessions();
+        } catch (error) {
+            console.error(error);
+            toast.error(t('common.error'));
+        } finally {
+            setConfirmDialog({ open: false, sessionId: null });
         }
     };
 
@@ -641,6 +647,19 @@ const SessionManagement = () => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                title="Hapus Jadwal Sesi"
+                description="Apakah Anda yakin ingin menghapus jadwal sesi ini? Data sesi akan dihapus secara permanen dari sistem."
+                onConfirm={confirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, sessionId: null })}
+                confirmText="Ya, Hapus Sesi"
+                cancelText="Batal"
+                variant="danger"
+            />
         </div>
     );
 };

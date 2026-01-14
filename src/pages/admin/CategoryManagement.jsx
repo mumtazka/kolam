@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash, X, Check, Ticket, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -31,6 +32,7 @@ const CategoryManagement = () => {
         description: ''
     });
     const [submitting, setSubmitting] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, categoryId: null });
 
     useEffect(() => {
         fetchCategories();
@@ -142,18 +144,20 @@ const CategoryManagement = () => {
         }
     };
 
-    const handleDelete = async (categoryId) => {
-        if (!window.confirm(t('admin.deleteConfirm') || "WARNING: This will delete the category AND ALL associated tickets/scan logs. This action cannot be undone. Are you sure?")) {
-            return;
-        }
+    const handleDelete = (categoryId) => {
+        setConfirmDialog({ open: true, categoryId });
+    };
 
+    const confirmDelete = async () => {
         try {
-            await deleteCategory(categoryId);
+            await deleteCategory(confirmDialog.categoryId);
             toast.success(t('common.success'));
             fetchCategories();
         } catch (error) {
             console.error(error);
             toast.error(t('common.error'));
+        } finally {
+            setConfirmDialog({ open: false, categoryId: null });
         }
     };
 
@@ -389,6 +393,19 @@ const CategoryManagement = () => {
                     </Button>
                 </Card>
             )}
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                title="Hapus Kategori Tiket"
+                description="Apakah Anda yakin ingin menghapus kategori ini? Semua data tiket dan log scan yang terkait dengan kategori ini juga akan dihapus secara permanen."
+                onConfirm={confirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, categoryId: null })}
+                confirmText="Ya, Hapus Kategori"
+                cancelText="Batal"
+                variant="danger"
+            />
         </div>
     );
 };

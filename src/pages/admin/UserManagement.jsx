@@ -5,17 +5,22 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { Plus, Edit, UserX, UserCheck } from 'lucide-react';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
+import { Plus, Edit, UserX, UserCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getUsers, createUser, updateUser, deactivateUser, activateUser } from '../../services/userService';
+import { getUsers, createUser, updateUser, deactivateUser, activateUser, deleteUser } from '../../services/userService';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const UserManagement = () => {
   const { t } = useLanguage();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, userId: null, isActive: null });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, userId: null, userName: '' });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -59,20 +64,50 @@ const UserManagement = () => {
     }
   };
 
-  const handleDeactivate = async (userId, currentStatus) => {
-    if (window.confirm(t('admin.confirmStatusChange'))) {
-      try {
-        if (currentStatus) {
-          await deactivateUser(userId);
-          toast.success(t('admin.userDeactivated'));
-        } else {
-          await activateUser(userId);
-          toast.success(t('admin.userActivated'));
-        }
-        fetchUsers();
-      } catch (error) {
-        toast.error(t('common.error'));
+  const handleDeactivate = (userId, currentStatus) => {
+    setConfirmDialog({ open: true, userId, isActive: currentStatus });
+  };
+
+  const confirmDeactivate = async () => {
+    const { userId, isActive } = confirmDialog;
+    try {
+      if (isActive) {
+        await deactivateUser(userId);
+        toast.success(t('admin.userDeactivated'));
+      } else {
+        await activateUser(userId);
+        toast.success(t('admin.userActivated'));
       }
+      fetchUsers();
+    } catch (error) {
+      toast.error(t('common.error'));
+    } finally {
+      setConfirmDialog({ open: false, userId: null, isActive: null });
+    }
+  };
+
+  const handleDeleteUser = (userId, userName) => {
+    setDeleteDialog({ open: true, userId, userName });
+  };
+
+  const confirmDeleteUser = async () => {
+    try {
+      await deleteUser(deleteDialog.userId);
+      toast.success('Staf berhasil dihapus');
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+      // Handle foreign key constraint error (user has related data)
+      if (error.code === '23503' || (error.message && error.message.includes('foreign key'))) {
+        toast.error(
+          'Tidak dapat menghapus staf ini karena masih memiliki data transaksi tiket. Silakan nonaktifkan staf ini sebagai alternatif.',
+          { duration: 6000 }
+        );
+      } else {
+        toast.error('Gagal menghapus staf: ' + (error.message || 'Terjadi kesalahan'));
+      }
+    } finally {
+      setDeleteDialog({ open: false, userId: null, userName: '' });
     }
   };
 
@@ -161,16 +196,30 @@ const UserManagement = () => {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      {user.role !== 'ADMIN' && (
-                        <Button
-                          size="sm"
-                          variant={user.is_active ? "destructive" : "default"}
-                          onClick={() => handleDeactivate(user.id, user.is_active)}
-                          data-testid={`deactivate-user-${user.id}`}
-                          className={!user.is_active ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-                        >
-                          {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-                        </Button>
+                      {/* Hide activate/deactivate and delete buttons for the currently logged-in user only */}
+                      {user.id !== currentUser?.id && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant={user.is_active ? "destructive" : "default"}
+                            onClick={() => handleDeactivate(user.id, user.is_active)}
+                            data-testid={`deactivate-user-${user.id}`}
+                            className={!user.is_active ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                            title={user.is_active ? "Nonaktifkan" : "Aktifkan"}
+                          >
+                            {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteUser(user.id, user.name)}
+                            data-testid={`delete-user-${user.id}`}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
+                            title="Hapus Permanen"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -253,6 +302,34 @@ const UserManagement = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.isActive ? "Nonaktifkan Staf" : "Aktifkan Staf"}
+        description={confirmDialog.isActive
+          ? "Apakah Anda yakin ingin menonaktifkan staf ini? Staf yang dinonaktifkan tidak akan dapat mengakses sistem."
+          : "Apakah Anda yakin ingin mengaktifkan kembali staf ini? Staf akan dapat mengakses sistem sesuai dengan shift yang diberikan."}
+        onConfirm={confirmDeactivate}
+        onCancel={() => setConfirmDialog({ open: false, userId: null, isActive: null })}
+        confirmText={confirmDialog.isActive ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}
+        cancelText="Batal"
+        variant={confirmDialog.isActive ? "warning" : "info"}
+      />
+
+      {/* Delete Confirm Dialog */}
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+        title="Hapus Data Staf"
+        description={`Apakah Anda yakin ingin menghapus staf "${deleteDialog.userName}"? Semua data staf akan dihapus secara permanen dari sistem dan tidak dapat dikembalikan.`}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => setDeleteDialog({ open: false, userId: null, userName: '' })}
+        confirmText="Ya, Hapus Staf"
+        cancelText="Batal"
+        variant="danger"
+      />
     </div>
   );
 };

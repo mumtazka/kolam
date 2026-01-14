@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { Plus, Edit, Trash2, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTicketPackages, createTicketPackage, updateTicketPackage, deleteTicketPackage } from '../../services/adminService';
@@ -16,6 +17,7 @@ const TicketPackageManagement = () => {
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingPackage, setEditingPackage] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, packageId: null });
     const [formData, setFormData] = useState({
         name: '',
         min_people: 1,
@@ -60,21 +62,25 @@ const TicketPackageManagement = () => {
         }
     };
 
-    const handleDelete = async (packageId) => {
-        if (window.confirm(t('admin.confirmStatusChange'))) {
-            try {
-                await deleteTicketPackage(packageId);
-                toast.success(t('common.success'));
-                fetchPackages();
-            } catch (error) {
-                console.error(error);
-                // Check for 409 or foreign key constraint errors
-                if (error.status === 409 || (error.message && (error.message.includes('constraint') || error.message.includes('foreign key')))) {
-                    toast.error('Gagal menghapus: Paket sudah digunakan dalam transaksi. Silakan nonaktifkan statusnya saja.');
-                } else {
-                    toast.error(t('common.error'));
-                }
+    const handleDelete = (packageId) => {
+        setConfirmDialog({ open: true, packageId });
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteTicketPackage(confirmDialog.packageId);
+            toast.success(t('common.success'));
+            fetchPackages();
+        } catch (error) {
+            console.error(error);
+            // Check for 409 or foreign key constraint errors
+            if (error.status === 409 || (error.message && (error.message.includes('constraint') || error.message.includes('foreign key')))) {
+                toast.error('Gagal menghapus: Paket sudah digunakan dalam transaksi. Silakan nonaktifkan statusnya saja.');
+            } else {
+                toast.error(t('common.error'));
             }
+        } finally {
+            setConfirmDialog({ open: false, packageId: null });
         }
     };
 
@@ -264,6 +270,19 @@ const TicketPackageManagement = () => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+                title="Hapus Paket Tiket"
+                description="Apakah Anda yakin ingin menghapus paket tiket ini? Data paket akan dihapus secara permanen dari sistem."
+                onConfirm={confirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, packageId: null })}
+                confirmText="Ya, Hapus Paket"
+                cancelText="Batal"
+                variant="danger"
+            />
         </div>
     );
 };
