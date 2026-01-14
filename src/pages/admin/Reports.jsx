@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,6 +8,196 @@ import Barcode from '../../components/ui/Barcode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
+
+// Indonesian Calendar Component
+const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const date = new Date(selectedDate);
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  });
+
+  // Indonesian day names (short)
+  const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+  // Indonesian month names
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+
+    const days = [];
+
+    // Previous month days
+    const prevMonth = new Date(year, month, 0);
+    const prevMonthDays = prevMonth.getDate();
+    for (let i = startingDay - 1; i >= 0; i--) {
+      days.push({
+        day: prevMonthDays - i,
+        isCurrentMonth: false,
+        date: new Date(year, month - 1, prevMonthDays - i)
+      });
+    }
+
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        day: i,
+        isCurrentMonth: true,
+        date: new Date(year, month, i)
+      });
+    }
+
+    // Next month days to fill the grid
+    const remainingDays = 42 - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      days.push({
+        day: i,
+        isCurrentMonth: false,
+        date: new Date(year, month + 1, i)
+      });
+    }
+
+    return days;
+  };
+
+  const days = getDaysInMonth(currentMonth);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Helper to format date as YYYY-MM-DD in local time (NOT UTC)
+  const formatLocalDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const isToday = (date) => {
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isSelected = (date) => {
+    return formatLocalDate(date) === selectedDate;
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (dayInfo) => {
+    const dateStr = formatLocalDate(dayInfo.date);
+    onDateSelect(dateStr);
+  };
+
+  const goToToday = () => {
+    const todayStr = formatLocalDate(new Date());
+    onDateSelect(todayStr);
+    setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+      {/* Calendar Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handlePrevMonth}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <div className="text-center">
+            <span className="font-bold text-xl">
+              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            </span>
+          </div>
+          <button
+            onClick={handleNextMonth}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Day Headers */}
+      <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+        {dayNames.map((day, idx) => (
+          <div
+            key={day}
+            className={`py-3 text-center text-sm font-bold ${idx === 0 ? 'text-red-500' : 'text-slate-600'}`}
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Days */}
+      <div className="grid grid-cols-7 gap-px bg-slate-100 p-1">
+        {days.map((dayInfo, idx) => {
+          const isSunday = dayInfo.date.getDay() === 0;
+          return (
+            <button
+              key={idx}
+              onClick={() => handleDateClick(dayInfo)}
+              className={`
+                                aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
+                                ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
+                                ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
+                  ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-blue-50'
+                  : ''
+                }
+                                ${isToday(dayInfo.date) && !isSelected(dayInfo.date)
+                  ? 'ring-2 ring-blue-400 ring-inset bg-blue-50 text-blue-600 font-bold'
+                  : ''
+                }
+                                ${isSelected(dayInfo.date)
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold shadow-md transform scale-105'
+                  : ''
+                }
+                            `}
+            >
+              {dayInfo.day}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="p-3 border-t border-slate-200 flex gap-2">
+        <button
+          onClick={goToToday}
+          className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+        >
+          Hari Ini
+        </button>
+        <button
+          onClick={() => {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            onDateSelect(formatLocalDate(yesterday));
+            setCurrentMonth(new Date(yesterday.getFullYear(), yesterday.getMonth(), 1));
+          }}
+          className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+        >
+          Kemarin
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Reports = () => {
   const { t, language } = useLanguage();
@@ -20,7 +210,32 @@ const Reports = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [historyPage, setHistoryPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef(null);
   const HISTORY_PER_PAGE = 20;
+
+  // Close calendar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setShowCalendar(false);
+      }
+    };
+
+    if (showCalendar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCalendar]);
+
+  // Indonesian Format Helper
+  const formatDateIndonesian = (dateStr) => {
+    const date = new Date(dateStr);
+    const dayName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][date.getDay()];
+    const monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][date.getMonth()];
+    return `${dayName}, ${date.getDate()} ${monthName} ${date.getFullYear()}`;
+  };
+
 
   const fetchReport = async () => {
     setLoading(true);
@@ -239,17 +454,18 @@ const Reports = () => {
                       return (
                         <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[140px] h-full justify-end pb-14">
                           {/* Count Label */}
-                          <div className={`mb-4 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-2 ${isHighest ? 'translate-y-0' : 'translate-y-2 opacity-0 group-hover:opacity-100 is-highest-label'}`}>
+                          <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 flex flex-col items-center">
                             {isHighest && (
-                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce duration-1000">
-                                <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border border-amber-200 whitespace-nowrap mb-1">
-                                  {t('reports.highest')}
-                                </span>
+                              <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <span className="text-[10px] uppercase tracking-wide">{t('reports.highest')}</span>
                               </div>
                             )}
-                            <span className={`inline-block text-lg font-bold px-4 py-1.5 rounded-xl shadow-sm border transition-all ${isHighest
-                              ? 'bg-white text-slate-800 border-slate-200'
-                              : 'bg-white text-slate-600 border-slate-100'
+                            <span className={`inline-block text-lg font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
+                              ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
+                              : 'bg-white text-slate-700 border-slate-200'
                               }`}>
                               {cat.count}
                             </span>
@@ -305,24 +521,42 @@ const Reports = () => {
         {/* Controls */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-40 backdrop-blur-md bg-white/90">
           <Tabs value={reportType} onValueChange={setReportType} className="w-full sm:w-auto">
-            <TabsList className="bg-slate-100 p-1 rounded-lg w-full sm:w-auto flex-wrap">
-              <TabsTrigger value="daily" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.dailyReport')}</TabsTrigger>
-              <TabsTrigger value="monthly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.monthlyReport')}</TabsTrigger>
-              <TabsTrigger value="yearly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.yearlyReport')}</TabsTrigger>
-              <TabsTrigger value="lifetime" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">{t('reports.lifetimeReport')}</TabsTrigger>
+            <TabsList className="bg-slate-100 p-1 rounded-lg w-full sm:w-auto inline-flex whitespace-nowrap overflow-x-auto sm:overflow-visible">
+              <TabsTrigger value="daily" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4">{t('reports.dailyReport')}</TabsTrigger>
+              <TabsTrigger value="monthly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4">{t('reports.monthlyReport')}</TabsTrigger>
+              <TabsTrigger value="yearly" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4">{t('reports.yearlyReport')}</TabsTrigger>
+              <TabsTrigger value="lifetime" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4">{t('reports.lifetimeReport')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
             {reportType === 'daily' && (
-              <div className="relative">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="h-10 px-4 pl-10 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all hover:border-slate-300"
-                />
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <div className="relative" ref={calendarRef}>
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className="flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-200 rounded-xl px-4 py-2.5 transition-all text-left min-w-[240px] group shadow-sm hover:shadow"
+                >
+                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tanggal</p>
+                    <p className="text-sm font-bold text-slate-700">{formatDateIndonesian(selectedDate)}</p>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 text-slate-400 ml-auto transition-transform ${showCalendar ? 'rotate-90' : ''}`} />
+                </button>
+
+                {showCalendar && (
+                  <div className="absolute top-full right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 w-96">
+                    <IndonesianMiniCalendar
+                      selectedDate={selectedDate}
+                      onDateSelect={(date) => {
+                        setSelectedDate(date);
+                        setShowCalendar(false);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
             {reportType === 'monthly' && (
@@ -450,11 +684,11 @@ const Reports = () => {
                             Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <span className={`px-3 py-1 text-[10px] font-bold rounded-full border ${ticket.status === 'USED'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-slate-100 text-slate-600'
                               }`}>
-                              {ticket.status === 'USED' ? 'DIPAKAI' : 'BELUM'}
+                              {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-slate-500 text-xs font-medium">

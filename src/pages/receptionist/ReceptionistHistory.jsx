@@ -115,20 +115,20 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                 <div className="flex items-center justify-between">
                     <button
                         onClick={handlePrevMonth}
-                        className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                        className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-6 h-6" />
                     </button>
                     <div className="text-center">
-                        <span className="font-bold text-lg">
+                        <span className="font-bold text-xl">
                             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                         </span>
                     </div>
                     <button
                         onClick={handleNextMonth}
-                        className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                        className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-6 h-6" />
                     </button>
                 </div>
             </div>
@@ -138,7 +138,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                 {dayNames.map((day, idx) => (
                     <div
                         key={day}
-                        className={`py-2 text-center text-xs font-bold ${idx === 0 ? 'text-red-500' : 'text-slate-600'
+                        className={`py-3 text-center text-sm font-bold ${idx === 0 ? 'text-red-500' : 'text-slate-600'
                             }`}
                     >
                         {day}
@@ -155,7 +155,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                             key={idx}
                             onClick={() => handleDateClick(dayInfo)}
                             className={`
-                                aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all
+                                aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
                                 ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
                                 ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
                                     ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-blue-50'
@@ -502,7 +502,7 @@ const ReceptionistHistory = () => {
                                             return (
                                                 <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[120px] h-full justify-end pb-12">
                                                     {/* Count Label */}
-                                                    <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                                                    <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 flex flex-col items-center">
                                                         {isHighest && (
                                                             <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -588,7 +588,7 @@ const ReceptionistHistory = () => {
 
                                 {/* Calendar Dropdown - no backdrop so page remains scrollable */}
                                 {showCalendar && (
-                                    <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 w-96">
                                         <IndonesianMiniCalendar
                                             selectedDate={selectedDate}
                                             onDateSelect={(date) => {
