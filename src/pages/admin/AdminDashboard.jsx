@@ -85,20 +85,26 @@ const AdminDashboard = () => {
         <p className="text-slate-600 mt-1">{t('admin.welcomeBack')}</p>
       </div>
 
-      {/* Stats Grid - 5 columns on large screens */}
+      {/* Stats Grid - Flat Design with Green Highlight */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="p-5 stat-card" data-testid={`stat-${stat.label.toLowerCase().replace(/[^a-z]+/g, '-')}`}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
+            <Card key={index} className="p-4 border-0 shadow-sm hover:shadow-md transition-shadow" data-testid={`stat-${stat.label.toLowerCase().replace(/[^a-z]+/g, '-')}`}>
+              {/* Top Row: Label + Icon */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">{stat.label}</span>
+                <Icon className="w-5 h-5 text-slate-400" />
+              </div>
+
+              {/* Value - Large and Bold */}
+              <p className="text-2xl font-bold text-slate-900 mb-3">
+                {stat.value}
+              </p>
+
+              {/* Green Highlight Bar */}
+              <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" style={{ width: '75%' }} />
               </div>
             </Card>
           );
@@ -146,8 +152,8 @@ const AdminDashboard = () => {
                   {/* Count Label */}
                   <div className="mb-2 transition-all duration-300 group-hover:scale-110">
                     <span className={`inline-block text-sm font-bold px-2 py-0.5 rounded-md ${isToday
-                        ? 'bg-cyan-100 text-cyan-800'
-                        : 'bg-slate-100 text-slate-700'
+                      ? 'bg-cyan-100 text-cyan-800'
+                      : 'bg-slate-100 text-slate-700'
                       }`}>
                       {day.total_scan}
                     </span>
@@ -156,8 +162,8 @@ const AdminDashboard = () => {
                   {/* Bar */}
                   <div
                     className={`w-full rounded-t-lg transition-all duration-500 relative cursor-pointer transform hover:scale-105 ${isToday
-                        ? 'bg-gradient-to-t from-cyan-500 to-cyan-400 shadow-lg'
-                        : 'bg-gradient-to-t from-slate-400 to-slate-300'
+                      ? 'bg-gradient-to-t from-cyan-500 to-cyan-400 shadow-lg'
+                      : 'bg-gradient-to-t from-slate-400 to-slate-300'
                       }`}
                     style={{
                       height: `${percentage}%`,
