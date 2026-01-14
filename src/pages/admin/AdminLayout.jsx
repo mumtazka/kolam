@@ -21,22 +21,23 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/users', label: t('admin.staffManagement'), icon: Users },
-    { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
-    { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: Clock },
-    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: Layers },
-    { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
-    { path: '/admin/shifts', label: t('shift.management'), icon: Clock },
-    { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, subtitle: t('admin.welcomeBack') },
+    { path: '/admin/users', label: t('admin.staffManagement'), icon: Users, subtitle: t('admin.usersSubtitle') },
+    { path: '/admin/categories', label: t('admin.categories'), icon: Ticket, subtitle: t('admin.categoriesSubtitle') },
+    { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: Clock, subtitle: t('admin.sessionsSubtitle') },
+    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: Layers, subtitle: 'Kelola paket harga khusus (contoh: Rombongan)' },
+    { path: '/admin/pools', label: t('admin.pools'), icon: MapPin, subtitle: t('admin.poolsSubtitle') },
+    { path: '/admin/shifts', label: t('shift.management'), icon: Clock, subtitle: t('shift.subtitle') },
+    { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: t('reports.viewReports') },
   ];
 
-  // Determine Page Title
+  // Determine Page Title and Subtitle
   const activeItem = menuItems.find(item => item.path === location.pathname)
     || menuItems.find(item => location.pathname.startsWith(item.path) && item.path !== '/admin')
     || menuItems[0];
 
   const pageTitle = activeItem ? activeItem.label : 'Kolam Renang UNY';
+  const pageSubtitle = activeItem ? activeItem.subtitle : '';
 
   return (
     <div className="flex h-screen bg-slate-50" data-testid="admin-dashboard">
@@ -90,6 +91,7 @@ const AdminLayout = () => {
         {/* Header */}
         <Header
           title={pageTitle}
+          subtitle={pageSubtitle}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />

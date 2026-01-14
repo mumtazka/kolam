@@ -68,7 +68,12 @@ const TicketPackageManagement = () => {
                 fetchPackages();
             } catch (error) {
                 console.error(error);
-                toast.error(t('common.error'));
+                // Check for 409 or foreign key constraint errors
+                if (error.status === 409 || (error.message && (error.message.includes('constraint') || error.message.includes('foreign key')))) {
+                    toast.error('Gagal menghapus: Paket sudah digunakan dalam transaksi. Silakan nonaktifkan statusnya saja.');
+                } else {
+                    toast.error(t('common.error'));
+                }
             }
         }
     };
@@ -111,11 +116,7 @@ const TicketPackageManagement = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Manajemen Paket Tiket</h1>
-                    <p className="text-slate-600 mt-1">Kelola paket harga khusus (contoh: Rombongan)</p>
-                </div>
+            <div className="flex items-center justify-end">
                 <Button onClick={openCreateDialog} className="bg-slate-900 hover:bg-slate-800">
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah Paket

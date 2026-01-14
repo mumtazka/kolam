@@ -111,9 +111,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-slate-600 mt-1">{t('admin.welcomeBack')}</p>
-      </div>
 
       {/* Stats Grid - Flat Design with Green Highlight */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

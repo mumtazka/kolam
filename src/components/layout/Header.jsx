@@ -14,7 +14,7 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-const Header = ({ title, sidebarOpen, setSidebarOpen }) => {
+const Header = ({ title, subtitle, sidebarOpen, setSidebarOpen }) => {
     const { user, logout, switchMode } = useAuth();
     const { t, language, changeLanguage } = useLanguage();
     const navigate = useNavigate();
@@ -34,20 +34,25 @@ const Header = ({ title, sidebarOpen, setSidebarOpen }) => {
     };
 
     return (
-        <header className="bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center justify-between shrink-0 z-30 shadow-sm relative">
+        <header className="bg-white border-b border-slate-200 min-h-16 px-4 md:px-6 py-3 flex items-center justify-between shrink-0 z-30 shadow-sm relative">
             {/* Left: Mobile Menu & Title */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="lg:hidden text-slate-500 hover:text-slate-700"
+                    className="lg:hidden text-slate-500 hover:text-slate-700 shrink-0"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                 >
                     <Menu className="w-6 h-6" />
                 </Button>
-                <h1 className="text-2xl md:text-3xl font-bold font-outfit text-slate-800 tracking-tight truncate max-w-[200px] md:max-w-none">
-                    {title}
-                </h1>
+                <div className="min-w-0">
+                    <h1 className="text-xl md:text-2xl font-bold font-outfit text-slate-800 tracking-tight truncate">
+                        {title}
+                    </h1>
+                    {subtitle && (
+                        <p className="text-xs md:text-sm text-slate-500 truncate">{subtitle}</p>
+                    )}
+                </div>
             </div>
 
             {/* Right: Actions */}
