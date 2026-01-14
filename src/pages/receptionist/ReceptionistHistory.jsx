@@ -702,7 +702,7 @@ const ReceptionistHistory = () => {
                                                                 ? 'bg-emerald-100 text-emerald-800'
                                                                 : 'bg-slate-100 text-slate-600'
                                                                 }`}>
-                                                                {ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai'}
+                                                                {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
                                                             </span>
                                                         </td>
                                                         <td className="px-4 py-3 text-slate-500 text-xs">
