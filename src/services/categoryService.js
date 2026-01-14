@@ -155,9 +155,20 @@ export const toggleCategoryActive = async (categoryId, active) => {
 };
 
 /**
- * Delete a category (use with caution - may affect existing tickets)
+ * Delete a category and ALL associated tickets
+ * Note: Database has ON DELETE RESTRICT for safety, so we must manually delete tickets first
  */
 export const deleteCategory = async (categoryId) => {
+    // 1. Delete associated tickets first
+    // Scan logs will be deleted automatically via ON DELETE CASCADE on tickets table
+    const { error: ticketError } = await supabase
+        .from('tickets')
+        .delete()
+        .eq('category_id', categoryId);
+
+    if (ticketError) throw ticketError;
+
+    // 2. Delete the category
     const { error } = await supabase
         .from('categories')
         .delete()
