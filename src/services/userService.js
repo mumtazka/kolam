@@ -60,6 +60,7 @@ export const createUser = async (userData) => {
 export const updateUser = async (userId, userData) => {
     const updateData = {
         name: userData.name,
+        email: userData.email,
         role: userData.role,
         is_active: userData.is_active
     };

@@ -231,7 +231,7 @@ const PoolManagement = () => {
             <Dialog open={!!zoomImage} onOpenChange={(open) => !open && setZoomImage(null)}>
                 <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none" aria-describedby="zoom-description">
                     <DialogDescription className="sr-only" id="zoom-description">
-                        Zoomed view of the pool image
+                        {t('admin.zoomedView')}
                     </DialogDescription>
                     {zoomImage && (
                         <img src={zoomImage} alt="Zoomed Pool" className="w-full h-auto rounded-lg shadow-2xl" />
@@ -245,7 +245,7 @@ const PoolManagement = () => {
                     <DialogHeader>
                         <DialogTitle>{editingPool ? t('admin.editPool') : t('admin.newPool')}</DialogTitle>
                         <DialogDescription id="form-description">
-                            {editingPool ? 'Update the details of the pool.' : 'Fill in the details to create a new pool.'}
+                            {editingPool ? t('admin.poolFormDescriptionUpdate') : t('admin.poolFormDescriptionCreate')}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -287,7 +287,7 @@ const PoolManagement = () => {
                                         onChange={handleFileChange}
                                         disabled={uploading}
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+                                    <p className="text-xs text-slate-500 mt-1">{t('admin.imageHelperText')}</p>
                                 </div>
                             </div>
                         </div>
@@ -298,7 +298,7 @@ const PoolManagement = () => {
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g., Kolam Anak"
+                                placeholder={t('admin.poolPlaceholder')}
                                 required
                                 data-testid="pool-name-input"
                             />
@@ -337,7 +337,7 @@ const PoolManagement = () => {
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Optional description"
+                                placeholder={t('admin.optionalDescription')}
                                 data-testid="pool-description-input"
                             />
                         </div>

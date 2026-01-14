@@ -129,9 +129,10 @@ export const createPool = async (poolData) => {
         .from('pools')
         .insert(poolData)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('Failed to create pool: No data returned');
     return data;
 };
 
@@ -144,9 +145,10 @@ export const updatePool = async (poolId, poolData) => {
         .update(poolData)
         .eq('id', poolId)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error('Pool not found or access denied');
     return data;
 };
 
@@ -198,3 +200,57 @@ export const getLocations = getPools;
 export const createLocation = createPool;
 export const updateLocation = updatePool;
 export const deleteLocation = deletePool;
+
+/**
+ * Get all ticket packages
+ */
+export const getTicketPackages = async () => {
+    const { data, error } = await supabase
+        .from('ticket_packages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Create ticket package
+ */
+export const createTicketPackage = async (packageData) => {
+    const { data, error } = await supabase
+        .from('ticket_packages')
+        .insert(packageData)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Update ticket package
+ */
+export const updateTicketPackage = async (packageId, packageData) => {
+    const { data, error } = await supabase
+        .from('ticket_packages')
+        .update(packageData)
+        .eq('id', packageId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+/**
+ * Delete ticket package
+ */
+export const deleteTicketPackage = async (packageId) => {
+    const { error } = await supabase
+        .from('ticket_packages')
+        .delete()
+        .eq('id', packageId);
+
+    if (error) throw error;
+};

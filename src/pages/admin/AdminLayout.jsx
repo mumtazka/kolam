@@ -13,12 +13,13 @@ import {
   BarChart3,
   LogOut,
   Menu,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, changeLanguage } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,7 +30,9 @@ const AdminLayout = () => {
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket },
     { path: '/admin/sessions', label: t('admin.sessions'), icon: Clock },
     { path: '/admin/packages', label: t('admin.packages'), icon: Package },
+    { path: '/admin/ticket-packages', label: t('admin.ticketPackages'), icon: Layers },
     { path: '/admin/pools', label: t('admin.pools'), icon: MapPin },
+    { path: '/admin/shifts', label: t('shift.management'), icon: Clock },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3 },
   ];
 
@@ -50,7 +53,7 @@ const AdminLayout = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 sidebar-nav">
+          <nav className="flex-1 p-4 space-y-2 sidebar-nav overflow-y-auto sidebar-scrollbar">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -81,6 +84,28 @@ const AdminLayout = () => {
                 <p className="text-xs text-slate-400 truncate">{user?.email}</p>
               </div>
             </div>
+
+            <div className="flex bg-slate-800 rounded-lg p-1 mb-3">
+              <button
+                onClick={() => changeLanguage('id')}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${language === 'id'
+                  ? 'bg-sky-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
+              >
+                Indonesia
+              </button>
+              <button
+                onClick={() => changeLanguage('en')}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${language === 'en'
+                  ? 'bg-sky-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+                  }`}
+              >
+                English
+              </button>
+            </div>
+
             <Button
               onClick={handleLogout}
               variant="ghost"

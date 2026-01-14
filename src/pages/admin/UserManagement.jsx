@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { Plus, Edit, UserX, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUsers, createUser, updateUser, deactivateUser, activateUser } from '../../services/userService';
@@ -20,7 +20,7 @@ const UserManagement = () => {
     name: '',
     email: '',
     password: '',
-    role: 'RECEPTIONIST'
+    role: 'RECEPTIONIST' // Default role for new users, but shifts determine actual permissions
   });
 
   useEffect(() => {
@@ -79,8 +79,9 @@ const UserManagement = () => {
   const getRoleLabel = (role) => {
     switch (role) {
       case 'ADMIN': return t('admin.roleAdmin');
-      case 'RECEPTIONIST': return t('admin.roleReceptionist');
-      case 'SCANNER': return t('admin.roleScanner');
+      // Both RECEPTIONIST and SCANNER are displayed as "Staff"
+      case 'RECEPTIONIST': return t('admin.roleStaff') || 'Staff';
+      case 'SCANNER': return t('admin.roleStaff') || 'Staff';
       default: return role;
     }
   };
@@ -137,10 +138,7 @@ const UserManagement = () => {
                   <td className="px-6 py-4 text-sm text-slate-900 font-medium">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                      user.role === 'RECEPTIONIST' ? 'bg-blue-100 text-blue-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
+                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                       {getRoleLabel(user.role)}
                     </span>
                   </td>
@@ -188,9 +186,12 @@ const UserManagement = () => {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent data-testid="user-form-dialog">
+        <DialogContent data-testid="user-form-dialog" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>{editingUser ? t('admin.editStaff') : t('admin.addStaff')}</DialogTitle>
+            <DialogDescription>
+              {editingUser ? t('admin.usersSubtitle') : t('admin.usersSubtitle')}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -227,16 +228,23 @@ const UserManagement = () => {
             </div>
             <div>
               <Label htmlFor="role">{t('admin.role')}</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+              <Select
+                value={formData.role === 'SCANNER' ? 'RECEPTIONIST' : formData.role} // Map SCANNER to RECEPTIONIST (Staff) in UI
+                onValueChange={(value) => setFormData({ ...formData, role: value })}
+              >
                 <SelectTrigger data-testid="user-role-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ADMIN">{t('admin.roleAdmin')}</SelectItem>
-                  <SelectItem value="RECEPTIONIST">{t('admin.roleReceptionist')}</SelectItem>
-                  <SelectItem value="SCANNER">{t('admin.roleScanner')}</SelectItem>
+                  <SelectItem value="RECEPTIONIST">{t('admin.roleStaff') || 'Staff'}</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.role !== 'ADMIN' && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {t('shift.roleHint') || 'Staff can work as Cashier or Scanner'}
+                </p>
+              )}
             </div>
             <div className="flex space-x-2 pt-4">
               <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800" data-testid="user-form-submit">

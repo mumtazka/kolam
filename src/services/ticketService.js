@@ -55,69 +55,27 @@ const generateBarcode = (ticketCode) => {
 };
 
 /**
- * Create batch of tickets
- * @param {Array} ticketItems - Array of { category_id, quantity, nim }
+ * Create batch of tickets (using Backend RPC for security)
+ * @param {Array} ticketItems - Array of { category_id, quantity, package_id, nims }
  * @param {Object} user - Current user object
  * @param {string} shift - Current shift (Pagi/Siang/Sore)
  */
 export const createBatchTickets = async (ticketItems, user, shift) => {
-    // Generate batch ID
-    const batchId = crypto.randomUUID();
-
-    // Get categories for prefix lookup
-    const { data: categories, error: catError } = await supabase
-        .from('categories')
-        .select('*');
-
-    if (catError) throw catError;
-
-    // Get starting batch number
-    let batchNumber = await getNextBatchNumber();
-
-    // Create all tickets
-    const ticketsToInsert = [];
-
-    for (const item of ticketItems) {
-        const category = categories.find(c => c.id === item.category_id);
-
-        if (!category) {
-            throw new Error(`Category not found: ${item.category_id}`);
-        }
-
-        for (let i = 0; i < item.quantity; i++) {
-            const ticketId = crypto.randomUUID();
-            const ticketCode = await generateTicketCode(category.code_prefix, batchNumber);
-
-            ticketsToInsert.push({
-                id: ticketId,
-                ticket_code: ticketCode,
-                batch_id: batchId,
-                category_id: item.category_id,
-                category_name: category.name,
-                status: 'UNUSED',
-                price: category.price,
-                nim: item.nim || null,
-                qr_code: generateBarcode(ticketCode),
-                created_by: user.id,
-                created_by_name: user.name,
-                shift: shift
-            });
-
-            batchNumber++;
-        }
-    }
-
+    // Call the RPC function to handle transaction securely on server
     const { data, error } = await supabase
-        .from('tickets')
-        .insert(ticketsToInsert)
-        .select();
+        .rpc('process_ticket_transaction', {
+            p_items: ticketItems,
+            p_created_by: user.id,
+            p_created_by_name: user.name,
+            p_shift: shift
+        });
 
     if (error) throw error;
 
     return {
-        batch_id: batchId,
-        total_tickets: data.length,
-        tickets: data
+        batch_id: data.batch_id,
+        total_tickets: data.total_tickets,
+        tickets: data.tickets
     };
 };
 
@@ -163,23 +121,34 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
         };
     }
 
-    // Check if already used
-    if (ticket.status === 'USED') {
+    // --- SPECIAL TICKET LOGIC MAIN IMPLEMENTATION ---
+
+    // 1. Determine Limits based on Prefix
+    const isSpecial = ticket.ticket_code.toUpperCase().startsWith('K');
+    const maxLimit = isSpecial ? 100 : 1;
+    const currentUsage = ticket.usage_count || 0;
+
+    // 2. Validate Usage
+    if (ticket.status === 'USED' || currentUsage >= maxLimit) {
         return {
             success: false,
             status: 'USED',
-            message: `Ticket already scanned at ${new Date(ticket.scanned_at).toLocaleString()}`,
+            message: `Ticket limit reached (${currentUsage}/${maxLimit})`,
             ticket: ticket
         };
     }
 
-    // Mark as used
-    // We do NOT update ticket.shift here, as that preserves the printing shift
-    // We only record the scanner's shift in scan_logs
+    // 3. Calculate New State
+    const newUsage = currentUsage + 1;
+    const isExhausted = newUsage >= maxLimit;
+    const newStatus = isExhausted ? 'USED' : 'UNUSED'; // Keep UNUSED if still has quota
+
+    // 4. Update Database
     const { data: updatedTicket, error: updateError } = await supabase
         .from('tickets')
         .update({
-            status: 'USED',
+            status: newStatus,
+            usage_count: newUsage,
             scanned_at: new Date().toISOString(),
             scanned_by: scanner.id
         })
@@ -189,20 +158,24 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
 
     if (updateError) throw updateError;
 
-    // Create scan log with shift attribution and pool verification
+    // 5. Create Scan Log
     await supabase.from('scan_logs').insert({
         ticket_id: ticket.id,
         scanned_by: scanner.id,
         scanned_by_name: scanner.name,
         category_name: ticket.category_name,
-        shift: shift, // Record the shift of the scanner
-        pool_id: poolId // Record the pool/location of the scan
+        shift: shift,
+        pool_id: poolId,
+        quantity: 1, // Log as 1 scan event
+        total_price: 0 // Price calculation handled if needed, for now 0 or unit price
     });
 
     return {
         success: true,
         status: 'VALID',
-        message: 'Ticket validated successfully!',
+        message: isSpecial
+            ? `Special Ticket Valid (${newUsage}/${maxLimit})`
+            : 'Ticket Validated Successfully',
         ticket: updatedTicket
     };
 };

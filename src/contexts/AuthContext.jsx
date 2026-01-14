@@ -25,11 +25,12 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Unified login - no mode selection required upfront
   const login = async (email, password) => {
     try {
       console.log('Attempting login for:', email);
 
-      // Fetch user from Supabase
+      // 1. Fetch user from Supabase
       const { data: userData, error } = await supabase
         .from('users')
         .select('*')
@@ -37,31 +38,33 @@ export const AuthProvider = ({ children }) => {
         .eq('is_active', true)
         .maybeSingle();
 
-      console.log('Supabase response:', { userData, error });
+      if (error) throw new Error(`Database error: ${error.message}`);
+      if (!userData) throw new Error('User not found or inactive.');
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(`Database error: ${error.message}`);
-      }
-
-      if (!userData) {
-        throw new Error('User not found. Please check if the database is set up correctly.');
-      }
-
-      // Verify password
+      // 2. Verify password
       const isValidPassword = await bcrypt.compare(password, userData.password_hash);
-      console.log('Password valid:', isValidPassword);
+      if (!isValidPassword) throw new Error('Invalid password');
 
-      if (!isValidPassword) {
-        throw new Error('Invalid password');
+      // 3. Determine user type
+      // ADMIN -> ADMIN
+      // RECEPTIONIST/SCANNER/STAFF -> STAFF
+      let userType = 'STAFF';
+      let activeMode = null;
+
+      if (userData.role === 'ADMIN') {
+        userType = 'ADMIN';
+        activeMode = 'ADMIN'; // Admin mode is set automatically
       }
+      // For staff, mode will be set later via setActiveMode
 
-      // Create safe user object (without password_hash)
+      // 4. Create safe user object
       const safeUser = {
         id: userData.id,
         email: userData.email,
         name: userData.name,
-        role: userData.role,
+        type: userType,
+        active_mode: activeMode, // null for staff until they choose
+        original_role: userData.role,
         is_active: userData.is_active,
         created_at: userData.created_at
       };
@@ -77,13 +80,50 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Set active mode for staff users after login
+  const setActiveMode = async (mode) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    if (user.type === 'ADMIN') {
+      throw new Error('Admin users cannot switch modes');
+    }
+
+    if (mode !== 'CASHIER' && mode !== 'SCANNER') {
+      throw new Error('Invalid mode. Must be CASHIER or SCANNER');
+    }
+
+    const updatedUser = {
+      ...user,
+      active_mode: mode
+    };
+
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+
+    return updatedUser;
+  };
+
+  // Switch mode for staff users (can be used from dashboards)
+  const switchMode = async (newMode) => {
+    return setActiveMode(newMode);
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      logout,
+      setActiveMode,
+      switchMode
+    }}>
       {children}
     </AuthContext.Provider>
   );

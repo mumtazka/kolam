@@ -20,7 +20,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(user.active_mode)) {
     return <Navigate to="/" replace />;
   }
 

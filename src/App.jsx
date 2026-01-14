@@ -11,9 +11,11 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
+import TicketPackageManagement from './pages/admin/TicketPackageManagement';
 import SessionManagement from './pages/admin/SessionManagement';
 import PackageManagement from './pages/admin/PackageManagement';
 import PoolManagement from './pages/admin/PoolManagement';
+import ShiftManagement from './pages/admin/ShiftManagement';
 import Reports from './pages/admin/Reports';
 import ReceptionistDashboard from './pages/receptionist/ReceptionistDashboard';
 import ReceptionistLayout from './pages/receptionist/ReceptionistLayout';
@@ -37,12 +39,12 @@ const RoleBasedRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect based on role
-  if (user.role === 'ADMIN') {
+  // Redirect based on active_mode
+  if (user.active_mode === 'ADMIN') {
     return <Navigate to="/admin" replace />;
-  } else if (user.role === 'RECEPTIONIST') {
+  } else if (user.active_mode === 'CASHIER') {
     return <Navigate to="/receptionist" replace />;
-  } else if (user.role === 'SCANNER') {
+  } else if (user.active_mode === 'SCANNER') {
     return <Navigate to="/scanner" replace />;
   }
 
@@ -79,17 +81,24 @@ function App() {
                 <Route path="users" element={<UserManagement />} />
                 <Route path="pools" element={<PoolManagement />} />
                 <Route path="categories" element={<CategoryManagement />} />
+                <Route path="ticket-packages" element={<TicketPackageManagement />} />
                 <Route path="sessions" element={<SessionManagement />} />
                 <Route path="packages" element={<PackageManagement />} />
+                <Route path="shifts" element={<ShiftManagement />} />
                 <Route path="reports" element={<Reports />} />
               </Route>
 
-              {/* Receptionist Route */}
+              {/* Receptionist Route - Requires CASHIER mode */}
               <Route
                 path="/receptionist"
                 element={
+<<<<<<< HEAD
                   <ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}>
                     <ReceptionistLayout />
+=======
+                  <ProtectedRoute allowedRoles={['CASHIER']}>
+                    <ReceptionistDashboard />
+>>>>>>> a7c225a619e7b4c75c02c696f6943fa638d99d62
                   </ProtectedRoute>
                 }
               >
@@ -99,11 +108,11 @@ function App() {
                 <Route path="pools" element={<ReceptionistPools />} />
               </Route>
 
-              {/* Scanner Route */}
+              {/* Scanner Route - Requires SCANNER mode */}
               <Route
                 path="/scanner"
                 element={
-                  <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
+                  <ProtectedRoute allowedRoles={['SCANNER']}>
                     <ScannerDashboard />
                   </ProtectedRoute>
                 }
