@@ -3,7 +3,7 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { Sunrise, Sunset, Edit, RefreshCw, Save, Users, Calendar } from 'lucide-react';
+import { Sunrise, Sunset, Edit, RefreshCw, Save, Users, Calendar, ScanLine, Calculator, Coffee, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -14,7 +14,7 @@ import {
     updateUserFullSchedule
 } from '../../services/shiftService';
 
-const ROLES = ['OFF', 'CASHIER', 'SCANNER'];
+const ROLES = ['OFF', 'RECEPTIONIST', 'SCANNER'];
 const DAYS = [
     { key: 'Monday', label: 'Senin' },
     { key: 'Tuesday', label: 'Selasa' },
@@ -143,7 +143,7 @@ const ShiftManagement = () => {
         }
     };
 
-    // Get role badge color
+    // Get role badge color (for main role column)
     const getRoleBadgeColor = (role) => {
         switch (role) {
             case 'ADMIN': return 'bg-purple-100 text-purple-700';
@@ -151,6 +151,35 @@ const ShiftManagement = () => {
             case 'RECEPTIONIST': return 'bg-blue-100 text-blue-700';
             case 'SCANNER': return 'bg-blue-100 text-blue-700';
             default: return 'bg-slate-100 text-slate-500';
+        }
+    };
+
+    // Get icon for role
+    const getRoleIcon = (role) => {
+        switch (role) {
+            case 'CASHIER':
+            case 'RECEPTIONIST':
+                return Calculator;
+            case 'SCANNER':
+                return ScanLine;
+            case 'OFF':
+                return Coffee;
+            default:
+                return Ban;
+        }
+    };
+
+    // Get role badge style (text only now)
+    const getShiftRoleStyle = (role) => {
+        switch (role) {
+            case 'CASHIER':
+            case 'RECEPTIONIST':
+                return 'text-emerald-600';
+            case 'SCANNER':
+                return 'text-cyan-600';
+            case 'OFF':
+            default:
+                return 'text-slate-400';
         }
     };
 
@@ -243,22 +272,22 @@ const ShiftManagement = () => {
                     <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.name')}</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('auth.email')}</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">{t('admin.role')}</th>
-                                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                                <th className="w-[20%] px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('admin.name')}</th>
+                                <th className="w-[25%] px-4 py-3 text-left text-sm font-semibold text-slate-900">{t('auth.email')}</th>
+                                <th className="w-[15%] px-4 py-3 text-center text-sm font-semibold text-slate-900">{t('admin.role')}</th>
+                                <th className="w-[15%] px-4 py-3 text-center text-sm font-semibold text-slate-900">
                                     <div className="flex items-center justify-center gap-1">
                                         <Sunrise className="w-4 h-4 text-amber-500" />
                                         {t('shift.morning')}
                                     </div>
                                 </th>
-                                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                                <th className="w-[15%] px-4 py-3 text-center text-sm font-semibold text-slate-900">
                                     <div className="flex items-center justify-center gap-1">
                                         <Sunset className="w-4 h-4 text-indigo-500" />
                                         {t('shift.afternoon')}
                                     </div>
                                 </th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
+                                <th className="w-[10%] px-4 py-3 text-center text-sm font-semibold text-slate-900">{t('admin.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -266,41 +295,53 @@ const ShiftManagement = () => {
                                 const isAdmin = staff.default_role === 'ADMIN';
                                 return (
                                     <tr key={staff.user_id} className="hover:bg-slate-50">
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600">
+                                                <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-600 text-xs">
                                                     {staff.name?.charAt(0)}
                                                 </div>
                                                 <span className="font-medium text-slate-900">{staff.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-600">{staff.email}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={cn("px-3 py-1 text-xs font-medium rounded-full", getRoleBadgeColor(staff.default_role))}>
+                                        <td className="px-4 py-3 text-sm text-slate-600">{staff.email}</td>
+                                        <td className="px-4 py-3 text-center">
+                                            <span className={cn("text-sm font-medium", getRoleBadgeColor(staff.default_role).replace('bg-purple-100', '').replace('bg-blue-100', '').replace('px-3', '').replace('py-1', '').replace('rounded-full', ''))}>
                                                 {getRoleLabel(staff.default_role)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4" colSpan={isAdmin ? 2 : 1}>
+                                        <td className="px-4 py-3" colSpan={isAdmin ? 2 : 1}>
                                             {isAdmin ? (
                                                 <div className="text-center text-sm text-slate-500 italic">
                                                     {t('shift.alwaysAdmin') || 'Always Admin'}
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-md border border-amber-200 min-w-[120px] justify-center shadow-sm">
-                                                        <Sunrise className="w-4 h-4 text-amber-500" />
-                                                        <span className="text-sm font-semibold text-amber-700">{getSubRoleLabel(staff.morning_role)}</span>
-                                                    </div>
+                                                    {(() => {
+                                                        const RoleIcon = getRoleIcon(staff.morning_role);
+                                                        const colorClass = getShiftRoleStyle(staff.morning_role);
+                                                        return (
+                                                            <div className={`flex items-center gap-2 justify-center ${colorClass}`}>
+                                                                <RoleIcon className="w-5 h-5" />
+                                                                <span className="text-base font-bold">{getSubRoleLabel(staff.morning_role)}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             )}
                                         </td>
                                         {!isAdmin && (
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-md border border-indigo-200 min-w-[120px] justify-center shadow-sm">
-                                                        <Sunset className="w-4 h-4 text-indigo-500" />
-                                                        <span className="text-sm font-semibold text-indigo-700">{getSubRoleLabel(staff.afternoon_role)}</span>
-                                                    </div>
+                                                    {(() => {
+                                                        const RoleIcon = getRoleIcon(staff.afternoon_role);
+                                                        const colorClass = getShiftRoleStyle(staff.afternoon_role);
+                                                        return (
+                                                            <div className={`flex items-center gap-2 justify-center ${colorClass}`}>
+                                                                <RoleIcon className="w-5 h-5" />
+                                                                <span className="text-base font-bold">{getSubRoleLabel(staff.afternoon_role)}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </td>
                                         )}
@@ -337,13 +378,13 @@ const ShiftManagement = () => {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-slate-200">
-                                    <th className="py-3 text-left text-sm font-semibold text-slate-700">{t('admin.days') || 'Day'}</th>
-                                    <th className="py-3 text-center text-sm font-semibold text-slate-700">
+                                    <th className="py-3 text-left text-sm font-semibold text-slate-700 w-1/4">{t('admin.days') || 'Day'}</th>
+                                    <th className="py-3 text-center text-sm font-semibold text-slate-700 w-1/3">
                                         <span className="flex items-center justify-center gap-1">
                                             <Sunrise className="w-4 h-4 text-amber-500" />{t('shift.morning')}
                                         </span>
                                     </th>
-                                    <th className="py-3 text-center text-sm font-semibold text-slate-700">
+                                    <th className="py-3 text-center text-sm font-semibold text-slate-700 w-1/3">
                                         <span className="flex items-center justify-center gap-1">
                                             <Sunset className="w-4 h-4 text-indigo-500" />{t('shift.afternoon')}
                                         </span>

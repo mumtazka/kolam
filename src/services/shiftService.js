@@ -119,20 +119,34 @@ export const getUserSchedule = async (userId) => {
     return data || [];
 };
 
-// Update full weekly schedule for a user (Batch)
+// Update full weekly schedule for a user (Batch - saves one at a time to avoid constraint issues)
 export const updateUserFullSchedule = async (userId, scheduleArray) => {
-    const upsertData = scheduleArray.map(item => ({
-        user_id: userId,
-        day_of_week: item.day_of_week,
-        morning_role: item.morning_role,
-        afternoon_role: item.afternoon_role
-    }));
+    const results = [];
 
-    const { data, error } = await supabase
-        .from('weekly_schedules')
-        .upsert(upsertData, { onConflict: 'user_id, day_of_week' })
-        .select();
+    for (const item of scheduleArray) {
+        const scheduleData = {
+            user_id: userId,
+            day_of_week: item.day_of_week,
+            morning_role: item.morning_role,
+            afternoon_role: item.afternoon_role
+        };
 
-    if (error) throw error;
-    return data;
+        // Try to upsert one at a time
+        const { data, error } = await supabase
+            .from('weekly_schedules')
+            .upsert(scheduleData, {
+                onConflict: 'user_id,day_of_week',
+                ignoreDuplicates: false
+            })
+            .select();
+
+        if (error) {
+            console.error(`Error saving schedule for ${item.day_of_week}:`, error);
+            throw error;
+        }
+
+        if (data) results.push(...data);
+    }
+
+    return results;
 };
