@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription } from '../../components/ui/dialog';
-import { Droplets, Ruler, Image as ImageIcon, ZoomIn } from 'lucide-react';
+import { Droplets, Ruler, Image as ImageIcon, ZoomIn, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPools } from '../../services/adminService';
 
@@ -41,8 +40,8 @@ const ReceptionistPools = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>Info Fasilitas Kolam</h1>
-                    <p className="text-slate-600 mt-1">Status dan informasi kolam renang</p>
+                    <h1 className="text-4xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('admin.pools')}</h1>
+                    <p className="text-slate-600 mt-1">{t('admin.poolsSubtitle')}</p>
                 </div>
             </div>
 
@@ -84,7 +83,7 @@ const ReceptionistPools = () => {
                                 </div>
 
                                 {pool.description && (
-                                    <p className="text-slate-600 text-sm mb-4 line-clamp-3">
+                                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">
                                         {pool.description}
                                     </p>
                                 )}
@@ -96,8 +95,10 @@ const ReceptionistPools = () => {
 
             {/* Image Zoom Modal */}
             <Dialog open={!!zoomImage} onOpenChange={(open) => !open && setZoomImage(null)}>
-                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none text-white text-center" aria-describedby="zoom-desc">
-                    <DialogDescription id="zoom-desc" className="sr-only">Zoom View</DialogDescription>
+                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none" aria-describedby="zoom-description">
+                    <DialogDescription className="sr-only" id="zoom-description">
+                        {t('admin.zoomedView')}
+                    </DialogDescription>
                     {zoomImage && (
                         <img src={zoomImage} alt="Zoomed Pool" className="w-full h-auto rounded-lg shadow-2xl" />
                     )}

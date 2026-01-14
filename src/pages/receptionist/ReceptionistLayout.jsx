@@ -11,7 +11,8 @@ import {
     LogOut,
     Menu,
     X,
-    User
+    User,
+    BarChart3
 } from 'lucide-react';
 
 const ReceptionistLayout = () => {
@@ -26,7 +27,7 @@ const ReceptionistLayout = () => {
         { path: '/receptionist', label: 'Cetak Tiket', icon: Printer },
         { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: Calendar },
         { path: '/receptionist/pools', label: 'Info Kolam', icon: MapPin },
-        { path: '/receptionist/history', label: 'Riwayat Staff', icon: History },
+        { path: '/receptionist/history', label: 'Laporan Staff', icon: BarChart3 },
     ];
 
     const handleLogout = () => {
@@ -46,7 +47,7 @@ const ReceptionistLayout = () => {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 p-4 space-y-2 sidebar-nav">
+                    <nav className="flex-1 p-4 space-y-2 sidebar-nav overflow-y-auto sidebar-scrollbar">
                         {menuItems.map((item) => {
                             const Icon = item.icon;
                             // Check if exact match for root path, or starts with for sub-paths
@@ -59,7 +60,7 @@ const ReceptionistLayout = () => {
                                     key={item.path}
                                     to={item.path}
                                     onClick={() => setSidebarOpen(false)}
-                                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-sky-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg ${isActive ? 'bg-sky-500 text-white' : 'text-slate-300 hover:bg-slate-800'
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />
@@ -73,11 +74,11 @@ const ReceptionistLayout = () => {
                     <div className="p-4 border-t border-slate-800">
                         <div className="flex items-center space-x-3 mb-3">
                             <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center font-bold text-white">
-                                <User className="w-6 h-6" />
+                                {user?.name?.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="font-medium truncate text-white">{user?.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{user?.role}</p>
+                                <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                             </div>
                         </div>
                         <Button
@@ -115,7 +116,7 @@ const ReceptionistLayout = () => {
                 </header>
 
                 {/* Content Area - Scrollable */}
-                <main className="flex-1 overflow-auto bg-slate-50">
+                <main className={`flex-1 bg-slate-50 ${location.pathname === '/receptionist' ? 'overflow-hidden p-0' : 'overflow-auto p-6'}`}>
                     {/* Outlet renders the child routes */}
                     <Outlet />
                 </main>
