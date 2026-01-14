@@ -72,7 +72,10 @@ export const getDailyReport = async (date) => {
         const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate printed data
-        const ticketsPrinted = printedTickets.length;
+        const ticketsPrinted = printedTickets.reduce((sum, t) => {
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + multiplier;
+        }, 0);
         const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
         // For scanned count: sum usage_count from all printed tickets (handles package tickets with multiple scans)
         const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
@@ -204,7 +207,10 @@ export const getMonthlyReport = async (year, month) => {
         const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate data
-        const ticketsPrinted = printedTickets.length;
+        const ticketsPrinted = printedTickets.reduce((sum, t) => {
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + multiplier;
+        }, 0);
         const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
         // For scanned count: sum usage_count from all printed tickets
         const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
@@ -328,7 +334,10 @@ export const getYearlyReport = async (year) => {
         const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate data
-        const ticketsPrinted = printedTickets.length;
+        const ticketsPrinted = printedTickets.reduce((sum, t) => {
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + multiplier;
+        }, 0);
         const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
         // For scanned count: sum usage_count from all printed tickets
         const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);
@@ -441,7 +450,10 @@ export const getLifetimeReport = async () => {
         const scannedTickets = await fetchAllRecords(scannedQuery);
 
         // Aggregate
-        const ticketsPrinted = printedTickets.length;
+        const ticketsPrinted = printedTickets.reduce((sum, t) => {
+            const multiplier = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+            return sum + multiplier;
+        }, 0);
         const ticketsUnused = printedTickets.filter(t => t.status === 'UNUSED' && (t.usage_count || 0) === 0).length;
         // For scanned count: sum usage_count from all printed tickets
         const ticketsScanned = printedTickets.reduce((sum, t) => sum + (t.usage_count || 0), 0);

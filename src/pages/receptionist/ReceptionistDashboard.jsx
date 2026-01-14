@@ -382,11 +382,6 @@ const ReceptionistDashboard = () => {
     }, 1000);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -397,57 +392,10 @@ const ReceptionistDashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 print:hidden" data-testid="receptionist-dashboard">
-        {/* Header */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('auth.title')} - {t('admin.roleReceptionist')}</h1>
-            </div>
+      <div className="h-full bg-slate-50 print:hidden" data-testid="receptionist-dashboard">
+        {/* Header removed - using Layout Header */}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center space-x-2 border-slate-200">
-                  <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <span className="text-slate-700">{user?.name}</span>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{t('admin.roleReceptionist')}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={async () => {
-                    try {
-                      await switchMode('SCANNER');
-                      navigate('/scanner');
-                    } catch (e) {
-                      toast.error(e.message);
-                    }
-                  }}
-                  className="cursor-pointer"
-                >
-                  <ScanLine className="w-4 h-4 mr-2" />
-                  <span>{t('auth.switchMode')}: {t('auth.modeScanner')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:text-rose-600 cursor-pointer">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span>{t('common.logout')}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        <div className="flex h-[calc(100vh-73px)]">
+        <div className="flex h-full">
           {/* Left Panel - Ticket Selection */}
           <div className="flex-1 p-6 overflow-auto">
             <div className="flex items-center justify-between mb-6">
