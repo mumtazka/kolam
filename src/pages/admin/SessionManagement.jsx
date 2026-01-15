@@ -15,58 +15,83 @@ import { getSessions, createSession, updateSession, deleteSession } from '../../
 import { id, enUS } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { ScrollArea } from '../../components/ui/scroll-area';
+import IndonesianMiniCalendar from '../../components/ui/IndonesianMiniCalendar';
 
 
 
-const TimeBlock = ({ val, type, max, onUpdate }) => (
-    <div className="flex items-center gap-1">
-        <Input
-            className="w-[4.5rem] h-12 text-center font-mono text-xl font-bold p-0 transition-all"
-            value={val}
-            onChange={(e) => {
-                let v = e.target.value;
-                if (v.length > 2) v = v.slice(0, 2);
-                onUpdate(v);
-            }}
-            onBlur={(e) => {
-                let v = e.target.value.replace(/\D/g, '').padStart(2, '0');
-                if (parseInt(v) > max) v = max.toString().padStart(2, '0');
-                if (isNaN(parseInt(v))) v = '00';
-                onUpdate(v);
-            }}
-            placeholder={type === 'hour' ? 'HH' : 'MM'}
-            maxLength={2}
-        />
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-slate-400 hover:text-slate-600 rounded-full"
-                    tabIndex={-1}
-                >
-                    <ChevronDown className="w-4 h-4" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-24 p-0" align="center" sideOffset={5}>
-                <div className="h-64 overflow-y-auto p-1 custom-scrollbar">
-                    {(type === 'hour'
-                        ? Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
-                        : ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
-                    ).map((item) => (
-                        <div
-                            key={item}
-                            className={`px-2 py-2 text-center text-lg font-medium cursor-pointer rounded-md hover:bg-slate-100 transition-colors ${val === item ? 'bg-slate-900 text-white hover:bg-slate-800' : 'text-slate-700'}`}
-                            onClick={() => onUpdate(item)}
-                        >
-                            {item}
-                        </div>
-                    ))}
-                </div>
-            </PopoverContent>
-        </Popover>
-    </div>
-);
+const TimeBlock = ({ val, type, max, onUpdate }) => {
+    // Handle wheel event to increment/decrement
+    const handleWheel = (e) => {
+        // Prevent page scroll
+        e.preventDefault();
+        e.stopPropagation();
+
+        const delta = Math.sign(e.deltaY) * -1; // Standardize direction: up is positive
+        let current = parseInt(val);
+        if (isNaN(current)) current = 0;
+
+        let next = current + delta;
+
+        // Handle wrap around
+        if (next > max) next = 0;
+        if (next < 0) next = max;
+
+        onUpdate(next.toString().padStart(2, '0'));
+    };
+
+    return (
+        <div className="flex items-center gap-1">
+            <div className="relative" onWheel={handleWheel}>
+                <Input
+                    className="w-[4.5rem] h-12 text-center font-mono text-xl font-bold p-0 transition-all focus:ring-2 focus:ring-sky-500"
+                    value={val}
+                    onChange={(e) => {
+                        let v = e.target.value;
+                        if (v.length > 2) v = v.slice(0, 2);
+                        onUpdate(v);
+                    }}
+                    onBlur={(e) => {
+                        let v = e.target.value.replace(/\D/g, '').padStart(2, '0');
+                        if (parseInt(v) > max) v = max.toString().padStart(2, '0');
+                        if (isNaN(parseInt(v))) v = '00';
+                        onUpdate(v);
+                    }}
+                    placeholder={type === 'hour' ? 'HH' : 'MM'}
+                    maxLength={2}
+                />
+            </div>
+            {/* Scrollable dropdown arrow */}
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-slate-600 rounded-full"
+                        tabIndex={-1}
+                    >
+                        <ChevronDown className="w-4 h-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-24 p-0" align="center" sideOffset={5}>
+                    <div className="h-64 overflow-y-auto p-1 custom-scrollbar">
+                        {(type === 'hour'
+                            ? Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
+                            : ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
+                        ).map((item) => (
+                            <div
+                                key={item}
+                                className={`px-2 py-2 text-center text-lg font-medium cursor-pointer rounded-md hover:bg-slate-100 transition-colors ${val === item ? 'bg-slate-900 text-white hover:bg-slate-800' : 'text-slate-700'}`}
+                                onClick={() => onUpdate(item)}
+                            >
+                                {item}
+                            </div>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+};
 
 const TimePickerInput = ({ value, onChange, label }) => {
     // Ensure value is valid
@@ -111,13 +136,15 @@ const SessionManagement = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
     const [date, setDate] = useState(new Date());
+    const [specificDate, setSpecificDate] = useState(new Date().toISOString().split('T')[0]); // For non-recurring sessions
     const [confirmDialog, setConfirmDialog] = useState({ open: false, sessionId: null });
+    const [conflictDialog, setConflictDialog] = useState({ open: false, sessionData: null }); // New conflict dialog state
     const [formData, setFormData] = useState({
         name: '',
         start_time: '07:00',
         end_time: '08:30',
         days: [],
-        is_recurring: true
+        is_recurring: false // Default to false as requested
     });
 
     useEffect(() => {
@@ -136,21 +163,94 @@ const SessionManagement = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Helper to get day name from date string or Date object
+    const getDayName = (d) => {
+        const dateObj = typeof d === 'string' ? new Date(d) : d;
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return days[dateObj.getDay()];
+    };
 
-        if (formData.days.length === 0) {
-            toast.error(t('admin.selectAtLeastOneDay'));
-            return;
-        }
+    const checkConflicts = (newSession) => {
+        // Prepare data for comparison
+        // Standardize time to minutes or comparable integer
+        const parseTime = (t) => parseInt(t.replace(':', ''), 10);
 
+        const newStart = parseTime(newSession.start_time);
+        const newEnd = parseTime(newSession.end_time);
+
+        // Filter sessions that might conflict
+        const potentialConflicts = sessions.filter(s => {
+            // Skip self if editing
+            if (editingSession && s.id === editingSession.id) return false;
+
+            // Check Time Overlap
+            // Conflict if: (StartA < EndB) and (EndA > StartB)
+            const sStart = parseTime(s.start_time);
+            const sEnd = parseTime(s.end_time);
+
+            const timeOverlap = (newStart < sEnd) && (newEnd > sStart);
+
+            if (!timeOverlap) return false;
+
+            // Check Day/Date Overlap
+            // Case 1: Both Recurring -> Check intersection of days
+            if (newSession.is_recurring && s.is_recurring) {
+                const dayOverlap = newSession.days.some(day => s.days.includes(day));
+                return dayOverlap;
+            }
+
+            // Case 2: New is Single (Non-Recurring), Existing is Recurring
+            if (!newSession.is_recurring && s.is_recurring) {
+                const newDayName = getDayName(newSession.valid_from); // valid_from is specificDate
+                const isDayMatch = s.days.includes(newDayName);
+                if (!isDayMatch) return false;
+
+                // Check contract validity of recurring session
+                // If recurring session has start date, new session must be after it
+                if (s.valid_from && newSession.valid_from < s.valid_from) return false;
+                // If recurring session has end date, new session must be before it
+                if (s.valid_until && newSession.valid_from > s.valid_until) return false;
+
+                return true;
+            }
+
+            // Case 3: New is Recurring, Existing is Single
+            if (newSession.is_recurring && !s.is_recurring) {
+                const existingDayName = getDayName(s.valid_from);
+                const isDayMatch = newSession.days.includes(existingDayName);
+                if (!isDayMatch) return false;
+
+                // Check contract validity of new recurring session
+                if (newSession.valid_from && s.valid_from < newSession.valid_from) return false;
+                if (newSession.valid_until && s.valid_from > newSession.valid_until) return false;
+
+                return true;
+            }
+
+            // Case 4: Both Single
+            if (!newSession.is_recurring && !s.is_recurring) {
+                return newSession.valid_from === s.valid_from;
+            }
+
+            return false;
+        });
+
+        return potentialConflicts.length > 0;
+    };
+
+    const processSubmit = async (dataToSubmit) => {
         try {
             if (editingSession) {
-                await updateSession(editingSession.id, formData);
+                await updateSession(editingSession.id, dataToSubmit);
                 toast.success(t('common.success'));
             } else {
-                await createSession(formData);
+                await createSession(dataToSubmit);
                 toast.success(t('common.success'));
+
+                // UX Improvement: Switch view to the date of the new session so user can see it
+                if (dataToSubmit.valid_from) {
+                    setDate(new Date(dataToSubmit.valid_from));
+                }
             }
             setDialogOpen(false);
             setEditingSession(null);
@@ -159,6 +259,36 @@ const SessionManagement = () => {
         } catch (error) {
             console.error(error);
             toast.error(error.message || t('common.error'));
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Prepare submission data based on recurring status
+        let dataToSubmit = { ...formData };
+
+        if (!dataToSubmit.is_recurring) {
+            // Single Day Logic
+            dataToSubmit.is_recurring = false; // Explicitly ensure false
+            dataToSubmit.valid_from = specificDate;
+            dataToSubmit.valid_until = specificDate;
+            dataToSubmit.days = [getDayName(specificDate)];
+        } else {
+            if (dataToSubmit.days.length === 0) {
+                toast.error(t('admin.selectAtLeastOneDay'));
+                return;
+            }
+            // Ensure no invalid dates if contract disabled
+        }
+
+        // Conflict Detection
+        const hasConflict = checkConflicts(dataToSubmit);
+
+        if (hasConflict) {
+            setConflictDialog({ open: true, sessionData: dataToSubmit });
+        } else {
+            await processSubmit(dataToSubmit);
         }
     };
 
@@ -185,14 +315,16 @@ const SessionManagement = () => {
             start_time: '07:00',
             end_time: '08:30',
             days: [],
-            is_recurring: true,
+            is_recurring: false, // Default false
             valid_from: null,
             valid_until: null
         });
+        setSpecificDate(new Date().toISOString().split('T')[0]);
     };
 
     const openEditDialog = (session) => {
         setEditingSession(session);
+        setSpecificDate(session.valid_from || new Date().toISOString().split('T')[0]);
         setFormData({
             name: session.name,
             start_time: session.start_time,
@@ -220,12 +352,6 @@ const SessionManagement = () => {
         }));
     };
 
-    // Helper to get day name from date
-    const getDayName = (d) => {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        return days[d.getDay()];
-    };
-
     // Filter sessions for selected date
     const selectedDayName = date ? getDayName(date) : '';
 
@@ -235,8 +361,20 @@ const SessionManagement = () => {
 
         // Contract logic
         if (session.valid_until) {
-            const today = new Date().toISOString().split('T')[0];
-            if (session.valid_until < today) return false;
+            // Fix: Use local date string construction instead of toISOString (UTC)
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const selectedDateStr = `${year}-${month}-${day}`;
+
+            // If date-specific (single session), must match exact date
+            if (!session.is_recurring) {
+                if (session.valid_from !== selectedDateStr) return false;
+            } else {
+                // If recurring with contract
+                if (session.valid_until < selectedDateStr) return false;
+                if (session.valid_from > selectedDateStr) return false;
+            }
         }
         return true;
     });
@@ -448,6 +586,7 @@ const SessionManagement = () => {
                                 <tbody className="divide-y divide-slate-100">
                                     {sessions.filter(s => {
                                         if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                        if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                         return true;
                                     }).length === 0 ? (
                                         <tr>
@@ -458,6 +597,7 @@ const SessionManagement = () => {
                                     ) : (
                                         sessions.filter(s => {
                                             if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                            if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                             return true;
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
@@ -543,6 +683,79 @@ const SessionManagement = () => {
                             />
                         </div>
 
+                        {/* Recurring Toggle Moved to Top */}
+                        <div className="flex items-center justify-between py-2 border-b border-slate-100 pb-4">
+                            <Label htmlFor="is_recurring" className="cursor-pointer font-bold text-slate-900">{t('admin.recurringSession')}</Label>
+                            <Switch
+                                id="is_recurring"
+                                checked={formData.is_recurring}
+                                onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
+                                data-testid="session-recurring-switch"
+                            />
+                        </div>
+
+                        {/* Condition Render: Days or Calendar */}
+                        {formData.is_recurring ? (
+                            <div className="animate-in fade-in slide-in-from-top-2">
+                                <Label className="mb-3 block">{t('admin.daysOfWeek')}</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {DAYS_OF_WEEK.map(day => (
+                                        <button
+                                            key={day.id}
+                                            type="button"
+                                            onClick={() => toggleDay(day.id)}
+                                            className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${formData.days.includes(day.id)
+                                                ? 'bg-slate-900 text-white border-slate-900'
+                                                : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
+                                                }`}
+                                            data-testid={`session-day-${day.id.toLowerCase()}`}
+                                        >
+                                            {day.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-top-2">
+                                <Label className="mb-2 block">Pilih Tanggal Sesi</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={`w-full justify-start text-left font-normal ${!specificDate && "text-muted-foreground"}`}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {specificDate ? (
+                                                new Date(specificDate).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        className="w-auto p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto"
+                                        align="start"
+                                        collisionPadding={16}
+                                        sideOffset={4}
+                                    >
+                                        <div className="p-2 bg-white rounded-md">
+                                            <IndonesianMiniCalendar
+                                                selectedDate={specificDate}
+                                                onDateSelect={(d) => {
+                                                    setSpecificDate(d);
+                                                    // Optional: Close popover here if we had access to open state
+                                                }}
+                                            />
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-6 pt-2">
                             <TimePickerInput
                                 label={t('admin.startTime')}
@@ -553,36 +766,6 @@ const SessionManagement = () => {
                                 label={t('admin.endTime')}
                                 value={formData.end_time}
                                 onChange={(val) => setFormData({ ...formData, end_time: val })}
-                            />
-                        </div>
-
-                        <div>
-                            <Label className="mb-3 block">{t('admin.daysOfWeek')}</Label>
-                            <div className="flex flex-wrap gap-2">
-                                {DAYS_OF_WEEK.map(day => (
-                                    <button
-                                        key={day.id}
-                                        type="button"
-                                        onClick={() => toggleDay(day.id)}
-                                        className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${formData.days.includes(day.id)
-                                            ? 'bg-slate-900 text-white border-slate-900'
-                                            : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400'
-                                            }`}
-                                        data-testid={`session-day-${day.id.toLowerCase()}`}
-                                    >
-                                        {day.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between py-2">
-                            <Label htmlFor="is_recurring" className="cursor-pointer">{t('admin.recurringSession')}</Label>
-                            <Switch
-                                id="is_recurring"
-                                checked={formData.is_recurring}
-                                onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
-                                data-testid="session-recurring-switch"
                             />
                         </div>
 
@@ -659,6 +842,21 @@ const SessionManagement = () => {
                 confirmText="Ya, Hapus Sesi"
                 cancelText="Batal"
                 variant="danger"
+            />
+            {/* Conflict Warning Dialog */}
+            <ConfirmDialog
+                open={conflictDialog.open}
+                onOpenChange={(open) => setConflictDialog({ ...conflictDialog, open })}
+                title="Konflik Jadwal"
+                description="Ada jadwal lain di jam yang sama. Apakah anda yakin menambahkan sesi ini?"
+                onConfirm={() => {
+                    setConflictDialog({ open: false, sessionData: null });
+                    processSubmit(conflictDialog.sessionData);
+                }}
+                onCancel={() => setConflictDialog({ open: false, sessionData: null })}
+                confirmText="Ya, Tambahkan"
+                cancelText="Batal"
+                variant="warning"
             />
         </div>
     );

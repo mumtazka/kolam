@@ -104,12 +104,14 @@ h6 {
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #334155; /* slate-700 */
+    background-color: #334155;
+    /* slate-700 */
     border-radius: 3px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #475569; /* slate-600 */
+    background-color: #475569;
+    /* slate-600 */
 }
 
 /* Thermal Printing Styles */
