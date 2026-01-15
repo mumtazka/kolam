@@ -116,28 +116,76 @@ h6 {
 
 /* Thermal Printing Styles */
 @media print {
-    body * {
-        visibility: hidden;
+    @page {
+        size: 80mm 80mm;
+        margin: 0;
     }
 
+    html,
+    body {
+        width: 80mm;
+        height: 80mm;
+        margin: 0;
+        padding: 0;
+        visibility: hidden;
+        overflow: visible !important;
+    }
+
+    /* Reset all layout containers to prevent clipping */
+    body * {
+        visibility: hidden;
+        overflow: visible !important;
+        /* Critical for Admin Layout */
+    }
+
+    .print-container,
     .printable-ticket,
     .printable-ticket * {
         visibility: visible;
     }
 
-    .printable-ticket {
-        position: absolute;
+    .print-container {
+        position: fixed;
         left: 0;
         top: 0;
-        width: 58mm;
+        width: 80mm;
+        height: auto;
+        z-index: 99999;
+        display: block;
         background: white;
+        overflow: visible !important;
+    }
+
+    .printable-ticket {
+        position: relative;
+        width: 80mm;
+        height: 80mm;
+        padding: 8px;
+        margin: 0;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: white;
+        page-break-after: always;
+        break-after: page;
+    }
+
+    .printable-ticket:last-child {
+        page-break-after: auto;
+        break-after: auto;
     }
 }
 
 .printable-ticket {
-    width: 58mm;
+    width: 80mm;
+    height: 80mm;
     padding: 8px;
     background: white;
     border: 1px dashed #ccc;
     margin: 4px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
