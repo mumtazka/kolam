@@ -399,7 +399,7 @@ const Reports = () => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 pb-6 border-b border-slate-50 gap-4">
                 <div>
                   <h4 className="text-2xl font-bold text-slate-900 mb-1">{t('reports.salesByCategory')}</h4>
-                  <p className="text-sm text-slate-500">Overview of ticket sales distribution</p>
+                  <p className="text-sm text-slate-500">{t('reports.distributionOverview')}</p>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-100 px-4 py-2 rounded-full">
                   <span className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"></span>
@@ -584,7 +584,7 @@ const Reports = () => {
               </Select>
             )}
             {reportType === 'lifetime' && (
-              <span className="text-sm text-slate-500 font-medium px-3 py-2 bg-slate-100 rounded-lg">Semua Data</span>
+              <span className="text-sm text-slate-500 font-medium px-3 py-2 bg-slate-100 rounded-lg">{t('reports.allData')}</span>
             )}
 
             <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
@@ -613,10 +613,10 @@ const Reports = () => {
               <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="w-10 h-10 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Error Loading Report</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('reports.errorLoading')}</h3>
               <p className="text-slate-500 mb-6 max-w-md mx-auto">{error}</p>
               <Button onClick={fetchReport} variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">
-                try again
+                {t('reports.tryAgain')}
               </Button>
             </div>
           ) : reportData && reportData.tickets && reportData.tickets.length > 0 ? (
@@ -627,7 +627,7 @@ const Reports = () => {
                     {t('reports.ticketHistory')}
                   </h3>
                   <p className="text-sm text-slate-500 mt-0.5">
-                    {reportData.tickets.length} total records found
+                    {reportData.tickets.length} {t('reports.totalRecords')}
                   </p>
                 </div>
               </div>
@@ -727,7 +727,7 @@ const Reports = () => {
               {getTotalPages() > 1 && (
                 <div className="flex items-center justify-between px-8 py-5 border-t border-slate-100 bg-slate-50/50">
                   <p className="text-xs text-slate-500 font-medium">
-                    Showing <span className="text-slate-900 font-bold">{((historyPage - 1) * HISTORY_PER_PAGE) + 1}</span> to <span className="text-slate-900 font-bold">{Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)}</span> of {reportData.tickets.length} entries
+                    {t('reports.showing')} <span className="text-slate-900 font-bold">{((historyPage - 1) * HISTORY_PER_PAGE) + 1}</span> {t('reports.to')} <span className="text-slate-900 font-bold">{Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)}</span> {t('reports.of')} {reportData.tickets.length} {t('reports.entries')}
                   </p>
                   <div className="flex items-center gap-2">
                     <Button
@@ -773,8 +773,8 @@ const Reports = () => {
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Detail Tiket</h3>
-                <p className="text-sm text-slate-500 mt-1">Informasi lengkap tiket</p>
+                <h3 className="text-xl font-bold text-slate-900">{t('reports.ticketDetails')}</h3>
+                <p className="text-sm text-slate-500 mt-1">{t('reports.ticketInfo')}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setSelectedTicket(null)}>
                 <X className="w-5 h-5" />

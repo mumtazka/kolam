@@ -251,7 +251,7 @@ const CategoryManagement = () => {
                                 <Label htmlFor="price">{t('dashboard.price')} (Rp) *</Label>
                                 {formData.code_prefix === 'K' ? (
                                     <div className="h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 flex items-center">
-                                        Custom Payment
+                                        {t('admin.customPayment')}
                                     </div>
                                 ) : (
                                     <Input
@@ -285,7 +285,7 @@ const CategoryManagement = () => {
                             <div className="rounded-md border border-slate-200 bg-slate-50/50 p-4 space-y-3 mt-4">
                                 <Label className="text-sm text-slate-900 font-semibold uppercase tracking-wider flex items-center gap-2">
                                     <Ticket className="w-4 h-4" />
-                                    Current Active Packages
+                                    {t('admin.activePackages')}
                                 </Label>
                                 {activePackages.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
@@ -299,7 +299,7 @@ const CategoryManagement = () => {
                                                         Rp {pkg.price_per_person?.toLocaleString('id-ID')}
                                                     </div>
                                                     <div className="text-[10px] text-slate-500 uppercase">
-                                                        / Person
+                                                        {t('admin.perPerson')}
                                                     </div>
                                                 </div>
                                             </div>
@@ -307,7 +307,7 @@ const CategoryManagement = () => {
                                     </div>
                                 ) : (
                                     <div className="text-sm text-slate-400 italic py-4 text-center bg-white rounded-md border border-dashed border-slate-300">
-                                        No active packages found
+                                        {t('admin.noActivePackages')}
                                     </div>
                                 )}
                             </div>
@@ -372,20 +372,20 @@ const CategoryManagement = () => {
                         <Card
                             key={category.id}
                             className={`p-5 transition-all ${!category.active
-                                    ? 'opacity-60 bg-slate-50'
-                                    : isSpecial
-                                        ? 'bg-slate-900 text-white border-slate-700'
-                                        : ''
+                                ? 'opacity-60 bg-slate-50'
+                                : isSpecial
+                                    ? 'bg-slate-900 text-white border-slate-700'
+                                    : ''
                                 }`}
                             data-testid={`category-card-${category.id}`}
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
-                                            ? 'bg-white text-slate-900' // Inverted for special card
-                                            : category.active
-                                                ? 'bg-sky-100 text-sky-700'
-                                                : 'bg-slate-200 text-slate-500'
+                                        ? 'bg-white text-slate-900' // Inverted for special card
+                                        : category.active
+                                            ? 'bg-sky-100 text-sky-700'
+                                            : 'bg-slate-200 text-slate-500'
                                         }`}>
                                         {category.code_prefix}
                                     </div>
@@ -401,7 +401,7 @@ const CategoryManagement = () => {
                                     <span className={isSpecial ? 'text-slate-400' : 'text-slate-600'}>{t('dashboard.price')}:</span>
                                     <span className={`font-semibold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
                                         {category.code_prefix === 'K'
-                                            ? 'Custom'
+                                            ? t('admin.customPayment')
                                             : `Rp ${(category.price || 0).toLocaleString('id-ID')}`
                                         }
                                     </span>
@@ -441,10 +441,10 @@ const CategoryManagement = () => {
                                     size="sm"
                                     onClick={() => handleToggleActive(category)}
                                     className={`flex-1 ${!category.active
-                                            ? 'bg-emerald-600 hover:bg-emerald-700'
-                                            : isSpecial
-                                                ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white'
-                                                : ''
+                                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                                        : isSpecial
+                                            ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white'
+                                            : ''
                                         }`}
                                     data-testid={`toggle-category-${category.id}`}
                                 >

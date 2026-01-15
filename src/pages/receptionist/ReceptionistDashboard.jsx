@@ -426,7 +426,7 @@ const ReceptionistDashboard = () => {
                     </div>
                     <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-100'}`}>
                       <span className={`text-lg font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
-                        {category.code_prefix === 'K' ? 'Pilih Paket' : `Rp ${category.price.toLocaleString('id-ID')}`}
+                        {category.code_prefix === 'K' ? t('dashboard.selectPackage') : `Rp ${category.price.toLocaleString('id-ID')}`}
                       </span>
                       <Button size="icon" className={`h-7 w-7 rounded-full ${isSpecial ? 'bg-white text-slate-900 hover:bg-slate-200' : 'bg-slate-900 hover:bg-slate-800'}`}>
                         <Plus className="w-4 h-4" />
@@ -519,8 +519,8 @@ const ReceptionistDashboard = () => {
                           <div className="space-y-2 mt-2">
                             <p className="text-xs text-slate-500 font-medium">
                               {Number(item.quantity) > 1
-                                ? `Masukkan ${item.quantity} NIM berbeda:`
-                                : 'Masukkan NIM Mahasiswa:'}
+                                ? t('dashboard.enterNimPlural').replace('{{count}}', item.quantity)
+                                : t('dashboard.enterNimSingle')}
                             </p>
                             {Array.from({ length: Number(item.quantity) || 1 }).map((_, index) => {
                               const errorKey = `${item.category_id}-${index}`;
@@ -533,7 +533,7 @@ const ReceptionistDashboard = () => {
                                       <span className="text-xs text-slate-400 w-4">{index + 1}.</span>
                                     )}
                                     <Input
-                                      placeholder={`NIM Mahasiswa ${Number(item.quantity) > 1 ? index + 1 : ''}`}
+                                      placeholder={`${t('dashboard.nimPlaceholder')} ${Number(item.quantity) > 1 ? index + 1 : ''}`}
                                       value={nimArray[index] || ''}
                                       onChange={(e) => {
                                         const val = e.target.value;
@@ -566,7 +566,7 @@ const ReceptionistDashboard = () => {
                   </div>
                   {hasNimErrors() && (
                     <div className="mb-3 p-2 bg-rose-50 border border-rose-200 rounded-md">
-                      <p className="text-xs text-rose-600 font-medium">⚠️ Ada NIM yang duplikat. Setiap tiket mahasiswa harus menggunakan NIM yang berbeda.</p>
+                      <p className="text-xs text-rose-600 font-medium">⚠️ {t('dashboard.duplicateNimError')}</p>
                     </div>
                   )}
                   {/* Actions: Preview & Checkout */}
@@ -604,10 +604,10 @@ const ReceptionistDashboard = () => {
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  {isPreviewMode ? 'Pratinjau Tiket' : t('scanner.ticketPreview')}
+                  {t('scanner.ticketPreview')}
                 </h3>
                 <p className="text-sm text-slate-500 mt-1">
-                  {isPreviewMode ? 'Silakan periksa tiket sebelum mencetak' : t('scanner.reviewTickets')}
+                  {t('scanner.reviewTickets')}
                 </p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setShowPreview(false)}>
@@ -638,11 +638,11 @@ const ReceptionistDashboard = () => {
                     {/* Details */}
                     <div className="w-full space-y-1 font-mono text-xs text-slate-600">
                       <div className="flex justify-between">
-                        <span>Code:</span>
+                        <span>{t('common.code')}:</span>
                         <span className="font-bold text-slate-900 text-[11px]">{ticket.ticket_code}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Price:</span>
+                        <span>{t('dashboard.price')}:</span>
                         <span className="font-bold">Rp {ticket.price.toLocaleString('id-ID')}</span>
                       </div>
                       {ticket.nim && (
@@ -652,7 +652,7 @@ const ReceptionistDashboard = () => {
                         </div>
                       )}
                       <div className="flex justify-between text-[10px] text-slate-400">
-                        <span>{t('admin.date')}:</span>
+                        <span>{t('common.date')}:</span>
                         <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
@@ -688,8 +688,8 @@ const ReceptionistDashboard = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden transform transition-all scale-100">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
               <div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: 'Outfit' }}>Pilih Jenis Tiket Khusus</h3>
-                <p className="text-sm text-slate-300 mt-1">Silakan pilih paket atau tiket satuan</p>
+                <h3 className="text-xl font-bold" style={{ fontFamily: 'Outfit' }}>{t('dashboard.selectSpecialTicket')}</h3>
+                <p className="text-sm text-slate-300 mt-1">{t('dashboard.selectPackageDescription')}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setPackageDialogOpen(false)} className="text-white hover:bg-slate-800 rounded-full">
                 <X className="w-5 h-5" />
@@ -702,7 +702,7 @@ const ReceptionistDashboard = () => {
 
                 {/* Option 2: Packages */}
                 {ticketPackages.length === 0 ? (
-                  <div className="text-center py-4 text-slate-400 italic">Tidak ada paket tersedia saat ini.</div>
+                  <div className="text-center py-4 text-slate-400 italic">{t('dashboard.noPackagesAvailable')}</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {ticketPackages.map(pkg => (
@@ -712,7 +712,7 @@ const ReceptionistDashboard = () => {
                         className="bg-white p-4 rounded-xl border-2 border-emerald-100 hover:border-emerald-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
                       >
                         <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
-                          PAKET HEMAT
+                          {t('dashboard.saverPackage')}
                         </div>
 
                         <div className="mb-3">
@@ -722,11 +722,11 @@ const ReceptionistDashboard = () => {
 
                         <div className="space-y-1 text-sm text-slate-600">
                           <p className="flex justify-between">
-                            <span>Min. Orang:</span>
-                            <span className="font-bold text-slate-900">{pkg.min_people} Org</span>
+                            <span>{t('dashboard.minPeople')}:</span>
+                            <span className="font-bold text-slate-900">{pkg.min_people} {t('dashboard.people')}</span>
                           </p>
                           <p className="flex justify-between">
-                            <span>Harga Paket:</span>
+                            <span>{t('dashboard.packagePrice')}:</span>
                             <span className="font-bold text-emerald-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
                           </p>
                         </div>
@@ -839,10 +839,10 @@ const ReceptionistDashboard = () => {
 
               {/* Ticket Details */}
               <div className="space-y-0.5 font-mono text-[10px] uppercase px-1 leading-tight">
-                <p className="flex justify-between"><span>CODE:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
-                <p className="flex justify-between"><span>PRICE:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
+                <p className="flex justify-between"><span>{t('common.code')}:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
+                <p className="flex justify-between"><span>{t('dashboard.price')}:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
                 {ticket.nim && <p className="flex justify-between"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
-                <p className="flex justify-between"><span>DATE:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
+                <p className="flex justify-between"><span>{t('common.date')}:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
                   day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
                 })}</span></p>
               </div>

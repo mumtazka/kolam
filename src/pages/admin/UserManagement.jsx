@@ -93,18 +93,18 @@ const UserManagement = () => {
   const confirmDeleteUser = async () => {
     try {
       await deleteUser(deleteDialog.userId);
-      toast.success('Staf berhasil dihapus');
+      toast.success(t('admin.staffDeleted'));
       fetchUsers();
     } catch (error) {
       console.error(error);
       // Handle foreign key constraint error (user has related data)
       if (error.code === '23503' || (error.message && error.message.includes('foreign key'))) {
         toast.error(
-          'Tidak dapat menghapus staf ini karena masih memiliki data transaksi tiket. Silakan nonaktifkan staf ini sebagai alternatif.',
+          t('admin.deleteStaffConstraintError'),
           { duration: 6000 }
         );
       } else {
-        toast.error('Gagal menghapus staf: ' + (error.message || 'Terjadi kesalahan'));
+        toast.error(t('admin.deleteStaffError') + ': ' + (error.message || t('common.error')));
       }
     } finally {
       setDeleteDialog({ open: false, userId: null, userName: '' });
@@ -205,7 +205,7 @@ const UserManagement = () => {
                             onClick={() => handleDeactivate(user.id, user.is_active)}
                             data-testid={`deactivate-user-${user.id}`}
                             className={!user.is_active ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-                            title={user.is_active ? "Nonaktifkan" : "Aktifkan"}
+                            title={user.is_active ? t('admin.deactivate') : t('admin.activate')}
                           >
                             {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                           </Button>
@@ -215,7 +215,7 @@ const UserManagement = () => {
                             onClick={() => handleDeleteUser(user.id, user.name)}
                             data-testid={`delete-user-${user.id}`}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
-                            title="Hapus Permanen"
+                            title={t('admin.deletePermanently')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -307,14 +307,14 @@ const UserManagement = () => {
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-        title={confirmDialog.isActive ? "Nonaktifkan Staf" : "Aktifkan Staf"}
+        title={confirmDialog.isActive ? t('admin.deactivateStaffTitle') : t('admin.activateStaffTitle')}
         description={confirmDialog.isActive
-          ? "Apakah Anda yakin ingin menonaktifkan staf ini? Staf yang dinonaktifkan tidak akan dapat mengakses sistem."
-          : "Apakah Anda yakin ingin mengaktifkan kembali staf ini? Staf akan dapat mengakses sistem sesuai dengan shift yang diberikan."}
+          ? t('admin.deactivateStaffConfirm')
+          : t('admin.activateStaffConfirm')}
         onConfirm={confirmDeactivate}
         onCancel={() => setConfirmDialog({ open: false, userId: null, isActive: null })}
-        confirmText={confirmDialog.isActive ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}
-        cancelText="Batal"
+        confirmText={confirmDialog.isActive ? t('admin.deactivateYes') : t('admin.activateYes')}
+        cancelText={t('common.cancel')}
         variant={confirmDialog.isActive ? "warning" : "info"}
       />
 
@@ -322,12 +322,12 @@ const UserManagement = () => {
       <ConfirmDialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
-        title="Hapus Data Staf"
-        description={`Apakah Anda yakin ingin menghapus staf "${deleteDialog.userName}"? Semua data staf akan dihapus secara permanen dari sistem dan tidak dapat dikembalikan.`}
+        title={t('admin.deleteStaffTitle')}
+        description={t('admin.deleteStaffConfirm').replace('{{name}}', deleteDialog.userName)}
         onConfirm={confirmDeleteUser}
         onCancel={() => setDeleteDialog({ open: false, userId: null, userName: '' })}
-        confirmText="Ya, Hapus Staf"
-        cancelText="Batal"
+        confirmText={t('admin.deleteYes')}
+        cancelText={t('common.cancel')}
         variant="danger"
       />
     </div>

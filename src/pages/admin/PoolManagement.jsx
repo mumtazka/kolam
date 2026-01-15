@@ -370,12 +370,12 @@ const PoolManagement = () => {
             <ConfirmDialog
                 open={confirmDialog.open}
                 onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-                title="Hapus Data Kolam"
-                description="Apakah Anda yakin ingin menghapus data kolam ini? Semua informasi terkait kolam akan dihapus secara permanen dari sistem."
+                title={t('admin.deletePoolTitle')}
+                description={t('admin.deletePoolConfirm')}
                 onConfirm={confirmDelete}
                 onCancel={() => setConfirmDialog({ open: false, poolId: null })}
-                confirmText="Ya, Hapus Data"
-                cancelText="Batal"
+                confirmText={t('admin.deletePoolYes')}
+                cancelText={t('common.cancel')}
                 variant="danger"
             />
         </div>
