@@ -478,7 +478,7 @@ const SessionManagement = () => {
 
                 {/* Right Column: Session List */}
                 <div className="lg:col-span-6 xl:col-span-6">
-                    <Card className="p-6 min-h-[500px] flex flex-col">
+                    <Card className="p-6 h-[600px] flex flex-col">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center space-x-2">
                                 <CalendarIcon className="w-5 h-5 text-teal-600" />
@@ -489,79 +489,81 @@ const SessionManagement = () => {
                             </span>
                         </div>
 
-                        {filteredSessions.length === 0 ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                                <Clock className="w-12 h-12 text-slate-300 mb-3" />
-                                <p className="text-slate-500 font-medium text-lg">{t('admin.noSessionsScheduled')}</p>
-                                <p className="text-sm text-slate-400 mb-6">{t('admin.noSessionsForDay')}</p>
-                                <Button onClick={openCreateDialog} variant="outline" className="border-slate-300 hover:bg-white text-slate-600">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {t('admin.addSession')}
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {filteredSessions.map((session) => (
-                                    <div
-                                        key={session.id}
-                                        className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-teal-300"
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-teal-700 transition-colors">
-                                                    {session.name}
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {session.days?.map(day => (
-                                                        <span key={day} className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${day === selectedDayName
-                                                            ? 'bg-teal-100 text-teal-700 border-teal-200'
-                                                            : 'bg-slate-50 text-slate-400 border-slate-100'
-                                                            }`}>
-                                                            {t(`common.days.${day.substring(0, 3)}`)}
-                                                        </span>
-                                                    ))}
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                            {filteredSessions.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                                    <Clock className="w-12 h-12 text-slate-300 mb-3" />
+                                    <p className="text-slate-500 font-medium text-lg">{t('admin.noSessionsScheduled')}</p>
+                                    <p className="text-sm text-slate-400 mb-6">{t('admin.noSessionsForDay')}</p>
+                                    <Button onClick={openCreateDialog} variant="outline" className="border-slate-300 hover:bg-white text-slate-600">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        {t('admin.addSession')}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {filteredSessions.map((session) => (
+                                        <div
+                                            key={session.id}
+                                            className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-teal-300"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-teal-700 transition-colors">
+                                                        {session.name}
+                                                    </h3>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {session.days?.map(day => (
+                                                            <span key={day} className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${day === selectedDayName
+                                                                ? 'bg-teal-100 text-teal-700 border-teal-200'
+                                                                : 'bg-slate-50 text-slate-400 border-slate-100'
+                                                                }`}>
+                                                                {t(`common.days.${day.substring(0, 3)}`)}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-right">
+                                                    <div className="inline-flex items-center bg-slate-900 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                        {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
+                                                    </div>
+                                                    <p className="text-slate-400 text-xs font-medium">
+                                                        {session.valid_until && session.valid_until < new Date().toISOString().split('T')[0] ? (
+                                                            <span className="text-red-500 font-bold flex items-center justify-end gap-1">
+                                                                <Trash2 className="w-3 h-3" /> Expired
+                                                            </span>
+                                                        ) : (
+                                                            session.is_recurring ? t('admin.recurring') : t('admin.oneTime')
+                                                        )}
+                                                    </p>
                                                 </div>
                                             </div>
 
-                                            <div className="text-right">
-                                                <div className="inline-flex items-center bg-slate-900 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
-                                                    {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
-                                                </div>
-                                                <p className="text-slate-400 text-xs font-medium">
-                                                    {session.valid_until && session.valid_until < new Date().toISOString().split('T')[0] ? (
-                                                        <span className="text-red-500 font-bold flex items-center justify-end gap-1">
-                                                            <Trash2 className="w-3 h-3" /> Expired
-                                                        </span>
-                                                    ) : (
-                                                        session.is_recurring ? t('admin.recurring') : t('admin.oneTime')
-                                                    )}
-                                                </p>
+                                            {/* Actions */}
+                                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1">
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 hover:bg-slate-50 hover:text-teal-600"
+                                                    onClick={() => openEditDialog(session)}
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                                                    onClick={() => handleDelete(session.id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
                                             </div>
                                         </div>
-
-                                        {/* Actions */}
-                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1">
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-8 w-8 hover:bg-slate-50 hover:text-teal-600"
-                                                onClick={() => openEditDialog(session)}
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
-                                                onClick={() => handleDelete(session.id)}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </Card>
                 </div>
 
