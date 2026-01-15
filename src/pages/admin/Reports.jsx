@@ -511,7 +511,7 @@ const Reports = () => {
         )}
 
         {/* Controls */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-40 backdrop-blur-md bg-white/90">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <Tabs value={reportType} onValueChange={setReportType} className="w-full sm:w-auto">
             <TabsList className="bg-slate-100 p-1 rounded-lg w-full sm:w-auto inline-flex whitespace-nowrap overflow-x-auto sm:overflow-visible">
               <TabsTrigger value="daily" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4">{t('reports.dailyReport')}</TabsTrigger>

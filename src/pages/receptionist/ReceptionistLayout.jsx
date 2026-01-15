@@ -45,7 +45,7 @@ const ReceptionistLayout = () => {
                     {/* Brand */}
                     <div className="p-6 border-b border-slate-800">
                         <h1 className="text-2xl font-bold" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
-                        <p className="text-sm text-slate-400 mt-1">Resepsionis Panel</p>
+                        <p className="text-sm text-slate-400 mt-1">Resepsionis</p>
                     </div>
 
                     {/* Navigation */}

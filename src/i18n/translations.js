@@ -177,7 +177,7 @@ export const translations = {
             ticketPackages: 'Paket Tiket',
             pools: 'Manajemen Kolam',
             reports: 'Laporan',
-            panel: 'Panel Admin',
+            panel: 'Admin',
             // Category Management
             categoriesSubtitle: 'Kelola kategori tiket, prefix, dan harga',
             addCategory: 'Tambah Kategori',
@@ -505,7 +505,7 @@ export const translations = {
             pools: 'Pool Management',
             reports: 'Reports',
             reports: 'Reports',
-            panel: 'Admin Panel',
+            panel: 'Admin',
             // Category Management
             categoriesSubtitle: 'Manage ticket categories, prefixes, and pricing',
             addCategory: 'Add Category',
