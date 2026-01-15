@@ -584,7 +584,7 @@ const ReceptionistDashboard = () => {
                     <Button
                       onClick={handleProcessTickets}
                       disabled={printing || cart.length === 0 || hasNimErrors()}
-                      className="w-full h-12 bg-teal-500 hover:bg-teal-600 text-base font-semibold shadow-xl shadow-teal-200 disabled:opacity-50 text-white"
+                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-base font-semibold shadow-xl shadow-slate-200 disabled:opacity-50 text-white"
                     >
                       <Printer className="w-5 h-5 mr-2" />
                       {printing ? t('scanner.processing') : t('dashboard.checkout')}
@@ -785,8 +785,8 @@ const ReceptionistDashboard = () => {
              }
 
              .printable-ticket.isSpecial {
-                background-color: black !important;
-                color: white !important;
+                /* Remove black background for printing - printers don't print backgrounds by default */
+                /* This ensures text is visible (black on white) instead of invisible (white on white) */
              }
              
              .printable-ticket.isSpecial .tick-h2, 
@@ -797,7 +797,8 @@ const ReceptionistDashboard = () => {
              .printable-ticket.isSpecial span,
              .printable-ticket.isSpecial h2,
              .printable-ticket.isSpecial h3 {
-                color: white !important;
+                /* Use default black text for printing */
+                color: black !important;
              }
              
              .printable-ticket.isSpecial .tick-qr {
@@ -807,11 +808,11 @@ const ReceptionistDashboard = () => {
              }
 
              .printable-ticket.isSpecial .border-black {
-                border-color: white !important;
+                border-color: black !important;
              }
              
              .printable-ticket.isSpecial .bg-black {
-                background-color: white !important;
+                background-color: black !important;
              }
            `}
         </style>

@@ -524,7 +524,7 @@ const SessionManagement = () => {
                                             </div>
 
                                             <div className="text-right">
-                                                <div className="inline-flex items-center bg-teal-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                <div className="inline-flex items-center bg-slate-900 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
                                                     {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                 </div>
                                                 <p className="text-slate-400 text-xs font-medium">

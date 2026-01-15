@@ -354,6 +354,7 @@ export const translations = {
             allSessions: 'Semua Sesi',
             contract: 'Kontrak',
             noContract: 'Permanen',
+            time: 'Waktu',
         },
         shift: {
             management: 'Manajemen Shift',
@@ -730,6 +731,7 @@ export const translations = {
             allSessions: 'All Sessions',
             contract: 'Contract',
             noContract: 'Permanent',
+            time: 'Time',
         },
         shift: {
             management: 'Shift Management',
