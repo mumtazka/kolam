@@ -82,11 +82,14 @@ const AdminDashboard = () => {
     }
   };
 
+  const RupiahIcon = () => (
+    <span className="text-xl font-bold text-teal-600">Rp</span>
+  );
+
   const statCards = [
     { label: t('admin.activeStaff'), value: stats.totalStaff, icon: Users, color: 'border-teal-500', iconColor: 'text-teal-500' },
-    { label: t('admin.todayTickets'), value: stats.todayTickets, icon: Ticket, color: 'border-slate-800', iconColor: 'text-slate-800' },
-    { label: t('admin.todayRevenue'), value: `Rp ${stats.todayRevenue.toLocaleString('id-ID')}`, icon: DollarSign, color: 'border-teal-500', iconColor: 'text-teal-500' },
-    { label: t('admin.todayScans'), value: stats.todayScans, icon: Activity, color: 'border-teal-500', iconColor: 'text-teal-500' },
+    { label: t('admin.todayRevenue'), value: `Rp ${stats.todayRevenue.toLocaleString('id-ID')}`, icon: RupiahIcon, color: 'border-teal-500', iconColor: 'text-teal-500' },
+    { label: 'PENGUNJUNG HARI INI', value: stats.todayScans, icon: Users, color: 'border-teal-500', iconColor: 'text-teal-500' },
     { label: t('admin.totalVisits'), value: stats.totalVisits.toLocaleString('id-ID'), icon: TrendingUp, color: 'border-slate-800', iconColor: 'text-slate-800' },
   ];
 
@@ -113,24 +116,21 @@ const AdminDashboard = () => {
     <div className="space-y-6">
 
       {/* Stats Grid - "Card UI" Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className={`relative p-5 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[6px] border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default`}>
-              <div className="flex items-center justify-between relative z-10">
-                {/* Left Side: Text */}
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">{stat.label}</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
-                  </div>
+            <Card key={index} className={`relative p-6 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[6px] border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default h-[160px] flex flex-col justify-between`}>
+              <div className="flex justify-between items-start">
+                <div className={`p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-105 transition-transform duration-300 flex items-center justify-center w-14 h-14`}>
+                  <Icon className={`w-7 h-7 ${stat.iconColor}`} strokeWidth={2.5} />
                 </div>
-
-                {/* Right Side: Icon */}
-                <div className={`p-2.5 rounded-xl bg-white border-2 border-slate-50 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className={`w-6 h-6 ${stat.iconColor}`} strokeWidth={2} />
+                <div className="flex flex-col items-end">
+                  <span className="text-[11px] font-bold tracking-wider text-teal-600 uppercase text-right leading-tight mb-1">{stat.label}</span>
                 </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-4xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
               </div>
             </Card>
           );

@@ -369,44 +369,56 @@ const Reports = () => {
         {!loading && !error && reportData && reportData.by_category && reportData.by_category.length > 0 && (
           <div className="flex flex-col xl:flex-row gap-8">
             {/* Stats Cards - Left Side */}
-            <div className="flex flex-col sm:flex-row xl:flex-col gap-4 xl:w-72 flex-shrink-0">
-              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
-                <div className="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-                    <path d="M13 5v2" />
-                    <path d="M13 17v2" />
-                    <path d="M13 11v2" />
-                  </svg>
+            <div className="flex flex-col sm:flex-row xl:flex-col gap-6 xl:w-80 flex-shrink-0">
+              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                <div className="flex justify-between items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                      <path d="M13 5v2" />
+                      <path d="M13 17v2" />
+                      <path d="M13 11v2" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-teal-600 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-[11px] text-teal-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.sold')}</p>
-                  <p className="text-2xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
+                  <p className="text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
-                <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
+              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                <div className="flex justify-between items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.scanned')}</p>
-                  <p className="text-2xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
+                  <p className="text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
-                <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-                  <span className="text-lg font-bold">Rp</span>
+              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                <div className="flex justify-between items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+                    <span className="text-2xl font-bold">Rp</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.revenue')}</p>
-                  <p className="text-xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold text-slate-900">
                     Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                   </p>
                 </div>
