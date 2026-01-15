@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown } from 'lucide-react';
+import { ChevronDown, Download, ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -111,7 +111,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
             {/* Calendar Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={handlePrevMonth}
@@ -158,15 +158,15 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                                 aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
                                 ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
                                 ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
-                                    ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-blue-50'
+                                    ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-teal-50'
                                     : ''
                                 }
                                 ${isToday(dayInfo.date) && !isSelected(dayInfo.date)
-                                    ? 'ring-2 ring-blue-400 ring-inset bg-blue-50 text-blue-600 font-bold'
+                                    ? 'ring-2 ring-teal-400 ring-inset bg-teal-50 text-teal-600 font-bold'
                                     : ''
                                 }
                                 ${isSelected(dayInfo.date)
-                                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold shadow-md transform scale-105'
+                                    ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold shadow-md transform scale-105'
                                     : ''
                                 }
                             `}
@@ -217,7 +217,7 @@ const ReceptionistHistory = () => {
     const [selectedDate, setSelectedDate] = useState(formatLocalDateMain(new Date()));
     const [historyPage, setHistoryPage] = useState(1);
     const [selectedTicket, setSelectedTicket] = useState(null);
-    const [showCalendar, setShowCalendar] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
     const HISTORY_PER_PAGE = 20;
 
@@ -228,18 +228,18 @@ const ReceptionistHistory = () => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-                setShowCalendar(false);
+                setShowDatePicker(false);
             }
         };
 
-        if (showCalendar) {
+        if (showDatePicker) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showCalendar]);
+    }, [showDatePicker]);
 
     // Indonesian day names for display
     const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -256,6 +256,14 @@ const ReceptionistHistory = () => {
         const month = monthNamesIndo[date.getMonth()];
         const year = date.getFullYear();
         return `${dayName}, ${day} ${month} ${year}`;
+    };
+
+    // Alias for the redesigned header
+    const formatDate = formatDateIndonesian;
+
+    const handleDateSelect = (dateStr) => {
+        setSelectedDate(dateStr);
+        setShowDatePicker(false);
     };
 
     const fetchReport = async () => {
@@ -410,8 +418,8 @@ const ReceptionistHistory = () => {
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Stats Cards - Left Side */}
                         <div className="flex flex-row lg:flex-col gap-4 lg:w-80 flex-shrink-0">
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
                                         <path d="M3 6h18" />
@@ -419,26 +427,26 @@ const ReceptionistHistory = () => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
                                     <p className="text-2xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-emerald-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M5 12h14" />
                                         <path d="M12 5l7 7-7 7" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
                                     <p className="text-2xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-amber-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="12" cy="12" r="10" />
                                         <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
@@ -446,7 +454,7 @@ const ReceptionistHistory = () => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
                                     <p className="text-xl font-bold text-slate-800">
                                         Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                                     </p>
@@ -459,7 +467,7 @@ const ReceptionistHistory = () => {
                             <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-100">
                                 <h4 className="text-xl font-bold text-slate-800">{t('reports.salesByCategory')}</h4>
                                 <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
-                                    <span className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
+                                    <span className="w-2.5 h-2.5 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full"></span>
                                     <span className="font-medium">{t('reports.ticketCount')}</span>
                                 </div>
                             </div>
@@ -491,12 +499,12 @@ const ReceptionistHistory = () => {
                                         }
                                         const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
                                         const colors = [
-                                            'from-blue-400 to-blue-600',
-                                            'from-emerald-400 to-emerald-600',
-                                            'from-amber-400 to-amber-600',
-                                            'from-purple-400 to-purple-600',
-                                            'from-rose-400 to-rose-600',
-                                            'from-cyan-400 to-cyan-600'
+                                            'from-teal-400 to-teal-600',
+                                            'from-teal-400 to-teal-600',
+                                            'from-teal-400 to-teal-600',
+                                            'from-teal-400 to-teal-600',
+                                            'from-teal-400 to-teal-600',
+                                            'from-teal-400 to-teal-600'
                                         ];
 
                                         return reportData.by_category.map((cat, idx) => {
@@ -508,7 +516,7 @@ const ReceptionistHistory = () => {
                                                     {/* Count Label */}
                                                     <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 flex flex-col items-center">
                                                         {isHighest && (
-                                                            <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
+                                                            <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-teal-500">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                                                 </svg>
@@ -516,7 +524,7 @@ const ReceptionistHistory = () => {
                                                             </div>
                                                         )}
                                                         <span className={`inline-block text-base font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
-                                                            ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
+                                                            ? 'bg-gradient-to-br from-teal-50 to-teal-100 text-teal-900 border-teal-300 scale-110'
                                                             : 'bg-white text-slate-700 border-slate-200'
                                                             }`}>
                                                             {cat.count}
@@ -541,7 +549,7 @@ const ReceptionistHistory = () => {
                                                                 </div>
                                                                 <div className="flex justify-between gap-4 pt-1 border-t border-slate-700">
                                                                     <span className="text-slate-400">{t('reports.revenue')}:</span>
-                                                                    <span className="font-mono font-bold text-emerald-300">
+                                                                    <span className="font-mono font-bold text-teal-300">
                                                                         Rp {(cat.revenue || 0).toLocaleString('id-ID')}
                                                                     </span>
                                                                 </div>
@@ -570,226 +578,224 @@ const ReceptionistHistory = () => {
                     </div>
                 )}
 
-                {/* Controls with Indonesian Calendar */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                        {/* Date Selector */}
-                        <div className="flex items-center gap-4">
-                            <div className="relative" ref={calendarRef}>
-                                <button
-                                    onClick={() => setShowCalendar(!showCalendar)}
-                                    className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200 rounded-xl px-4 py-3 transition-all"
-                                >
-                                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                        <Calendar className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-xs text-blue-600 font-medium">Tanggal Laporan</p>
-                                        <p className="text-base font-bold text-slate-800">{formatDateIndonesian(selectedDate)}</p>
-                                    </div>
-                                    <ChevronRight className={`w-5 h-5 text-blue-400 transition-transform ${showCalendar ? 'rotate-90' : ''}`} />
-                                </button>
-
-                                {/* Calendar Dropdown - no backdrop so page remains scrollable */}
-                                {showCalendar && (
-                                    <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 w-96">
-                                        <IndonesianMiniCalendar
-                                            selectedDate={selectedDate}
-                                            onDateSelect={(date) => {
-                                                setSelectedDate(date);
-                                                setShowCalendar(false);
-                                            }}
-                                        />
-                                    </div>
-                                )}
+                {/* Controls - Redesigned to match Reports UI */}
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    {/* Date Picker - Left Side */}
+                    <div className="relative w-full sm:w-auto">
+                        <button
+                            onClick={() => setShowDatePicker(!showDatePicker)}
+                            className="flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-200 rounded-xl px-4 py-2.5 transition-all text-left min-w-[240px] group shadow-sm hover:shadow"
+                        >
+                            <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center group-hover:bg-teal-100 transition-colors">
+                                <Calendar className="w-4 h-4 text-teal-600" />
                             </div>
-
-                            {/* Sort Toggle */}
-                            <button
-                                onClick={toggleSortOrder}
-                                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 rounded-xl px-4 py-3 transition-all"
-                                title={sortOrder === 'desc' ? 'Terbaru ke terlama' : 'Terlama ke terbaru'}
-                            >
-                                <ArrowUpDown className="w-5 h-5 text-slate-600" />
-                                <div className="text-left">
-                                    <p className="text-xs text-slate-500 font-medium">Urutkan</p>
-                                    <p className="text-sm font-bold text-slate-700">
-                                        {sortOrder === 'desc' ? 'Terbaru' : 'Terlama'}
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-3">
-                            <Button
-                                onClick={fetchReport}
-                                size="sm"
-                                className="bg-slate-900 hover:bg-slate-800 rounded-xl h-10 px-4"
-                            >
-                                <Clock className="w-4 h-4 mr-2" />
-                                {t('common.refresh')}
-                            </Button>
-                            {reportData?.tickets?.length > 0 && (
-                                <Button onClick={exportToExcel} variant="outline" size="sm" className="rounded-xl h-10 px-4 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                                    {t('reports.exportExcel')}
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Table */}
-                    <Card className="p-6 rounded-xl shadow-sm border-slate-200">
-                        {loading ? (
-                            <div className="flex justify-center py-12">
-                                <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                        ) : error ? (
-                            <div className="text-center py-16">
-                                <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <AlertCircle className="w-8 h-8 text-red-500" />
-                                </div>
-                                <p className="text-sm font-medium text-red-600">{error}</p>
-                                <Button onClick={fetchReport} variant="outline" size="sm" className="mt-4">
-                                    {t('common.back')}
-                                </Button>
-                            </div>
-                        ) : reportData && reportData.tickets && reportData.tickets.length > 0 ? (
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800 mb-4">
-                                    {t('reports.ticketHistory')} ({reportData.tickets.length})
-                                </h3>
-                                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 border-b border-slate-200">
-                                            <tr>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">No</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.category')}</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">NIM</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.staff')}</th>
-                                                <th className="px-4 py-3 text-center font-semibold text-slate-700">Jumlah</th>
-                                                <th className="px-4 py-3 text-right font-semibold text-slate-700">{t('reports.price')}</th>
-                                                <th className="px-4 py-3 text-center font-semibold text-slate-700">{t('admin.status')}</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('reports.time')}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {getPaginatedTickets().map((ticket, idx) => {
-                                                const date = new Date(ticket.created_at);
-                                                return (
-                                                    <tr
-                                                        key={ticket.id}
-                                                        className="hover:bg-slate-50 transition-colors cursor-pointer"
-                                                        onClick={() => setSelectedTicket(ticket)}
-                                                    >
-                                                        <td className="px-4 py-3 text-slate-600">
-                                                            {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
-                                                        </td>
-                                                        <td className="px-4 py-3 font-mono text-xs text-blue-600 font-semibold">
-                                                            {ticket.ticket_code || ticket.id?.substring(0, 8)}
-                                                        </td>
-                                                        <td className="px-4 py-3 font-medium text-slate-800">
-                                                            {ticket.category_name}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-slate-600 font-mono text-xs">
-                                                            {ticket.nim || '-'}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-slate-600">
-                                                            {ticket.created_by_name}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-center">
-                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
-                                                                <span className="font-mono text-sm text-slate-700">
-                                                                    {ticket.usage_count || 0}/{ticket.max_usage}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-slate-400">1</span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3 font-medium text-right text-slate-800">
-                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
-                                                                <>
-                                                                    <span>Rp {(parseFloat(ticket.price || 0) * ticket.max_usage).toLocaleString('id-ID')}</span>
-                                                                    <span className="text-[10px] text-slate-400 block">({ticket.max_usage} x @{parseFloat(ticket.price || 0).toLocaleString('id-ID')})</span>
-                                                                </>
-                                                            ) : (
-                                                                <>Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-center">
-                                                            {ticket.max_usage && ticket.max_usage > 1 ? (
-                                                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
-                                                                    ? 'bg-emerald-100 text-emerald-800'
-                                                                    : (ticket.usage_count || 0) > 0
-                                                                        ? 'bg-amber-100 text-amber-800'
-                                                                        : 'bg-slate-100 text-slate-600'
-                                                                    }`}>
-                                                                    {(ticket.usage_count || 0) >= ticket.max_usage ? 'Dipakai' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
-                                                                </span>
-                                                            ) : (
-                                                                <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
-                                                                    ? 'bg-emerald-100 text-emerald-800'
-                                                                    : 'bg-slate-100 text-slate-600'
-                                                                    }`}>
-                                                                    {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-slate-500 text-xs">
-                                                            {date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Pagination */}
-                                {getTotalPages() > 1 && (
-                                    <div className="flex items-center justify-between mt-4">
-                                        <p className="text-xs text-slate-500">
-                                            {((historyPage - 1) * HISTORY_PER_PAGE) + 1} - {Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)} of {reportData.tickets.length}
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
-                                                disabled={historyPage === 1}
-                                            >
-                                                <ChevronLeft className="w-4 h-4" />
-                                            </Button>
-                                            <span className="text-xs font-medium text-slate-700">
-                                                {historyPage} / {getTotalPages()}
-                                            </span>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setHistoryPage(p => Math.min(getTotalPages(), p + 1))}
-                                                disabled={historyPage === getTotalPages()}
-                                            >
-                                                <ChevronRight className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t('reports.date')}</p>
+                                <p className="text-sm font-bold text-slate-700">{formatDate(selectedDate)}</p>
                             </div>
-                        ) : (
-                            <div className="text-center py-16 text-slate-500">
-                                <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Calendar className="w-8 h-8 text-slate-400" />
+                            <ChevronDown className={`w-4 h-4 text-slate-400 ml-auto transition-transform ${showDatePicker ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Date Picker Dropdown */}
+                        {showDatePicker && (
+                            <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="fixed inset-0 bg-transparent" onClick={() => setShowDatePicker(false)} />
+                                <div className="relative w-80 bg-white rounded-xl shadow-xl border border-teal-100 overflow-hidden">
+                                    <IndonesianMiniCalendar
+                                        selectedDate={selectedDate}
+                                        onDateSelect={handleDateSelect}
+                                    />
                                 </div>
-                                <p className="text-sm font-medium">{t('reports.noData')}</p>
                             </div>
                         )}
-                    </Card>
+                    </div>
+
+                    {/* Right Side Actions */}
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+                        {/* Separator */}
+                        <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+                        {/* Refresh Button */}
+                        <Button onClick={fetchReport} size="sm" className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all">
+                            {t('common.refresh') || "Refresh"}
+                        </Button>
+
+                        {/* Sort Button */}
+                        <button
+                            onClick={toggleSortOrder}
+                            className="flex items-center gap-2 h-10 px-4 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg transition-all text-slate-600 font-medium text-sm"
+                            title={t('reports.sort')}
+                        >
+                            {sortOrder === 'desc' ? <ArrowUpDown className="w-4 h-4" /> : <ArrowUpDown className="w-4 h-4" />}
+                            <span className="hidden sm:inline">{sortOrder === 'desc' ? t('reports.newest') : t('reports.oldest')}</span>
+                        </button>
+
+                        {/* Export Button */}
+                        <Button
+                            onClick={exportToExcel}
+                            variant="outline"
+                            size="sm"
+                            className="h-10 px-4 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-200 rounded-lg transition-all"
+                        >
+                            <FileSpreadsheet className="w-4 h-4 mr-2" />
+                            {t('reports.exportExcel')}
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Ticket Detail Modal */}
-                {selectedTicket && (
+
+                {/* Table */}
+                <Card className="p-6 rounded-xl shadow-sm border-slate-200">
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-16">
+                            <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle className="w-8 h-8 text-red-500" />
+                            </div>
+                            <p className="text-sm font-medium text-red-600">{error}</p>
+                            <Button onClick={fetchReport} variant="outline" size="sm" className="mt-4">
+                                {t('common.back')}
+                            </Button>
+                        </div>
+                    ) : reportData && reportData.tickets && reportData.tickets.length > 0 ? (
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-4">
+                                {t('reports.ticketHistory')} ({reportData.tickets.length})
+                            </h3>
+                            <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">No</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.category')}</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">NIM</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.staff')}</th>
+                                            <th className="px-4 py-3 text-center font-semibold text-slate-700">Jumlah</th>
+                                            <th className="px-4 py-3 text-right font-semibold text-slate-700">{t('reports.price')}</th>
+                                            <th className="px-4 py-3 text-center font-semibold text-slate-700">{t('admin.status')}</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('reports.time')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {getPaginatedTickets().map((ticket, idx) => {
+                                            const date = new Date(ticket.created_at);
+                                            return (
+                                                <tr
+                                                    key={ticket.id}
+                                                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                                                    onClick={() => setSelectedTicket(ticket)}
+                                                >
+                                                    <td className="px-4 py-3 text-slate-600">
+                                                        {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-mono text-xs text-teal-600 font-semibold">
+                                                        {ticket.ticket_code || ticket.id?.substring(0, 8)}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-medium text-slate-800">
+                                                        {ticket.category_name}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-600 font-mono text-xs">
+                                                        {ticket.nim || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-600">
+                                                        {ticket.created_by_name}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                            <span className="font-mono text-sm text-slate-700">
+                                                                {ticket.usage_count || 0}/{ticket.max_usage}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-slate-400">1</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-medium text-right text-slate-800">
+                                                        {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                            <>
+                                                                <span>Rp {(parseFloat(ticket.price || 0) * ticket.max_usage).toLocaleString('id-ID')}</span>
+                                                                <span className="text-[10px] text-slate-400 block">({ticket.max_usage} x @{parseFloat(ticket.price || 0).toLocaleString('id-ID')})</span>
+                                                            </>
+                                                        ) : (
+                                                            <>Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {ticket.max_usage && ticket.max_usage > 1 ? (
+                                                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
+                                                                ? 'bg-teal-100 text-teal-800'
+                                                                : (ticket.usage_count || 0) > 0
+                                                                    ? 'bg-amber-100 text-amber-800'
+                                                                    : 'bg-slate-100 text-slate-600'
+                                                                }`}>
+                                                                {(ticket.usage_count || 0) >= ticket.max_usage ? 'Dipakai' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan'}
+                                                            </span>
+                                                        ) : (
+                                                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
+                                                                ? 'bg-teal-100 text-teal-800'
+                                                                : 'bg-slate-100 text-slate-600'
+                                                                }`}>
+                                                                {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-500 text-xs">
+                                                        {date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination */}
+                            {getTotalPages() > 1 && (
+                                <div className="flex items-center justify-between mt-4">
+                                    <p className="text-xs text-slate-500">
+                                        {((historyPage - 1) * HISTORY_PER_PAGE) + 1} - {Math.min(historyPage * HISTORY_PER_PAGE, reportData.tickets.length)} of {reportData.tickets.length}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                                            disabled={historyPage === 1}
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </Button>
+                                        <span className="text-xs font-medium text-slate-700">
+                                            {historyPage} / {getTotalPages()}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setHistoryPage(p => Math.min(getTotalPages(), p + 1))}
+                                            disabled={historyPage === getTotalPages()}
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-16 text-slate-500">
+                            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Calendar className="w-8 h-8 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-medium">{t('reports.noData')}</p>
+                        </div>
+                    )}
+                </Card>
+            </div >
+
+            {/* Ticket Detail Modal */}
+            {
+                selectedTicket && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                             {/* Modal Header */}
@@ -884,9 +890,9 @@ const ReceptionistHistory = () => {
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
-        </div>
+                )
+            }
+        </div >
     );
 };
 

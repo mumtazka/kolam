@@ -148,8 +148,8 @@ const ShiftManagement = () => {
         switch (role) {
             case 'ADMIN': return 'bg-purple-100 text-purple-700';
             // Staff gets blue
-            case 'RECEPTIONIST': return 'bg-blue-100 text-blue-700';
-            case 'SCANNER': return 'bg-blue-100 text-blue-700';
+            case 'RECEPTIONIST': return 'bg-teal-100 text-teal-700';
+            case 'SCANNER': return 'bg-teal-100 text-teal-700';
             default: return 'bg-slate-100 text-slate-500';
         }
     };
@@ -174,9 +174,9 @@ const ShiftManagement = () => {
         switch (role) {
             case 'CASHIER':
             case 'RECEPTIONIST':
-                return 'text-emerald-600';
+                return 'text-teal-600';
             case 'SCANNER':
-                return 'text-cyan-600';
+                return 'text-teal-600';
             case 'OFF':
             default:
                 return 'text-slate-400';

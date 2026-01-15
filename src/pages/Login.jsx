@@ -120,10 +120,10 @@ const Login = () => {
 
               <Button
                 onClick={() => handleModeSelect('SCANNER')}
-                className="w-full h-24 text-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-between px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
+                className="w-full h-24 text-lg bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-between px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
               >
                 <div className="flex items-center gap-5">
-                  <div className="bg-emerald-500 p-3 rounded-xl group-hover:bg-emerald-400 transition-colors">
+                  <div className="bg-teal-500 p-3 rounded-xl group-hover:bg-teal-400 transition-colors">
                     <ScanLine className="w-8 h-8 text-white" />
                   </div>
                   <div className="text-left">
@@ -188,7 +188,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.placeholderEmail')}
                 required
-                className="mt-1 h-12 border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="mt-1 h-12 border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 data-testid="email-input"
               />
             </div>
@@ -202,7 +202,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('auth.placeholderPassword')}
                 required
-                className="mt-1 h-12 border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="mt-1 h-12 border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 data-testid="password-input"
               />
             </div>

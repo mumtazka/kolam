@@ -107,7 +107,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
             {/* Calendar Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
                     <button
                         type="button"
@@ -156,15 +156,15 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                                 aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
                                 ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
                                 ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
-                                    ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-blue-50'
+                                    ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-teal-50'
                                     : ''
                                 }
                                 ${isToday(dayInfo.date) && !isSelected(dayInfo.date)
-                                    ? 'ring-2 ring-blue-400 ring-inset bg-blue-50 text-blue-600 font-bold'
+                                    ? 'ring-2 ring-teal-400 ring-inset bg-teal-50 text-teal-600 font-bold'
                                     : ''
                                 }
                                 ${isSelected(dayInfo.date)
-                                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold shadow-md transform scale-105'
+                                    ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold shadow-md transform scale-105'
                                     : ''
                                 }
                             `}

@@ -63,7 +63,7 @@ const ReceptionistPools = () => {
                                     </div>
                                 )}
                                 <div className="absolute top-3 right-3">
-                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full shadow-sm ${pool.active ? 'bg-emerald-500 text-white' : 'bg-slate-500 text-white'}`}>
+                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full shadow-sm ${pool.active ? 'bg-teal-500 text-white' : 'bg-slate-500 text-white'}`}>
                                         {pool.active ? t('admin.active') : t('admin.inactive')}
                                     </span>
                                 </div>

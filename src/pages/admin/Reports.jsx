@@ -110,7 +110,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
       {/* Calendar Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
         <div className="flex items-center justify-between">
           <button
             onClick={handlePrevMonth}
@@ -156,15 +156,15 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                                 aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
                                 ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
                                 ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
-                  ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-blue-50'
+                  ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-teal-50'
                   : ''
                 }
                                 ${isToday(dayInfo.date) && !isSelected(dayInfo.date)
-                  ? 'ring-2 ring-blue-400 ring-inset bg-blue-50 text-blue-600 font-bold'
+                  ? 'ring-2 ring-teal-400 ring-inset bg-teal-50 text-teal-600 font-bold'
                   : ''
                 }
                                 ${isSelected(dayInfo.date)
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold shadow-md transform scale-105'
+                  ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold shadow-md transform scale-105'
                   : ''
                 }
                             `}
@@ -352,7 +352,7 @@ const Reports = () => {
             {/* Stats Cards - Left Side */}
             <div className="flex flex-col sm:flex-row xl:flex-col gap-4 xl:w-72 flex-shrink-0">
               <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group">
-                <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                <div className="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
                     <path d="M13 5v2" />
@@ -361,7 +361,7 @@ const Reports = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] text-blue-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.sold')}</p>
+                  <p className="text-[11px] text-teal-600 font-bold uppercase tracking-wider mb-0.5">{t('reports.sold')}</p>
                   <p className="text-2xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                 </div>
               </div>
@@ -402,7 +402,7 @@ const Reports = () => {
                   <p className="text-sm text-slate-500">{t('reports.distributionOverview')}</p>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-100 px-4 py-2 rounded-full">
-                  <span className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"></span>
+                  <span className="w-2.5 h-2.5 bg-teal-500 rounded-full shadow-sm"></span>
                   <span>{t('reports.ticketCount')}</span>
                 </div>
               </div>
@@ -431,12 +431,12 @@ const Reports = () => {
                   {(() => {
                     const maxCount = Math.max(...(reportData.by_category.map(c => c.count) || [1]));
                     const colors = [
-                      'from-blue-500 to-blue-600 shadow-blue-200',
-                      'from-emerald-500 to-emerald-600 shadow-emerald-200',
-                      'from-amber-500 to-amber-600 shadow-amber-200',
-                      'from-purple-500 to-purple-600 shadow-purple-200',
-                      'from-rose-500 to-rose-600 shadow-rose-200',
-                      'from-cyan-500 to-cyan-600 shadow-cyan-200'
+                      'from-teal-500 to-teal-600 shadow-teal-200',
+                      'from-teal-500 to-teal-600 shadow-teal-200',
+                      'from-teal-500 to-teal-600 shadow-teal-200',
+                      'from-teal-500 to-teal-600 shadow-teal-200',
+                      'from-teal-500 to-teal-600 shadow-teal-200',
+                      'from-teal-500 to-teal-600 shadow-teal-200'
                     ];
 
                     return reportData.by_category.map((cat, idx) => {
@@ -448,7 +448,7 @@ const Reports = () => {
                           {/* Count Label */}
                           <div className="mb-3 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1 flex flex-col items-center">
                             {isHighest && (
-                              <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-amber-500">
+                              <div className="flex items-center justify-center gap-1 mb-1.5 text-xs font-bold text-teal-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                 </svg>
@@ -456,7 +456,7 @@ const Reports = () => {
                               </div>
                             )}
                             <span className={`inline-block text-lg font-bold px-3 py-1 rounded-lg shadow-sm border transition-all ${isHighest
-                              ? 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-900 border-amber-300 scale-110'
+                              ? 'bg-gradient-to-br from-teal-50 to-teal-100 text-teal-900 border-teal-300 scale-110'
                               : 'bg-white text-slate-700 border-slate-200'
                               }`}>
                               {cat.count}
@@ -526,10 +526,10 @@ const Reports = () => {
               <div className="relative" ref={calendarRef}>
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
-                  className="flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-200 rounded-xl px-4 py-2.5 transition-all text-left min-w-[240px] group shadow-sm hover:shadow"
+                  className="flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-200 rounded-xl px-4 py-2.5 transition-all text-left min-w-[240px] group shadow-sm hover:shadow"
                 >
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                    <Calendar className="w-4 h-4 text-blue-600" />
+                  <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center group-hover:bg-teal-100 transition-colors">
+                    <Calendar className="w-4 h-4 text-teal-600" />
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tanggal</p>
@@ -593,7 +593,7 @@ const Reports = () => {
               {t('common.refresh')}
             </Button>
             {reportData?.tickets?.length > 0 && (
-              <Button onClick={exportToExcel} variant="outline" size="sm" className="h-10 px-4 border-slate-200 hover:bg-slate-50 hover:text-emerald-700 hover:border-emerald-200 rounded-lg transition-all">
+              <Button onClick={exportToExcel} variant="outline" size="sm" className="h-10 px-4 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-200 rounded-lg transition-all">
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 {t('reports.exportExcel')}
               </Button>
@@ -660,7 +660,7 @@ const Reports = () => {
                             {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded-md border border-blue-100 group-hover:border-blue-200 transition-colors">
+                            <span className="font-mono text-xs text-teal-600 font-bold bg-teal-50 px-2 py-1 rounded-md border border-teal-100 group-hover:border-teal-200 transition-colors">
                               {ticket.ticket_code || ticket.id?.substring(0, 8)}
                             </span>
                           </td>
@@ -695,7 +695,7 @@ const Reports = () => {
                           <td className="px-6 py-4 text-center">
                             {ticket.max_usage && ticket.max_usage > 1 ? (
                               <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${(ticket.usage_count || 0) >= ticket.max_usage
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-teal-100 text-teal-800'
                                 : (ticket.usage_count || 0) > 0
                                   ? 'bg-amber-100 text-amber-800'
                                   : 'bg-slate-100 text-slate-600'
@@ -704,7 +704,7 @@ const Reports = () => {
                               </span>
                             ) : (
                               <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${ticket.status === 'USED'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-teal-100 text-teal-800'
                                 : 'bg-slate-100 text-slate-600'
                                 }`}>
                                 {ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan'}

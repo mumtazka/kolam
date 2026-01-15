@@ -62,7 +62,7 @@ const ReceptionistLayout = () => {
                                     key={item.path}
                                     to={item.path}
                                     onClick={() => setSidebarOpen(false)}
-                                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg ${isActive ? 'bg-sky-500 text-white' : 'text-slate-300 hover:bg-slate-800'
+                                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg ${isActive ? 'bg-teal-500 text-white' : 'text-slate-300 hover:bg-slate-800'
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />

@@ -145,17 +145,17 @@ const TicketPackageManagement = () => {
                         <Card key={pkg.id} className={`p-6 ${!pkg.is_active ? 'opacity-60 bg-slate-100' : ''}`}>
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center">
-                                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
-                                        <Ticket className="w-5 h-5 text-emerald-600" />
+                                    <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mr-3">
+                                        <Ticket className="w-5 h-5 text-teal-600" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-slate-900 text-lg">{pkg.name}</h3>
                                         <div className="flex gap-2 text-sm">
-                                            <span className="text-emerald-600 font-bold">Rp {pkg.price_per_person?.toLocaleString('id-ID')} / org</span>
+                                            <span className="text-teal-600 font-bold">Rp {pkg.price_per_person?.toLocaleString('id-ID')} / org</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className={`px-2 py-1 rounded text-xs font-bold ${pkg.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
+                                <div className={`px-2 py-1 rounded text-xs font-bold ${pkg.is_active ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-500'}`}>
                                     {pkg.is_active ? 'AKTIF' : 'NONAKTIF'}
                                 </div>
                             </div>

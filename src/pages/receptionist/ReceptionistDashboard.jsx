@@ -411,8 +411,8 @@ const ReceptionistDashboard = () => {
                   <Card
                     key={category.id}
                     className={`p-4 cursor-pointer ticket-category-card transition-colors shadow-sm ${isSpecial
-                      ? 'bg-slate-900 text-white border-slate-700 hover:border-sky-500'
-                      : 'hover:border-sky-500'
+                      ? 'bg-slate-900 text-white border-slate-700 hover:border-teal-500'
+                      : 'hover:border-teal-500'
                       }`}
                     onClick={() => addToCart(category)}
                     data-testid={`ticket-category-${category.id}`}
@@ -422,7 +422,7 @@ const ReceptionistDashboard = () => {
                         <h3 className={`text-base font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
                         <p className={`text-xs mt-0.5 line-clamp-1 ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description}</p>
                       </div>
-                      <Ticket className={`w-6 h-6 ${isSpecial ? 'text-sky-400' : 'text-sky-500'} opacity-80`} />
+                      <Ticket className={`w-6 h-6 ${isSpecial ? 'text-teal-400' : 'text-teal-500'} opacity-80`} />
                     </div>
                     <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-100'}`}>
                       <span className={`text-lg font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
@@ -445,7 +445,7 @@ const ReceptionistDashboard = () => {
               <h2 className="text-xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>
                 {t('dashboard.total')} {t('dashboard.tickets')}
               </h2>
-              <div className="bg-sky-50 text-sky-700 px-3 py-1 rounded-full text-lg font-bold">
+              <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-lg font-bold">
                 {getTotalItems()}
               </div>
             </div>
@@ -465,7 +465,7 @@ const ReceptionistDashboard = () => {
                           <div>
                             <span className="font-semibold text-sm text-slate-900 block">{item.category_name}</span>
                             {item.package_name && (
-                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1 rounded flex items-center mt-0.5">
+                              <span className="text-xs font-bold text-teal-600 bg-teal-50 px-1 rounded flex items-center mt-0.5">
                                 <Ticket className="w-3 h-3 mr-1" />
                                 {item.package_name}
                               </span>
@@ -584,7 +584,7 @@ const ReceptionistDashboard = () => {
                     <Button
                       onClick={handleProcessTickets}
                       disabled={printing || cart.length === 0 || hasNimErrors()}
-                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-base font-semibold shadow-xl shadow-slate-200 disabled:opacity-50"
+                      className="w-full h-12 bg-teal-500 hover:bg-teal-600 text-base font-semibold shadow-xl shadow-teal-200 disabled:opacity-50 text-white"
                     >
                       <Printer className="w-5 h-5 mr-2" />
                       {printing ? t('scanner.processing') : t('dashboard.checkout')}
@@ -709,15 +709,15 @@ const ReceptionistDashboard = () => {
                       <div
                         key={pkg.id}
                         onClick={() => handlePackageSelect(pkg)}
-                        className="bg-white p-4 rounded-xl border-2 border-emerald-100 hover:border-emerald-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
+                        className="bg-white p-4 rounded-xl border-2 border-teal-100 hover:border-teal-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
                       >
-                        <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                        <div className="absolute top-0 right-0 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
                           {t('dashboard.saverPackage')}
                         </div>
 
                         <div className="mb-3">
-                          <h4 className="font-bold text-lg text-emerald-950 group-hover:text-emerald-700">{pkg.name}</h4>
-                          <p className="text-xs text-emerald-600/80 font-medium">{pkg.description}</p>
+                          <h4 className="font-bold text-lg text-teal-950 group-hover:text-teal-700">{pkg.name}</h4>
+                          <p className="text-xs text-teal-600/80 font-medium">{pkg.description}</p>
                         </div>
 
                         <div className="space-y-1 text-sm text-slate-600">
@@ -727,17 +727,17 @@ const ReceptionistDashboard = () => {
                           </p>
                           <p className="flex justify-between">
                             <span>{t('dashboard.packagePrice')}:</span>
-                            <span className="font-bold text-emerald-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
-                          </p>
-                        </div>
-                      </div>
+                            <span className="font-bold text-teal-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
+                          </p >
+                        </div >
+                      </div >
                     ))}
-                  </div>
+                  </div >
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
+              </div >
+            </div >
+          </div >
+        </div >
       )}
 
       {/* 57mm Thermal Print Template */}

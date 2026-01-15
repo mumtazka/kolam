@@ -384,7 +384,7 @@ const CategoryManagement = () => {
                                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
                                         ? 'bg-white text-slate-900' // Inverted for special card
                                         : category.active
-                                            ? 'bg-sky-100 text-sky-700'
+                                            ? 'bg-teal-100 text-teal-700'
                                             : 'bg-slate-200 text-slate-500'
                                         }`}>
                                         {category.code_prefix}

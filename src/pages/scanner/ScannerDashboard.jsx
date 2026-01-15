@@ -184,7 +184,7 @@ const ScannerDashboard = () => {
     // Background logic to give visual feedback but keep it cleaner
     const getMainBg = () => {
         switch (scanStatus) {
-            case 'VALID': return 'bg-emerald-50';
+            case 'VALID': return 'bg-teal-50';
             case 'USED': return 'bg-amber-50';
             case 'INVALID': return 'bg-rose-50';
             case 'ERROR': return 'bg-rose-50';
@@ -198,7 +198,7 @@ const ScannerDashboard = () => {
             <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-sm">
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center">
-                        <Scan className="w-6 h-6 mr-2 text-sky-600" />
+                        <Scan className="w-6 h-6 mr-2 text-teal-600" />
                         <span className="font-bold text-xl text-slate-900 tracking-tight">WebKolam Scanner</span>
                     </div>
                     <div className="h-6 w-px bg-slate-200 mx-2"></div>
@@ -293,21 +293,21 @@ const ScannerDashboard = () => {
 
                             {scanStatus === 'PROCESSING' && (
                                 <div className="space-y-6">
-                                    <div className="w-24 h-24 border-4 border-slate-200 border-t-sky-600 rounded-full animate-spin mx-auto"></div>
+                                    <div className="w-24 h-24 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mx-auto"></div>
                                     <h2 className="text-2xl font-bold text-slate-700">{t('scanner.processing')}</h2>
                                 </div>
                             )}
 
                             {scanStatus === 'VALID' && (
                                 <div className="space-y-6 animate-in zoom-in-95">
-                                    <div className="w-32 h-32 bg-emerald-100 rounded-full flex items-center justify-center mx-auto shadow-md">
-                                        <CheckCircle className="w-16 h-16 text-emerald-600" />
+                                    <div className="w-32 h-32 bg-teal-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <CheckCircle className="w-16 h-16 text-teal-600" />
                                     </div>
                                     <div>
-                                        <h1 className="text-5xl font-bold text-emerald-600 mb-2">{t('scanner.valid')}</h1>
-                                        <p className="text-xl text-emerald-800">{t('scanner.accessGranted')}</p>
+                                        <h1 className="text-5xl font-bold text-teal-600 mb-2">{t('scanner.valid')}</h1>
+                                        <p className="text-xl text-teal-800">{t('scanner.accessGranted')}</p>
                                     </div>
-                                    <Card className="bg-white/80 backdrop-blur border-emerald-200 shadow-lg text-left">
+                                    <Card className="bg-white/80 backdrop-blur border-teal-200 shadow-lg text-left">
                                         <CardContent className="p-6 grid grid-cols-2 gap-6">
                                             <div>
                                                 <p className="text-slate-500 text-sm font-medium uppercase">{t('scanner.category')}</p>
@@ -320,7 +320,7 @@ const ScannerDashboard = () => {
                                             {scanResult?.ticket?.nim && (
                                                 <div className="col-span-2 pt-4 border-t border-slate-100">
                                                     <p className="text-slate-500 text-sm font-medium uppercase mb-1">{t('scanner.studentId')}</p>
-                                                    <div className="inline-block bg-sky-50 px-3 py-1 rounded text-xl font-mono font-bold text-sky-700 border border-sky-100">
+                                                    <div className="inline-block bg-teal-50 px-3 py-1 rounded text-xl font-mono font-bold text-teal-700 border border-teal-100">
                                                         {scanResult.ticket.nim}
                                                     </div>
                                                 </div>
@@ -362,7 +362,7 @@ const ScannerDashboard = () => {
                                 <Button
                                     variant={cameraActive ? "default" : "outline"}
                                     size="lg"
-                                    className={`h-12 px-6 ${cameraActive ? 'bg-sky-600 hover:bg-sky-700 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+                                    className={`h-12 px-6 ${cameraActive ? 'bg-teal-600 hover:bg-teal-700 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
                                     onClick={() => setCameraActive(!cameraActive)}
                                 >
                                     {cameraActive ? (
@@ -386,7 +386,7 @@ const ScannerDashboard = () => {
                                     <Input
                                         type="text"
                                         placeholder={t('scanner.enterCode')}
-                                        className="pl-9 h-12 text-lg uppercase bg-white border-slate-300 focus:border-sky-500 text-slate-900 placeholder:text-slate-400"
+                                        className="pl-9 h-12 text-lg uppercase bg-white border-slate-300 focus:border-teal-500 text-slate-900 placeholder:text-slate-400"
                                         value={manualCode}
                                         onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                                     />
@@ -419,13 +419,13 @@ const ScannerDashboard = () => {
                                 scanHistory.map((item) => (
                                     <div
                                         key={item.id}
-                                        className={`p-3 rounded-lg border text-sm transition-colors ${item.status === 'VALID' ? 'bg-emerald-50 border-emerald-200' :
+                                        className={`p-3 rounded-lg border text-sm transition-colors ${item.status === 'VALID' ? 'bg-teal-50 border-teal-200' :
                                             item.status === 'USED' ? 'bg-amber-50 border-amber-200' :
                                                 'bg-rose-50 border-rose-200'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${item.status === 'VALID' ? 'bg-emerald-100 text-emerald-700' :
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${item.status === 'VALID' ? 'bg-teal-100 text-teal-700' :
                                                 item.status === 'USED' ? 'bg-amber-100 text-amber-700' :
                                                     'bg-rose-100 text-rose-700'
                                                 }`}>

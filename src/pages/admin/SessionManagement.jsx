@@ -43,7 +43,7 @@ const TimeBlock = ({ val, type, max, onUpdate }) => {
         <div className="flex items-center gap-1">
             <div className="relative" onWheel={handleWheel}>
                 <Input
-                    className="w-[4.5rem] h-12 text-center font-mono text-xl font-bold p-0 transition-all focus:ring-2 focus:ring-sky-500"
+                    className="w-[4.5rem] h-12 text-center font-mono text-xl font-bold p-0 transition-all focus:ring-2 focus:ring-teal-500"
                     value={val}
                     onChange={(e) => {
                         let v = e.target.value;
@@ -406,7 +406,7 @@ const SessionManagement = () => {
                     <Card className="p-6 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center space-x-2 text-slate-900">
-                                <CalendarIcon className="w-5 h-5 text-sky-600" />
+                                <CalendarIcon className="w-5 h-5 text-teal-600" />
                                 <h2 className="text-xl font-bold">{t('common.calendar')}</h2>
                             </div>
                         </div>
@@ -465,7 +465,7 @@ const SessionManagement = () => {
                                             <div className="relative w-full h-full flex items-center justify-center">
                                                 {props.date.getDate()}
                                                 {count > 0 && (
-                                                    <div className="absolute bottom-1 w-1.5 h-1.5 bg-sky-500 rounded-full" title={`${count} sessions`}></div>
+                                                    <div className="absolute bottom-1 w-1.5 h-1.5 bg-teal-500 rounded-full" title={`${count} sessions`}></div>
                                                 )}
                                             </div>
                                         );
@@ -481,7 +481,7 @@ const SessionManagement = () => {
                     <Card className="p-6 min-h-[500px] flex flex-col">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center space-x-2">
-                                <CalendarIcon className="w-5 h-5 text-sky-600" />
+                                <CalendarIcon className="w-5 h-5 text-teal-600" />
                                 <h2 className="text-xl font-bold text-slate-900">{t('admin.sessionList')}: {formattedDate}</h2>
                             </div>
                             <span className="px-3 py-1 bg-slate-100 text-slate-900 font-medium rounded-md border border-slate-200">
@@ -504,17 +504,17 @@ const SessionManagement = () => {
                                 {filteredSessions.map((session) => (
                                     <div
                                         key={session.id}
-                                        className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-sky-300"
+                                        className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-teal-300"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-sky-700 transition-colors">
+                                                <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-teal-700 transition-colors">
                                                     {session.name}
                                                 </h3>
                                                 <div className="flex flex-wrap gap-2">
                                                     {session.days?.map(day => (
                                                         <span key={day} className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${day === selectedDayName
-                                                            ? 'bg-sky-100 text-sky-700 border-sky-200'
+                                                            ? 'bg-teal-100 text-teal-700 border-teal-200'
                                                             : 'bg-slate-50 text-slate-400 border-slate-100'
                                                             }`}>
                                                             {t(`common.days.${day.substring(0, 3)}`)}
@@ -524,7 +524,7 @@ const SessionManagement = () => {
                                             </div>
 
                                             <div className="text-right">
-                                                <div className="inline-flex items-center bg-sky-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                <div className="inline-flex items-center bg-teal-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
                                                     {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                 </div>
                                                 <p className="text-slate-400 text-xs font-medium">
@@ -544,7 +544,7 @@ const SessionManagement = () => {
                                             <Button
                                                 size="icon"
                                                 variant="ghost"
-                                                className="h-8 w-8 hover:bg-slate-50 hover:text-sky-600"
+                                                className="h-8 w-8 hover:bg-slate-50 hover:text-teal-600"
                                                 onClick={() => openEditDialog(session)}
                                             >
                                                 <Edit className="w-4 h-4" />
@@ -637,7 +637,7 @@ const SessionManagement = () => {
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
-                                                            className="h-8 w-8 hover:bg-slate-100 hover:text-sky-600"
+                                                            className="h-8 w-8 hover:bg-slate-100 hover:text-teal-600"
                                                             onClick={() => openEditDialog(session)}
                                                         >
                                                             <Edit className="w-4 h-4" />

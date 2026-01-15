@@ -169,7 +169,7 @@ const UserManagement = () => {
                   <td className="px-6 py-4 text-sm text-slate-900 font-medium">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'}`}>
                       {getRoleLabel(user.role)}
                     </span>
                   </td>
