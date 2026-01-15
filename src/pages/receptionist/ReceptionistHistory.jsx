@@ -431,53 +431,56 @@ const ReceptionistHistory = () => {
                 {!loading && !error && reportData && (
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Stats Cards - Left Side */}
-                        <div className="flex flex-row lg:flex-col gap-6 lg:w-80 flex-shrink-0">
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                        <div className="flex flex-col sm:flex-row lg:flex-col gap-6 lg:w-80 flex-shrink-0">
+                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                                            <path d="M3 6h18" />
-                                            <path d="M16 10a4 4 0 0 1-8 0" />
+                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                                            <path d="M13 5v2" />
+                                            <path d="M13 17v2" />
+                                            <path d="M13 11v2" />
                                         </svg>
                                     </div>
                                     <div className="flex flex-col items-end">
-                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                                        <p className="text-xs text-teal-600 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
+                                    <p className="text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M5 12h14" />
-                                            <path d="M12 5l7 7-7 7" />
+                                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                            <circle cx="9" cy="7" r="4" />
+                                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                         </svg>
                                     </div>
                                     <div className="flex flex-col items-end">
-                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                                        <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
+                                    <p className="text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
+                                    <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
                                         <span className="text-2xl font-bold">Rp</span>
                                     </div>
                                     <div className="flex flex-col items-end">
-                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                                        <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-3xl font-bold text-slate-800">
+                                    <p className="text-3xl font-bold text-slate-900">
                                         Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                                     </p>
                                 </div>
@@ -649,7 +652,7 @@ const ReceptionistHistory = () => {
                             title={t('reports.sort')}
                         >
                             {sortOrder === 'desc' ? <ArrowUpDown className="w-4 h-4" /> : <ArrowUpDown className="w-4 h-4" />}
-                            <span className="hidden sm:inline">{sortOrder === 'desc' ? t('reports.newest') : t('reports.oldest')}</span>
+                            <span className="hidden sm:inline">{sortOrder === 'desc' ? 'Terbaru' : 'Terlama'}</span>
                         </button>
 
                         {/* Export Button */}
