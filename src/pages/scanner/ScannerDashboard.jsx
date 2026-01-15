@@ -196,14 +196,15 @@ const ScannerDashboard = () => {
         <div className={`${user?.type === 'ADMIN' ? 'h-full' : 'min-h-screen'} bg-slate-50 flex flex-col overflow-hidden font-['Outfit']`}>
             {/* Header matches Admin Layout style - Conditional Rendering */}
             {user?.type !== 'ADMIN' && (
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-sm">
-                    <div className="flex items-center space-x-4">
+                <header className="h-14 lg:h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 lg:px-6 z-20 shadow-sm">
+                    <div className="flex items-center space-x-2 lg:space-x-4">
                         <div className="flex items-center">
-                            <ScanLine className="w-6 h-6 mr-2 text-teal-600" />
-                            <span className="font-bold text-xl text-slate-900 tracking-tight">Kolam Renang UNY Scanner</span>
+                            <ScanLine className="w-5 h-5 lg:w-6 lg:h-6 mr-1 lg:mr-2 text-teal-600" />
+                            <span className="hidden sm:inline font-bold text-lg lg:text-xl text-slate-900 tracking-tight">Kolam Renang UNY Scanner</span>
+                            <span className="sm:hidden font-bold text-base text-slate-900">Scanner</span>
                         </div>
-                        <div className="h-6 w-px bg-slate-200 mx-2"></div>
-                        <div className="flex items-center space-x-4 text-sm text-slate-600">
+                        <div className="hidden md:block h-6 w-px bg-slate-200 mx-2"></div>
+                        <div className="hidden md:flex items-center space-x-4 text-sm text-slate-600">
                             <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Calendar className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedShift}</span>
                             <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Tag className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedLocation}</span>
                         </div>
@@ -252,22 +253,22 @@ const ScannerDashboard = () => {
                 </header>
             )}
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 {/* Left Side: Main Scanner Area */}
-                <main className={`flex-1 transition-colors duration-300 ease-out flex flex-col items-center justify-center p-8 ${getMainBg()}`}>
+                <main className={`flex-1 transition-colors duration-300 ease-out flex flex-col items-center justify-center p-4 lg:p-8 ${getMainBg()}`}>
 
-                    <div className="w-full max-w-2xl mx-auto space-y-8">
+                    <div className="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8">
 
                         {/* Status Display */}
                         <div className="text-center">
                             {scanStatus === 'IDLE' && !cameraActive && (
-                                <div className="space-y-6 animate-in fade-in">
-                                    <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
-                                        <Scan className="w-16 h-16 text-slate-400" />
+                                <div className="space-y-4 lg:space-y-6 animate-in fade-in">
+                                    <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                                        <Scan className="w-12 h-12 lg:w-16 lg:h-16 text-slate-400" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('scanner.ready')}</h1>
-                                        <p className="text-lg text-slate-500">{t('scanner.pointScanner')}</p>
+                                        <h1 className="text-2xl lg:text-4xl font-bold text-slate-900 mb-2">{t('scanner.ready')}</h1>
+                                        <p className="text-base lg:text-lg text-slate-500">{t('scanner.pointScanner')}</p>
                                     </div>
                                 </div>
                             )}
@@ -294,35 +295,35 @@ const ScannerDashboard = () => {
                             )}
 
                             {scanStatus === 'PROCESSING' && (
-                                <div className="space-y-6">
-                                    <div className="w-24 h-24 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mx-auto"></div>
-                                    <h2 className="text-2xl font-bold text-slate-700">{t('scanner.processing')}</h2>
+                                <div className="space-y-4 lg:space-y-6">
+                                    <div className="w-20 h-20 lg:w-24 lg:h-24 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mx-auto"></div>
+                                    <h2 className="text-xl lg:text-2xl font-bold text-slate-700">{t('scanner.processing')}</h2>
                                 </div>
                             )}
 
                             {scanStatus === 'VALID' && (
-                                <div className="space-y-6 animate-in zoom-in-95">
-                                    <div className="w-32 h-32 bg-teal-100 rounded-full flex items-center justify-center mx-auto shadow-md">
-                                        <CheckCircle className="w-16 h-16 text-teal-600" />
+                                <div className="space-y-4 lg:space-y-6 animate-in zoom-in-95">
+                                    <div className="w-24 h-24 lg:w-32 lg:h-32 bg-teal-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <CheckCircle className="w-12 h-12 lg:w-16 lg:h-16 text-teal-600" />
                                     </div>
                                     <div>
-                                        <h1 className="text-5xl font-bold text-teal-600 mb-2">{t('scanner.valid')}</h1>
-                                        <p className="text-xl text-teal-800">{t('scanner.accessGranted')}</p>
+                                        <h1 className="text-3xl lg:text-5xl font-bold text-teal-600 mb-2">{t('scanner.valid')}</h1>
+                                        <p className="text-lg lg:text-xl text-teal-800">{t('scanner.accessGranted')}</p>
                                     </div>
                                     <Card className="bg-white/80 backdrop-blur border-teal-200 shadow-lg text-left">
-                                        <CardContent className="p-6 grid grid-cols-2 gap-6">
+                                        <CardContent className="p-4 lg:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
                                             <div>
                                                 <p className="text-slate-500 text-sm font-medium uppercase">{t('scanner.category')}</p>
-                                                <p className="text-2xl font-bold text-slate-900">{scanResult?.ticket?.category_name}</p>
+                                                <p className="text-xl lg:text-2xl font-bold text-slate-900">{scanResult?.ticket?.category_name}</p>
                                             </div>
                                             <div>
                                                 <p className="text-slate-500 text-sm font-medium uppercase">{t('common.code')}</p>
-                                                <p className="text-lg font-mono text-slate-700">{scanResult?.ticket?.ticket_code}</p>
+                                                <p className="text-base lg:text-lg font-mono text-slate-700">{scanResult?.ticket?.ticket_code}</p>
                                             </div>
                                             {scanResult?.ticket?.nim && (
-                                                <div className="col-span-2 pt-4 border-t border-slate-100">
+                                                <div className="col-span-1 sm:col-span-2 pt-4 border-t border-slate-100">
                                                     <p className="text-slate-500 text-sm font-medium uppercase mb-1">{t('scanner.studentId')}</p>
-                                                    <div className="inline-block bg-teal-50 px-3 py-1 rounded text-xl font-mono font-bold text-teal-700 border border-teal-100">
+                                                    <div className="inline-block bg-teal-50 px-3 py-1 rounded text-lg lg:text-xl font-mono font-bold text-teal-700 border border-teal-100">
                                                         {scanResult.ticket.nim}
                                                     </div>
                                                 </div>
@@ -333,32 +334,32 @@ const ScannerDashboard = () => {
                             )}
 
                             {scanStatus === 'USED' && (
-                                <div className="space-y-6 animate-in shake">
-                                    <div className="w-32 h-32 bg-amber-100 rounded-full flex items-center justify-center mx-auto shadow-md">
-                                        <AlertTriangle className="w-16 h-16 text-amber-600" />
+                                <div className="space-y-4 lg:space-y-6 animate-in shake">
+                                    <div className="w-24 h-24 lg:w-32 lg:h-32 bg-amber-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <AlertTriangle className="w-12 h-12 lg:w-16 lg:h-16 text-amber-600" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-bold text-amber-600 mb-2">{t('scanner.used')}</h1>
-                                        <p className="text-lg text-amber-800">{t('scanner.scannedAt')} {new Date(scanResult?.ticket?.scanned_at).toLocaleTimeString()}</p>
+                                        <h1 className="text-2xl lg:text-4xl font-bold text-amber-600 mb-2">{t('scanner.used')}</h1>
+                                        <p className="text-base lg:text-lg text-amber-800">{t('scanner.scannedAt')} {new Date(scanResult?.ticket?.scanned_at).toLocaleTimeString()}</p>
                                     </div>
                                 </div>
                             )}
 
                             {(scanStatus === 'INVALID' || scanStatus === 'ERROR') && (
-                                <div className="space-y-6 animate-in shake">
-                                    <div className="w-32 h-32 bg-rose-100 rounded-full flex items-center justify-center mx-auto shadow-md">
-                                        <XCircle className="w-16 h-16 text-rose-600" />
+                                <div className="space-y-4 lg:space-y-6 animate-in shake">
+                                    <div className="w-24 h-24 lg:w-32 lg:h-32 bg-rose-100 rounded-full flex items-center justify-center mx-auto shadow-md">
+                                        <XCircle className="w-12 h-12 lg:w-16 lg:h-16 text-rose-600" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-bold text-rose-600 mb-2">{t('scanner.invalid')}</h1>
-                                        <p className="text-lg text-rose-800">{scanResult?.message}</p>
+                                        <h1 className="text-2xl lg:text-4xl font-bold text-rose-600 mb-2">{t('scanner.invalid')}</h1>
+                                        <p className="text-base lg:text-lg text-rose-800">{scanResult?.message}</p>
                                     </div>
                                 </div>
                             )}
                         </div>
 
                         {/* Scan Controls */}
-                        <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-md mx-auto space-y-4">
+                        <div className="mt-6 lg:mt-8 pt-6 lg:pt-8 border-t border-slate-200/60 max-w-md mx-auto space-y-4">
                             {/* Camera Toggle Button */}
                             <div className="flex justify-center">
                                 <Button
@@ -402,8 +403,8 @@ const ScannerDashboard = () => {
                     </div>
                 </main>
 
-                {/* Right Side: History Sidebar (Admin Style) */}
-                <aside className="w-80 bg-white border-l border-slate-200 flex flex-col z-20 shadow-sm">
+                {/* Right Side: History Sidebar - Hidden on mobile */}
+                <aside className="hidden lg:flex w-80 bg-white border-l border-slate-200 flex-col z-20 shadow-sm">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                         <h3 className="font-bold text-slate-900 flex items-center">
                             <History className="w-4 h-4 mr-2 text-slate-500" />

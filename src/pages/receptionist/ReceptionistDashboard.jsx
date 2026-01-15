@@ -395,15 +395,15 @@ const ReceptionistDashboard = () => {
       <div className="h-full bg-slate-50 print:hidden" data-testid="receptionist-dashboard">
         {/* Header removed - using Layout Header */}
 
-        <div className="flex h-full">
+        <div className="flex h-full flex-col lg:flex-row">
           {/* Left Panel - Ticket Selection */}
-          <div className="flex-1 p-6 overflow-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('dashboard.clickToSelect')}</h2>
+          <div className="flex-1 p-4 lg:p-6 overflow-auto">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <h2 className="text-lg lg:text-xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>{t('dashboard.clickToSelect')}</h2>
               {/* Shift Selector has been REMOVED as requested */}
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               {categories.length === 0 && <p className="col-span-full text-center text-slate-500 py-10">{t('dashboard.noActiveCategories')}</p>}
               {categories.map(category => {
                 const isSpecial = category.code_prefix === 'K';
@@ -438,8 +438,8 @@ const ReceptionistDashboard = () => {
             </div>
           </div>
 
-          {/* Right Panel - Cart (Basket) */}
-          <div className="w-96 bg-white border-l border-slate-200 p-6 overflow-auto flex flex-col shadow-lg z-10">
+          {/* Right Panel - Cart (Basket) - Hidden on mobile, fixed bottom bar instead */}
+          <div className="hidden lg:flex w-96 bg-white border-l border-slate-200 p-6 overflow-auto flex-col shadow-lg z-10">
             {/* Basket Header - Updated */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <h2 className="text-xl font-bold text-slate-900" style={{ fontFamily: 'Outfit' }}>
@@ -595,6 +595,28 @@ const ReceptionistDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile Cart Bar - Fixed bottom */}
+        {cart.length > 0 && (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-bold">
+                  {getTotalItems()} tiket
+                </div>
+                <span className="text-lg font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
+              </div>
+              <Button
+                onClick={handleProcessTickets}
+                disabled={printing || hasNimErrors()}
+                className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-sm font-semibold disabled:opacity-50 text-white"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                {printing ? '...' : 'Checkout'}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Ticket Preview Modal */}

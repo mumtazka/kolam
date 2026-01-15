@@ -432,10 +432,10 @@ const ReceptionistHistory = () => {
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Stats Cards - Left Side */}
                         <div className="flex flex-col sm:flex-row lg:flex-col gap-6 lg:w-80 flex-shrink-0">
-                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                            <div className="flex-1 bg-white p-4 lg:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[140px] lg:h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 lg:w-7 lg:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
                                             <path d="M13 5v2" />
                                             <path d="M13 17v2" />
@@ -447,14 +447,14 @@ const ReceptionistHistory = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
+                                    <p className="text-2xl lg:text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                            <div className="flex-1 bg-white p-4 lg:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[140px] lg:h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 lg:w-7 lg:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                             <circle cx="9" cy="7" r="4" />
                                             <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -466,14 +466,14 @@ const ReceptionistHistory = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
+                                    <p className="text-2xl lg:text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+                            <div className="flex-1 bg-white p-4 lg:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[140px] lg:h-[180px] group">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
-                                        <span className="text-2xl font-bold">Rp</span>
+                                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+                                        <span className="text-lg lg:text-2xl font-bold">Rp</span>
                                     </div>
                                     <div className="flex flex-col items-end">
                                         <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
@@ -690,8 +690,8 @@ const ReceptionistHistory = () => {
                             <h3 className="text-lg font-bold text-slate-800 mb-4">
                                 {t('reports.ticketHistory')} ({reportData.tickets.length})
                             </h3>
-                            <div className="border border-slate-200 rounded-xl overflow-hidden">
-                                <table className="w-full text-sm">
+                            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                                <table className="w-full text-sm min-w-[800px]">
                                     <thead className="bg-slate-50 border-b border-slate-200">
                                         <tr>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">No</th>

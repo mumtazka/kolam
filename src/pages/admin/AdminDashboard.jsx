@@ -127,21 +127,21 @@ const AdminDashboard = () => {
     <div className="space-y-6">
 
       {/* Stats Grid - "Card UI" Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className={`relative p-6 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[6px] border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default h-[180px] flex flex-col justify-between`}>
+            <Card key={index} className={`relative p-4 md:p-6 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[4px] md:border-l-[6px] border-b-[4px] md:border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default h-[140px] md:h-[180px] flex flex-col justify-between`}>
               <div className="flex justify-between items-start">
-                <div className={`p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-105 transition-transform duration-300 flex items-center justify-center w-14 h-14`}>
-                  <Icon className={`w-7 h-7 ${stat.iconColor}`} strokeWidth={2.5} />
+                <div className={`p-2 md:p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-105 transition-transform duration-300 flex items-center justify-center w-10 h-10 md:w-14 md:h-14`}>
+                  <Icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.iconColor}`} strokeWidth={2.5} />
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[11px] font-bold tracking-wider text-teal-600 uppercase text-right leading-tight mb-1">{stat.label}</span>
+                  <span className="text-[9px] md:text-[11px] font-bold tracking-wider text-teal-600 uppercase text-right leading-tight mb-1">{stat.label}</span>
                 </div>
               </div>
               <div className="mt-4">
-                <span className="text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
+                <span className="text-xl md:text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
               </div>
             </Card>
           );
@@ -153,10 +153,10 @@ const AdminDashboard = () => {
         {/* Left Column: Chart & Actions */}
         <div className="lg:col-span-2 space-y-6">
           {/* Premium Visits Chart */}
-          <Card className="p-6 border-0 shadow-sm">
+          <Card className="p-4 md:p-6 border-0 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h2 className="text-3xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                <h2 className="text-xl md:text-3xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>
                   {t('admin.visitsChart')}
                 </h2>
 
@@ -164,7 +164,7 @@ const AdminDashboard = () => {
 
             </div>
 
-            <div className="h-[350px] w-full">
+            <div className="h-[250px] md:h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={visitsChartData}
@@ -232,26 +232,26 @@ const AdminDashboard = () => {
           {/* Quick Actions & System Status Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Quick Actions */}
-            <Card className="p-6 h-full flex flex-col justify-center">
-              <div className="flex gap-4 h-full">
+            <Card className="p-4 md:p-6 h-full flex flex-col justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 h-full">
                 <Button
-                  className="flex-1 h-full flex flex-col items-center justify-center text-center p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-teal-500 transition-all font-medium rounded-xl space-y-3 group"
+                  className="flex-1 h-auto sm:h-full flex flex-col items-center justify-center text-center p-3 md:p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-teal-500 transition-all font-medium rounded-xl space-y-2 md:space-y-3 group"
                   variant="ghost"
                   onClick={() => navigate('/admin/reports')}
                 >
                   <div className="p-3 bg-slate-50 rounded-full group-hover:bg-teal-50 transition-colors">
-                    <Activity className="w-8 h-8 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                    <Activity className="w-6 h-6 md:w-8 md:h-8 text-slate-400 group-hover:text-teal-600 transition-colors" />
                   </div>
                   <span className="text-sm font-bold group-hover:text-teal-700 transition-colors">{t('admin.viewTodayReport')}</span>
                 </Button>
 
                 <Button
-                  className="flex-1 h-full flex flex-col items-center justify-center text-center p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-indigo-500 transition-all font-medium rounded-xl space-y-3 group"
+                  className="flex-1 h-auto sm:h-full flex flex-col items-center justify-center text-center p-3 md:p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-indigo-500 transition-all font-medium rounded-xl space-y-2 md:space-y-3 group"
                   variant="ghost"
                   onClick={() => navigate('/admin/categories')}
                 >
                   <div className="p-3 bg-slate-50 rounded-full group-hover:bg-indigo-50 transition-colors">
-                    <Ticket className="w-8 h-8 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                    <Ticket className="w-6 h-6 md:w-8 md:h-8 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                   </div>
                   <span className="text-sm font-bold group-hover:text-indigo-700 transition-colors">{t('admin.updatePrices')}</span>
                 </Button>
@@ -259,21 +259,21 @@ const AdminDashboard = () => {
             </Card>
 
             {/* System Status - Digital Clock */}
-            <Card className="p-6 h-full relative overflow-hidden bg-slate-900 text-white flex flex-col items-center justify-center">
+            <Card className="p-4 md:p-6 h-full relative overflow-hidden bg-slate-900 text-white flex flex-col items-center justify-center min-h-[150px]">
               {/* Background ambient glow */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500 rounded-full blur-[80px] opacity-20"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500 rounded-full blur-[80px] opacity-20"></div>
 
               <div className="relative z-10 flex flex-col items-center">
                 {/* Removed Header Text */}
-                <div className="text-5xl font-bold font-mono tracking-wider tabular-nums">
+                <div className="text-3xl md:text-5xl font-bold font-mono tracking-wider tabular-nums">
                   {currentTime.toLocaleTimeString('en-GB', { hour12: false })}
                 </div>
-                <div className="mt-2 text-sm font-medium text-slate-400 bg-white/10 px-3 py-1 rounded-full border border-white/5">
+                <div className="mt-2 text-xs md:text-sm font-medium text-slate-400 bg-white/10 px-2 md:px-3 py-1 rounded-full border border-white/5">
                   {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
 
-                <div className="mt-8 flex items-center gap-2">
+                <div className="mt-4 md:mt-8 flex items-center gap-2">
                   {/* Operational Status Removed */}
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
