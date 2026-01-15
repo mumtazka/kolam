@@ -30,13 +30,13 @@ const AdminLayout = () => {
     { path: '/admin/users', label: t('admin.staffManagement'), icon: Users, subtitle: t('admin.usersSubtitle') },
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket, subtitle: t('admin.categoriesSubtitle') },
     { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: t('admin.sessionsSubtitle') },
-    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: SpecialTicketIcon, subtitle: 'Kelola paket harga khusus (contoh: Rombongan)' },
+    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: SpecialTicketIcon, subtitle: 'Kelola paket harga khusus' },
     { path: '/admin/pools', label: t('admin.pools'), icon: PoolManagementIcon, subtitle: t('admin.poolsSubtitle') },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock, subtitle: t('shift.subtitle') },
-    { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: t('reports.viewReports') },
+    { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: 'Lihat analisis penjualan dan operasional.' },
     // Cross-role Navigation
-    { path: '/admin/pos', label: 'Kasir / Print', icon: Printer, subtitle: 'Mode Kasir (Admin)' },
-    { path: '/admin/scan', label: 'Scanner', icon: ScanLine, subtitle: 'Mode Scanner (Admin)' },
+    { path: '/admin/pos', label: 'Kasir / Print', icon: Printer, subtitle: 'Mode Kasir' },
+    { path: '/admin/scan', label: 'Scanner', icon: ScanLine, subtitle: 'Mode Scanner' },
   ];
 
   // Determine Page Title and Subtitle
