@@ -486,12 +486,12 @@ const CategoryManagement = () => {
             <ConfirmDialog
                 open={confirmDialog.open}
                 onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-                title="Hapus Kategori Tiket"
-                description="Apakah Anda yakin ingin menghapus kategori ini? Semua data tiket dan log scan yang terkait dengan kategori ini juga akan dihapus secara permanen."
+                title={t('admin.deleteCategoryTitle')}
+                description={t('admin.deleteCategoryConfirm')}
                 onConfirm={confirmDelete}
                 onCancel={() => setConfirmDialog({ open: false, categoryId: null })}
-                confirmText="Ya, Hapus Kategori"
-                cancelText="Batal"
+                confirmText={t('admin.deleteCategoryYes')}
+                cancelText={t('common.cancel')}
                 variant="danger"
             />
         </div>

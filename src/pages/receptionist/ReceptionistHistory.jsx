@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { ChevronDown, Download, ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown } from 'lucide-react';
+import { ChevronDown, Download, ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown, RefreshCw } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -348,22 +348,36 @@ const ReceptionistHistory = () => {
             const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
             const rows = sortedTickets.map((ticket, index) => {
                 const date = new Date(ticket.created_at);
+                const quantity = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : (ticket.quantity || 1);
+                const unitPrice = parseFloat(ticket.price || 0);
+                const rowTotal = ticket.max_usage && ticket.max_usage > 1 ? (unitPrice * ticket.max_usage) : unitPrice;
+
                 return [
                     index + 1,
                     ticket.ticket_code || `TKT-${ticket.id?.substring(0, 8)?.toUpperCase()}`,
                     ticket.category_name,
-                    ticket.nim ? `\t${ticket.nim}` : '-', // Force text format for NIM
+                    ticket.nim ? `\t${ticket.nim}` : '-',
                     ticket.created_by_name,
-                    ticket.quantity || 1,
-                    ticket.price,
+                    quantity,
+                    rowTotal,
                     ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai',
                     date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US'),
                     date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US')
                 ];
             });
 
-            const totalRevenue = sortedTickets.reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
-            rows.push(['', '', '', '', 'TOTAL', sortedTickets.length, totalRevenue, '', '', '']);
+            const totalRevenue = sortedTickets.reduce((sum, t) => {
+                const p = parseFloat(t.price || 0);
+                const m = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+                return sum + (p * m);
+            }, 0);
+
+            const totalQuantity = sortedTickets.reduce((sum, t) => {
+                const m = t.max_usage && t.max_usage > 1 ? t.max_usage : (t.quantity || 1);
+                return sum + m;
+            }, 0);
+
+            rows.push(['', '', '', '', 'TOTAL', totalQuantity, totalRevenue, '', '', '']);
 
             const csvContent = 'sep=;\n' + [headers, ...rows]
                 .map(row => row.map(cell => `"${cell || ''}"`).join(';'))
@@ -533,7 +547,7 @@ const ReceptionistHistory = () => {
 
                                                     {/* Bar */}
                                                     <div
-                                                        className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-xl transition-all duration-700 relative shadow-lg hover:shadow-xl cursor-pointer transform hover:scale-105 hover:brightness-110`}
+                                                        className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-xl transition-all duration-700 relative shadow-lg hover:shadow-xl cursor-pointer transform hover:brightness-110`}
                                                         style={{
                                                             height: `${percentage}%`,
                                                             minHeight: '40px'
@@ -616,8 +630,8 @@ const ReceptionistHistory = () => {
                         <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
                         {/* Refresh Button */}
-                        <Button onClick={fetchReport} size="sm" className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all">
-                            {t('common.refresh') || "Refresh"}
+                        <Button onClick={fetchReport} size="sm" className="h-10 w-10 p-0 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center">
+                            <RefreshCw className="w-5 h-5" />
                         </Button>
 
                         {/* Sort Button */}
@@ -692,7 +706,7 @@ const ReceptionistHistory = () => {
                                                     <td className="px-4 py-3 text-slate-600">
                                                         {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
                                                     </td>
-                                                    <td className="px-4 py-3 font-mono text-xs text-teal-600 font-semibold">
+                                                    <td className="px-4 py-3 font-mono text-xs text-teal-700 font-semibold">
                                                         {ticket.ticket_code || ticket.id?.substring(0, 8)}
                                                     </td>
                                                     <td className="px-4 py-3 font-medium text-slate-800">

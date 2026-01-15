@@ -1,5 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#0ea5e9"/>
-  <path d="M20 60 C 40 50, 60 70, 80 60" stroke="white" stroke-width="8" fill="none" stroke-linecap="round"/>
-  <path d="M20 40 C 40 30, 60 50, 80 40" stroke="white" stroke-width="8" fill="none" stroke-linecap="round"/>
+<svg width="512" height="512" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" rx="20" fill="#0f172a" />
+  
+  <!-- Head -->
+  <circle cx="68" cy="35" r="8" stroke="#14b8a6" stroke-width="6" />
+  
+  <!-- Body / Arm -->
+  <path 
+    d="M25 45 C 25 45, 35 35, 50 40 C 65 45, 60 55, 55 60 L 45 55" 
+    stroke="#14b8a6" 
+    stroke-width="6" 
+    stroke-linecap="round" 
+    stroke-linejoin="round" 
+  />
+  
+  <!-- Arm extended -->
+  <path
+    d="M50 40 L 30 35"
+    stroke="#14b8a6"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+
+  <!-- Waves -->
+  <path
+    d="M20 65 Q 35 55 50 65 T 80 65"
+    stroke="#14b8a6"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+  <path
+    d="M20 78 Q 35 68 50 78 T 80 78"
+    stroke="#14b8a6"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
 </svg>

@@ -6,11 +6,14 @@ import { Button } from '../../components/ui/button';
 import Header from '../../components/layout/Header';
 import {
     Printer,
-    Calendar,
     History,
-    MapPin,
-    BarChart3
+    BarChart3,
+    CalendarDays
 } from 'lucide-react';
+
+import PoolLogo from '../../components/ui/PoolLogo';
+// Custom Icons
+import PoolManagementIcon from '../../components/ui/icons/PoolManagementIcon';
 
 const ReceptionistLayout = () => {
     const { user, logout } = useAuth();
@@ -22,8 +25,8 @@ const ReceptionistLayout = () => {
     // Define menu items for Receptionist
     const menuItems = [
         { path: '/receptionist', label: 'Cetak Tiket', icon: Printer, subtitle: 'Pilih kategori tiket untuk dicetak' },
-        { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: Calendar, subtitle: 'Lihat jadwal dan sesi kolam renang' },
-        { path: '/receptionist/pools', label: 'Info Kolam', icon: MapPin, subtitle: 'Informasi fasilitas kolam renang' },
+        { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: 'Lihat jadwal dan sesi kolam renang' },
+        { path: '/receptionist/pools', label: 'Info Kolam', icon: PoolManagementIcon, subtitle: 'Informasi fasilitas kolam renang' },
         { path: '/receptionist/history', label: 'Laporan', icon: BarChart3, subtitle: 'Laporan harian penjualan tiket anda' },
     ];
 
@@ -44,8 +47,13 @@ const ReceptionistLayout = () => {
                 <div className="flex flex-col h-full">
                     {/* Brand */}
                     <div className="p-6 border-b border-slate-800">
-                        <h1 className="text-2xl font-bold" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
-                        <p className="text-sm text-slate-400 mt-1">Resepsionis</p>
+                        <div className="flex items-center gap-4">
+                            <PoolLogo className="w-12 h-12 rounded-xl shadow-lg shadow-teal-900/50" />
+                            <div>
+                                <h1 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
+                                <p className="text-xs text-slate-400 mt-1 font-medium">Resepsionis</p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Navigation */}

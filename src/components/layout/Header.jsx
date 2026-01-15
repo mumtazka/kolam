@@ -62,7 +62,7 @@ const Header = ({ title, subtitle, sidebarOpen, setSidebarOpen }) => {
                     <button
                         onClick={() => changeLanguage('id')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 ${language === 'id'
-                            ? 'bg-white text-sky-600 shadow-sm'
+                            ? 'bg-white text-teal-600 shadow-sm'
                             : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
@@ -71,7 +71,7 @@ const Header = ({ title, subtitle, sidebarOpen, setSidebarOpen }) => {
                     <button
                         onClick={() => changeLanguage('en')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-200 ${language === 'en'
-                            ? 'bg-white text-sky-600 shadow-sm'
+                            ? 'bg-white text-teal-600 shadow-sm'
                             : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
@@ -87,7 +87,7 @@ const Header = ({ title, subtitle, sidebarOpen, setSidebarOpen }) => {
                                 <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name}</p>
                                 <p className="text-xs text-slate-500">{user?.role === 'admin' ? t('admin.panel') : 'Staff'}</p>
                             </div>
-                            <div className="w-8 h-8 md:w-9 md:h-9 bg-sky-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white">
+                            <div className="w-8 h-8 md:w-9 md:h-9 bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white">
                                 {user?.name?.charAt(0).toUpperCase()}
                             </div>
                             <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />

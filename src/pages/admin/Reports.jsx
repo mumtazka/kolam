@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
+import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X, RefreshCw, ArrowUpDown } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -279,22 +279,41 @@ const Reports = () => {
       const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
       const rows = tickets.map((ticket, index) => {
         const date = new Date(ticket.created_at);
+        const quantity = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : (ticket.quantity || 1);
+        const unitPrice = parseFloat(ticket.price || 0);
+        // If max_usage > 1, the ticket.price is treated as unit price in the UI, so we multiply for total value
+        // If it's a standard ticket, ticket.price is the total price.
+        // Logic matches the table display logic.
+        const rowTotal = ticket.max_usage && ticket.max_usage > 1 ? (unitPrice * ticket.max_usage) : unitPrice;
+
         return [
           index + 1,
           ticket.ticket_code || `TKT-${ticket.id?.substring(0, 8)?.toUpperCase()}`,
           ticket.category_name,
-          ticket.nim ? `\t${ticket.nim}` : '-', // Force text format for NIM
+          ticket.nim ? `\t${ticket.nim}` : '-',
           ticket.created_by_name,
-          ticket.quantity || 1,
-          ticket.price,
+          quantity,
+          rowTotal,
           ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai',
           date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US'),
           date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US')
         ];
       });
 
-      const totalRevenue = tickets.reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
-      rows.push(['', '', '', '', 'TOTAL', tickets.length, totalRevenue, '', '', '']);
+      const totalRevenue = tickets.reduce((sum, t) => {
+        const p = parseFloat(t.price || 0);
+        const m = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
+        return sum + (p * m); // Assuming price is unit price for packages, same as rowTotal logic
+        // Wait, for standard tickets (m=1), p * 1 = p. Correct.
+        // For packages (m=10), p * 10. Correct.
+      }, 0);
+
+      const totalQuantity = tickets.reduce((sum, t) => {
+        const m = t.max_usage && t.max_usage > 1 ? t.max_usage : (t.quantity || 1);
+        return sum + m;
+      }, 0);
+
+      rows.push(['', '', '', '', 'TOTAL', totalQuantity, totalRevenue, '', '', '']);
 
       const csvContent = 'sep=;\n' + [headers, ...rows]
         .map(row => row.map(cell => `"${cell || ''}"`).join(';'))
@@ -465,7 +484,7 @@ const Reports = () => {
 
                           {/* Bar */}
                           <div
-                            className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-2xl transition-all duration-700 relative shadow-lg group-hover:shadow-xl cursor-help transform group-hover:scale-105 group-hover:brightness-105`}
+                            className={`w-full bg-gradient-to-t ${colors[idx % colors.length]} rounded-t-2xl transition-all duration-700 relative shadow-lg group-hover:shadow-xl cursor-help transform group-hover:brightness-105`}
                             style={{
                               height: `${percentage}%`,
                               minHeight: '40px'
@@ -589,8 +608,8 @@ const Reports = () => {
 
             <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-            <Button onClick={fetchReport} size="sm" className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-sm hover:shadow transition-all">
-              {t('common.refresh')}
+            <Button onClick={fetchReport} size="sm" className="h-10 w-10 p-0 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center">
+              <RefreshCw className="w-5 h-5" />
             </Button>
             {reportData?.tickets?.length > 0 && (
               <Button onClick={exportToExcel} variant="outline" size="sm" className="h-10 px-4 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-teal-200 rounded-lg transition-all">
@@ -660,7 +679,7 @@ const Reports = () => {
                             {(historyPage - 1) * HISTORY_PER_PAGE + idx + 1}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-xs text-teal-600 font-bold bg-teal-50 px-2 py-1 rounded-md border border-teal-100 group-hover:border-teal-200 transition-colors">
+                            <span className="font-mono text-xs text-teal-700 font-bold">
                               {ticket.ticket_code || ticket.id?.substring(0, 8)}
                             </span>
                           </td>

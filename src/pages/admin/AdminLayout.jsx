@@ -8,12 +8,15 @@ import {
   LayoutDashboard,
   Users,
   Ticket,
-  Clock,
-  Package,
-  MapPin,
+  Clock, // Keep Clock for Shift Management if needed, or remove if unused for Shifts
   BarChart3,
-  Layers
+  CalendarDays
 } from 'lucide-react';
+
+import PoolLogo from '../../components/ui/PoolLogo';
+// Custom Icons
+import PoolManagementIcon from '../../components/ui/icons/PoolManagementIcon';
+import SpecialTicketIcon from '../../components/ui/icons/SpecialTicketIcon';
 
 const AdminLayout = () => {
   const { t } = useLanguage();
@@ -24,9 +27,9 @@ const AdminLayout = () => {
     { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, subtitle: t('admin.welcomeBack') },
     { path: '/admin/users', label: t('admin.staffManagement'), icon: Users, subtitle: t('admin.usersSubtitle') },
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket, subtitle: t('admin.categoriesSubtitle') },
-    { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: Clock, subtitle: t('admin.sessionsSubtitle') },
-    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: Layers, subtitle: 'Kelola paket harga khusus (contoh: Rombongan)' },
-    { path: '/admin/pools', label: t('admin.pools'), icon: MapPin, subtitle: t('admin.poolsSubtitle') },
+    { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: t('admin.sessionsSubtitle') },
+    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: SpecialTicketIcon, subtitle: 'Kelola paket harga khusus (contoh: Rombongan)' },
+    { path: '/admin/pools', label: t('admin.pools'), icon: PoolManagementIcon, subtitle: t('admin.poolsSubtitle') },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock, subtitle: t('shift.subtitle') },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: t('reports.viewReports') },
   ];
@@ -46,8 +49,13 @@ const AdminLayout = () => {
         <div className="flex flex-col h-full">
           {/* Brand */}
           <div className="p-6 border-b border-slate-800">
-            <h1 className="text-2xl font-bold" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
-            <p className="text-sm text-slate-400 mt-1">{t('admin.panel')}</p>
+            <div className="flex items-center gap-4">
+              <PoolLogo className="w-12 h-12 rounded-xl shadow-lg shadow-teal-900/50" />
+              <div>
+                <h1 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Outfit' }}>Kolam Renang UNY</h1>
+                <p className="text-xs text-slate-400 mt-1 font-medium">{t('admin.panel')}</p>
+              </div>
+            </div>
           </div>
 
           {/* Navigation */}
