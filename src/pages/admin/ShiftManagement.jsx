@@ -146,11 +146,11 @@ const ShiftManagement = () => {
     // Get role badge color (for main role column)
     const getRoleBadgeColor = (role) => {
         switch (role) {
-            case 'ADMIN': return 'bg-purple-100 text-purple-700';
-            // Staff gets blue
-            case 'RECEPTIONIST': return 'bg-teal-100 text-teal-700';
-            case 'SCANNER': return 'bg-teal-100 text-teal-700';
-            default: return 'bg-slate-100 text-slate-500';
+            case 'ADMIN': return 'text-purple-700';
+            // Staff gets teal
+            case 'RECEPTIONIST': return 'text-teal-700';
+            case 'SCANNER': return 'text-teal-700';
+            default: return 'text-slate-500';
         }
     };
 
@@ -299,7 +299,7 @@ const ShiftManagement = () => {
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-600">{staff.email}</td>
                                         <td className="px-4 py-3 text-center">
-                                            <span className={cn("text-sm font-medium", getRoleBadgeColor(staff.default_role).replace('bg-purple-100', '').replace('bg-blue-100', '').replace('px-3', '').replace('py-1', '').replace('rounded-full', ''))}>
+                                            <span className={cn("text-sm font-bold", getRoleBadgeColor(staff.default_role))}>
                                                 {getRoleLabel(staff.default_role)}
                                             </span>
                                         </td>

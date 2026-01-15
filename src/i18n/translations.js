@@ -208,7 +208,7 @@ export const translations = {
             reports: 'Laporan',
             panel: 'Admin',
             // Category Management
-            categoriesSubtitle: 'Kelola kategori tiket, prefix, dan harga',
+            categoriesSubtitle: 'Kelola kategori dan harga tiket',
             addCategory: 'Tambah Kategori',
             editCategory: 'Ubah Kategori',
             newCategory: 'Kategori Baru',
@@ -594,7 +594,7 @@ export const translations = {
             reports: 'Reports',
             panel: 'Admin',
             // Category Management
-            categoriesSubtitle: 'Manage ticket categories, prefixes, and pricing',
+            categoriesSubtitle: 'Manage ticket categories and pricing',
             addCategory: 'Add Category',
             editCategory: 'Edit Category',
             newCategory: 'New Category',
