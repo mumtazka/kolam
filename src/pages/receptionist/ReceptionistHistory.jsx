@@ -431,45 +431,53 @@ const ReceptionistHistory = () => {
                 {!loading && !error && reportData && (
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Stats Cards - Left Side */}
-                        <div className="flex flex-row lg:flex-col gap-4 lg:w-80 flex-shrink-0">
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                                        <path d="M3 6h18" />
-                                        <path d="M16 10a4 4 0 0 1-8 0" />
-                                    </svg>
+                        <div className="flex flex-row lg:flex-col gap-6 lg:w-80 flex-shrink-0">
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                                <div className="flex justify-between items-start">
+                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                                            <path d="M3 6h18" />
+                                            <path d="M16 10a4 4 0 0 1-8 0" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
-                                    <p className="text-2xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
+                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M5 12h14" />
-                                        <path d="M12 5l7 7-7 7" />
-                                    </svg>
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                                <div className="flex justify-between items-start">
+                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M5 12h14" />
+                                            <path d="M12 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
-                                    <p className="text-2xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
+                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-5 py-4 rounded-xl border border-teal-100 shadow-sm flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-                                        <path d="M12 18V6" />
-                                    </svg>
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                                <div className="flex justify-between items-start">
+                                    <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
+                                        <span className="text-2xl font-bold">Rp</span>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <p className="text-xs text-teal-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-teal-500 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
-                                    <p className="text-xl font-bold text-slate-800">
+                                    <p className="text-3xl font-bold text-slate-800">
                                         Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                                     </p>
                                 </div>

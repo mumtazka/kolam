@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { ScrollArea } from '../../components/ui/scroll-area';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown, Monitor, Camera, CameraOff } from 'lucide-react';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown, Monitor, Camera, CameraOff, ScanLine } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
