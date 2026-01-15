@@ -98,7 +98,7 @@ const ReceptionistSchedule = () => {
                                     cell: "h-14 w-14 text-center text-lg p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                                     day: "h-14 w-14 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors text-lg",
                                     day_range_end: "day-range-end",
-                                    day_selected: "bg-teal-600 text-white hover:bg-teal-600 hover:text-white focus:bg-teal-600 focus:text-white",
+                                    day_selected: "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white",
                                     day_today: "bg-slate-100 text-slate-900 font-bold",
                                     day_outside: "day-outside text-slate-300 opacity-50 aria-selected:bg-slate-100/50 aria-selected:text-slate-500 aria-selected:opacity-30",
                                     day_disabled: "text-slate-300 opacity-50",
@@ -186,7 +186,7 @@ const ReceptionistSchedule = () => {
                                             </div>
 
                                             <div className="text-right">
-                                                <div className="inline-flex items-center bg-teal-500 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                <div className="inline-flex items-center bg-slate-900 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
                                                     {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                 </div>
                                                 <p className="text-slate-400 text-xs font-medium">
@@ -227,16 +227,18 @@ const ReceptionistSchedule = () => {
                                 <tbody className="divide-y divide-slate-100">
                                     {sessions.filter(s => {
                                         if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                        if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                         return true;
                                     }).length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                            <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
                                                 {t('admin.noSessions')}
                                             </td>
                                         </tr>
                                     ) : (
                                         sessions.filter(s => {
                                             if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
+                                            if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                             return true;
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
