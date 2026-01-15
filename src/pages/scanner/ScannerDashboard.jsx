@@ -132,7 +132,7 @@ const ScannerDashboard = () => {
         if (scanTimeout.current) clearTimeout(scanTimeout.current);
         scanTimeout.current = setTimeout(() => {
             setScanStatus('IDLE');
-        }, 3000);
+        }, 1500);
     };
 
     // Manual Submit
@@ -146,6 +146,10 @@ const ScannerDashboard = () => {
     // Keyboard listener for Scanner Hardware
     useEffect(() => {
         const handleKeyDown = (e) => {
+            // Prevent double-processing if user is typing in the input field
+            // or if scanner types into the focused input field
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
             // Check timing to differentiate fast scan from manual typing
             const currentTime = Date.now();
             if (currentTime - lastKeyTime.current > 100) {
@@ -267,7 +271,7 @@ const ScannerDashboard = () => {
                             )}
 
                             {/* Camera Scanner View */}
-                            {cameraActive && scanStatus === 'IDLE' && (
+                            {cameraActive && (
                                 <div className="space-y-4 animate-in fade-in w-full max-w-sm mx-auto">
                                     <CameraScanner
                                         active={cameraActive}

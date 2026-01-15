@@ -405,28 +405,36 @@ const ReceptionistDashboard = () => {
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {categories.length === 0 && <p className="col-span-full text-center text-slate-500 py-10">{t('dashboard.noActiveCategories')}</p>}
-              {categories.map(category => (
-                <Card
-                  key={category.id}
-                  className="p-4 cursor-pointer ticket-category-card hover:border-sky-500 transition-colors shadow-sm"
-                  onClick={() => addToCart(category)}
-                  data-testid={`ticket-category-${category.id}`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">{category.name}</h3>
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{category.description}</p>
+              {categories.map(category => {
+                const isSpecial = category.code_prefix === 'K';
+                return (
+                  <Card
+                    key={category.id}
+                    className={`p-4 cursor-pointer ticket-category-card transition-colors shadow-sm ${isSpecial
+                      ? 'bg-slate-900 text-white border-slate-700 hover:border-sky-500'
+                      : 'hover:border-sky-500'
+                      }`}
+                    onClick={() => addToCart(category)}
+                    data-testid={`ticket-category-${category.id}`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className={`text-base font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
+                        <p className={`text-xs mt-0.5 line-clamp-1 ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description}</p>
+                      </div>
+                      <Ticket className={`w-6 h-6 ${isSpecial ? 'text-sky-400' : 'text-sky-500'} opacity-80`} />
                     </div>
-                    <Ticket className="w-6 h-6 text-sky-500 opacity-80" />
-                  </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                    <span className="text-lg font-bold text-slate-900">Rp {category.price.toLocaleString('id-ID')}</span>
-                    <Button size="icon" className="h-7 w-7 rounded-full bg-slate-900 hover:bg-slate-800">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+                    <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-100'}`}>
+                      <span className={`text-lg font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
+                        {category.code_prefix === 'K' ? 'Pilih Paket' : `Rp ${category.price.toLocaleString('id-ID')}`}
+                      </span>
+                      <Button size="icon" className={`h-7 w-7 rounded-full ${isSpecial ? 'bg-white text-slate-900 hover:bg-slate-200' : 'bg-slate-900 hover:bg-slate-800'}`}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -690,36 +698,7 @@ const ReceptionistDashboard = () => {
 
             <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
               <div className="space-y-4">
-                {/* Option 1: Satuan (Default) */}
-                <div
-                  onClick={handleNoPackageSelect}
-                  className="bg-white p-4 rounded-xl border-2 border-slate-200 hover:border-slate-900 cursor-pointer transition-all hover:shadow-md group"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-slate-900 transition-colors">
-                        <Ticket className="w-6 h-6 text-slate-500 group-hover:text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-lg text-slate-900">Tiket Satuan / Normal</h4>
-                        <p className="text-sm text-slate-500">Harga normal per orang, tanpa minimum jumlah.</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="block text-xl font-bold text-slate-900">Rp {selectedCategoryForPackage.price.toLocaleString('id-ID')}</span>
-                      <span className="text-xs text-slate-500">per orang</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="bg-slate-50 px-2 text-sm text-gray-500 font-medium">ATAU PILIH PAKET</span>
-                  </div>
-                </div>
 
                 {/* Option 2: Packages */}
                 {ticketPackages.length === 0 ? (
@@ -804,42 +783,78 @@ const ReceptionistDashboard = () => {
                -webkit-print-color-adjust: exact;
                print-color-adjust: exact;
              }
+
+             .printable-ticket.isSpecial {
+                background-color: black !important;
+                color: white !important;
+             }
+             
+             .printable-ticket.isSpecial .tick-h2, 
+             .printable-ticket.isSpecial .tick-h3, 
+             .printable-ticket.isSpecial .tick-val,
+             .printable-ticket.isSpecial .tick-label,
+             .printable-ticket.isSpecial p,
+             .printable-ticket.isSpecial span,
+             .printable-ticket.isSpecial h2,
+             .printable-ticket.isSpecial h3 {
+                color: white !important;
+             }
+             
+             .printable-ticket.isSpecial .tick-qr {
+                background: white;
+                padding: 4px;
+                border-radius: 4px;
+             }
+
+             .printable-ticket.isSpecial .border-black {
+                border-color: white !important;
+             }
+             
+             .printable-ticket.isSpecial .bg-black {
+                background-color: white !important;
+             }
            `}
         </style>
 
-        {printedTickets.map((ticket) => (
-          <div key={ticket.id} className="printable-ticket">
-            {/* Header */}
-            <div className="text-center mb-1 px-1">
-              <h2 className="text-base font-bold uppercase leading-tight">Kolam Renang UNY</h2>
-              <h3 className="text-xs font-semibold mt-0.5 uppercase">{ticket.category_name}</h3>
-            </div>
+        {printedTickets.map((ticket) => {
+          // Identify if ticket is special (starts with K)
+          // Check generated code or preview code (PREVIEW-K-...)
+          const isSpecial = ticket.ticket_code.startsWith('K') || (ticket.ticket_code.startsWith('PREVIEW') && ticket.category_name.toLowerCase().includes('khusus'));
 
-            {/* QR Code - Centered & Safe Range for 80mm */}
-            <div className="flex justify-center my-2 overflow-hidden" style={{ maxWidth: '70mm', margin: '0 auto' }}>
-              <QRCode
-                value={ticket.ticket_code}
-                size={120}
-              />
-            </div>
+          return (
+            <div key={ticket.id} className={`printable-ticket ${isSpecial ? 'isSpecial' : ''}`}>
+              {/* Header */}
+              <div className="text-center mb-1 px-1">
+                <h2 className="text-base font-bold uppercase leading-tight">Kolam Renang UNY</h2>
+                <h3 className="text-xs font-semibold mt-0.5 uppercase">{ticket.category_name}</h3>
+              </div>
 
-            {/* Ticket Details */}
-            <div className="space-y-0.5 font-mono text-[10px] uppercase px-1 leading-tight">
-              <p className="flex justify-between"><span>CODE:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
-              <p className="flex justify-between"><span>PRICE:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
-              {ticket.nim && <p className="flex justify-between"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
-              <p className="flex justify-between"><span>DATE:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
-                day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
-              })}</span></p>
-            </div>
+              {/* QR Code - Centered & Safe Range for 80mm */}
+              <div className="tick-qr flex justify-center my-2 overflow-hidden" style={{ maxWidth: '70mm', margin: '8px auto' }}>
+                <QRCode
+                  value={ticket.ticket_code}
+                  size={120}
+                />
+              </div>
 
-            {/* Footer */}
-            <div className="text-center pt-2 mt-2 border-t border-black border-dashed mx-1">
-              <p className="font-bold text-[9px]">{t('scanner.ticketValidOneTime')}</p>
-              <p className="text-[9px]">{t('scanner.ticketNoRefund')}</p>
+              {/* Ticket Details */}
+              <div className="space-y-0.5 font-mono text-[10px] uppercase px-1 leading-tight">
+                <p className="flex justify-between"><span>CODE:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
+                <p className="flex justify-between"><span>PRICE:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
+                {ticket.nim && <p className="flex justify-between"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
+                <p className="flex justify-between"><span>DATE:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
+                  day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                })}</span></p>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center pt-2 mt-2 border-t border-black border-dashed mx-1">
+                <p className="font-bold text-[9px]">{t('scanner.ticketValidOneTime')}</p>
+                <p className="text-[9px]">{t('scanner.ticketNoRefund')}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

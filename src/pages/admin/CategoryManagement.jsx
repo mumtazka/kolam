@@ -365,92 +365,106 @@ const CategoryManagement = () => {
 
             {/* Categories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categories.map((category) => (
-                    <Card
-                        key={category.id}
-                        className={`p-5 transition-all ${!category.active ? 'opacity-60 bg-slate-50' : ''}`}
-                        data-testid={`category-card-${category.id}`}
-                    >
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${category.code_prefix === 'K'
-                                    ? 'bg-slate-900 text-white'
-                                    : category.active
-                                        ? 'bg-sky-100 text-sky-700'
-                                        : 'bg-slate-200 text-slate-500'
-                                    }`}>
-                                    {category.code_prefix}
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-lg text-slate-900">{category.name}</h3>
-                                    <p className="text-sm text-slate-500">{category.description || t('common.unknown')}</p>
-                                </div>
-                            </div>
-                        </div>
+                {categories.map((category) => {
+                    const isSpecial = category.code_prefix === 'K';
 
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">{t('dashboard.price')}:</span>
-                                <span className="font-semibold text-slate-900">
-                                    {category.code_prefix === 'K'
-                                        ? 'Custom'
-                                        : `Rp ${(category.price || 0).toLocaleString('id-ID')}`
-                                    }
-                                </span>
+                    return (
+                        <Card
+                            key={category.id}
+                            className={`p-5 transition-all ${!category.active
+                                    ? 'opacity-60 bg-slate-50'
+                                    : isSpecial
+                                        ? 'bg-slate-900 text-white border-slate-700'
+                                        : ''
+                                }`}
+                            data-testid={`category-card-${category.id}`}
+                        >
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
+                                            ? 'bg-white text-slate-900' // Inverted for special card
+                                            : category.active
+                                                ? 'bg-sky-100 text-sky-700'
+                                                : 'bg-slate-200 text-slate-500'
+                                        }`}>
+                                        {category.code_prefix}
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-semibold text-lg ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
+                                        <p className={`text-sm ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description || t('common.unknown')}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>
-                                <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">
-                                    {category.code_prefix}-YYYYMMDD-XXXX
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2 pt-1">
-                                {category.requires_nim && (
-                                    <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
-                                        <AlertCircle className="w-3 h-3 mr-1" />
-                                        {t('admin.requiresNim')}
+
+                            <div className="space-y-2 mb-4">
+                                <div className="flex justify-between text-sm">
+                                    <span className={isSpecial ? 'text-slate-400' : 'text-slate-600'}>{t('dashboard.price')}:</span>
+                                    <span className={`font-semibold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
+                                        {category.code_prefix === 'K'
+                                            ? 'Custom'
+                                            : `Rp ${(category.price || 0).toLocaleString('id-ID')}`
+                                        }
                                     </span>
-                                )}
-                                <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${category.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                                    {category.active ? t('admin.active') : t('admin.disable')}
-                                </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className={isSpecial ? 'text-slate-400' : 'text-slate-600'}>{t('dashboard.ticket')} {t('common.code')}:</span>
+                                    <span className={`font-mono text-xs px-2 py-0.5 rounded ${isSpecial ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                                        {category.code_prefix}-YYYYMMDD-XXXX
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1">
+                                    {category.requires_nim && (
+                                        <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                                            <AlertCircle className="w-3 h-3 mr-1" />
+                                            {t('admin.requiresNim')}
+                                        </span>
+                                    )}
+                                    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${category.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                        {category.active ? t('admin.active') : t('admin.disable')}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex items-center gap-2 pt-3 border-t border-slate-200">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEdit(category)}
-                                className="flex-1"
-                                data-testid={`edit-category-${category.id}`}
-                            >
-                                <Pencil className="w-4 h-4 mr-1" />
-                                {t('common.edit')}
-                            </Button>
-                            <Button
-                                variant={category.active ? 'outline' : 'default'}
-                                size="sm"
-                                onClick={() => handleToggleActive(category)}
-                                className={`flex-1 ${!category.active ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
-                                data-testid={`toggle-category-${category.id}`}
-                            >
-                                {category.active ? t('admin.disable') : t('admin.enable')}
-                            </Button>
-                            {category.code_prefix !== 'K' && (
+                            <div className={`flex items-center gap-2 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-200'}`}>
                                 <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => handleDelete(category.id)}
-                                    className="w-9 h-9"
-                                    title="Delete"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEdit(category)}
+                                    className={`flex-1 ${isSpecial ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white' : ''}`}
+                                    data-testid={`edit-category-${category.id}`}
                                 >
-                                    <Trash className="w-4 h-4" />
+                                    <Pencil className="w-4 h-4 mr-1" />
+                                    {t('common.edit')}
                                 </Button>
-                            )}
-                        </div>
-                    </Card>
-                ))}
+                                <Button
+                                    variant={category.active ? 'outline' : 'default'}
+                                    size="sm"
+                                    onClick={() => handleToggleActive(category)}
+                                    className={`flex-1 ${!category.active
+                                            ? 'bg-emerald-600 hover:bg-emerald-700'
+                                            : isSpecial
+                                                ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white'
+                                                : ''
+                                        }`}
+                                    data-testid={`toggle-category-${category.id}`}
+                                >
+                                    {category.active ? t('admin.disable') : t('admin.enable')}
+                                </Button>
+                                {category.code_prefix !== 'K' && (
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => handleDelete(category.id)}
+                                        className="w-9 h-9"
+                                        title="Delete"
+                                    >
+                                        <Trash className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
+                        </Card>
+                    );
+                })}
             </div>
 
             {categories.length === 0 && (
