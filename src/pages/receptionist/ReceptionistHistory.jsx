@@ -430,9 +430,8 @@ const ReceptionistHistory = () => {
                 {/* Chart Section with Stats on Left */}
                 {!loading && !error && reportData && (
                     <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Stats Cards - Left Side */}
                         <div className="flex flex-row lg:flex-col gap-6 lg:w-80 flex-shrink-0">
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[180px]">
                                 <div className="flex justify-between items-start">
                                     <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -446,11 +445,11 @@ const ReceptionistHistory = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
+                                    <p className="text-3xl font-bold text-slate-800">{reportData.tickets_sold || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[180px]">
                                 <div className="flex justify-between items-start">
                                     <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -463,11 +462,11 @@ const ReceptionistHistory = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-4xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
+                                    <p className="text-3xl font-bold text-slate-800">{reportData.tickets_scanned || 0}</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[160px]">
+                            <div className="flex-1 bg-white px-6 py-6 rounded-2xl border border-teal-100 shadow-sm flex flex-col justify-between h-[180px]">
                                 <div className="flex justify-between items-start">
                                     <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-500">
                                         <span className="text-2xl font-bold">Rp</span>

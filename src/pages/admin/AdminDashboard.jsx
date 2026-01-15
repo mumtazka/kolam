@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Users, Ticket, DollarSign, Activity, TrendingUp } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { getUsers } from '../../services/userService';
 import { getDailyReport, getTotalVisits, getVisitsLast7Days } from '../../services/reportService';
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
     );
   }
 
-  const maxVisits = Math.max(...visitsChartData.map(d => d.total_scan), 1);
+
 
   return (
     <div className="space-y-6">
@@ -120,7 +121,7 @@ const AdminDashboard = () => {
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className={`relative p-6 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[6px] border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default h-[160px] flex flex-col justify-between`}>
+            <Card key={index} className={`relative p-6 border-0 shadow-sm hover:shadow-md transition-all duration-300 border-l-[6px] border-b-[6px] rounded-xl ${stat.color} bg-white group cursor-default h-[180px] flex flex-col justify-between`}>
               <div className="flex justify-between items-start">
                 <div className={`p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm group-hover:scale-105 transition-transform duration-300 flex items-center justify-center w-14 h-14`}>
                   <Icon className={`w-7 h-7 ${stat.iconColor}`} strokeWidth={2.5} />
@@ -130,86 +131,95 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
+                <span className="text-3xl font-bold text-slate-900 tracking-tight">{stat.value}</span>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Bar Chart - Visits Last 7 Days */}
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-slate-900" style={{ fontFamily: 'Outfit' }}>
-            {t('admin.visitsChart')}
-          </h2>
-          <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full">
-            <span className="w-2.5 h-2.5 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full"></span>
-            <span className="font-medium">{t('admin.visitors')}</span>
+      {/* Premium Visits Chart */}
+      <Card className="p-6 border-0 shadow-sm">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>
+              {t('admin.visitsChart')}
+            </h2>
+            <p className="text-sm text-slate-500 mt-1 font-medium">
+              Visitor trends over the last 7 days
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-teal-50 rounded-lg border border-teal-100/50">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+            </span>
+            <span className="text-xs font-semibold text-teal-700 uppercase tracking-wider">{t('admin.visitors')}</span>
           </div>
         </div>
 
-        <div className="relative h-64 flex items-end justify-around gap-4 px-4">
-          {/* Grid Lines */}
-          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-10 pt-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="border-t border-slate-100 w-full"></div>
-            ))}
-          </div>
-
-          {/* Y-axis labels */}
-          <div className="absolute left-0 top-0 bottom-10 flex flex-col justify-between text-xs text-slate-400 font-medium pr-2">
-            {(() => {
-              const step = Math.ceil(maxVisits / 4);
-              return [...Array(5)].map((_, i) => (
-                <span key={i} className="text-right">{step * (4 - i)}</span>
-              ));
-            })()}
-          </div>
-
-          {/* Bars */}
-          <div className="flex items-end justify-around gap-3 w-full ml-8 h-full">
-            {visitsChartData.map((day, idx) => {
-              const percentage = maxVisits > 0 ? Math.max(5, (day.total_scan / maxVisits) * 100) : 5;
-              const isToday = idx === visitsChartData.length - 1;
-
-              return (
-                <div key={idx} className="flex flex-col items-center group relative flex-1 max-w-[80px] h-full justify-end pb-10">
-                  {/* Count Label */}
-                  <div className="mb-2 transition-all duration-300 group-hover:scale-110">
-                    <span className={`inline-block text-sm font-bold px-2 py-0.5 rounded-md ${isToday
-                      ? 'bg-teal-100 text-teal-800'
-                      : 'bg-slate-100 text-slate-700'
-                      }`}>
-                      {day.total_scan}
-                    </span>
-                  </div>
-
-                  {/* Bar */}
-                  <div
-                    className={`w-full rounded-t-lg transition-all duration-500 relative cursor-pointer transform hover:scale-105 ${isToday
-                      ? 'bg-gradient-to-t from-teal-600 to-teal-400 shadow-lg shadow-teal-200'
-                      : 'bg-teal-200 hover:bg-teal-300'
-                      }`}
-                    style={{
-                      height: `${percentage}%`,
-                      minHeight: '20px'
-                    }}
-                  >
-                    {/* Hover shine effect */}
-                    <div className="absolute inset-0 rounded-t-lg bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-
-                  {/* X-Label */}
-                  <div className="absolute bottom-0 left-0 right-0 h-10 flex items-center justify-center">
-                    <span className={`text-xs font-medium text-center ${isToday ? 'text-teal-700 font-bold' : 'text-slate-500'}`}>
-                      {formatChartDate(day.date)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="h-[350px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={visitsChartData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(date) => formatChartDate(date)}
+                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+                dx={-10}
+              />
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
+                        <p className="text-xs font-semibold text-slate-500 mb-1 pointer-events-none">
+                          {formatChartDate(label)}
+                        </p>
+                        <div className="flex items-center gap-2 pointer-events-none">
+                          <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                          <span className="text-lg font-bold text-slate-900 pointer-events-none">
+                            {payload[0].value}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium pointer-events-none">
+                            Visitors
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="total_scan"
+                stroke="#14b8a6"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorVisits)"
+                activeDot={{ r: 6, strokeWidth: 0, fill: '#0f766e' }} // Darker teal for active dot
+                animationDuration={1500}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </Card>
 
