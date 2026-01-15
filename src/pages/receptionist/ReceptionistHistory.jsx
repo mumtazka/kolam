@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown } from 'lucide-react';
-import Barcode from '../../components/ui/Barcode';
+import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -805,13 +805,11 @@ const ReceptionistHistory = () => {
 
                             {/* Modal Content */}
                             <div className="p-6 space-y-6">
-                                {/* Barcode Section */}
+                                {/* QR Code Section */}
                                 <div className="flex justify-center py-4 bg-white border border-slate-200 rounded-xl">
-                                    <Barcode
+                                    <QRCode
                                         value={selectedTicket.ticket_code || selectedTicket.id}
-                                        width={1.5}
-                                        height={60}
-                                        displayValue={false}
+                                        size={120}
                                     />
                                 </div>
 

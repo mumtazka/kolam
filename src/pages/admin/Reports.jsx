@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
-import Barcode from '../../components/ui/Barcode';
+import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
@@ -783,13 +783,11 @@ const Reports = () => {
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
-              {/* Barcode Section */}
+              {/* QR Code Section */}
               <div className="flex justify-center py-4 bg-white border border-slate-200 rounded-xl">
-                <Barcode
+                <QRCode
                   value={selectedTicket.ticket_code || selectedTicket.id}
-                  width={1.5}
-                  height={60}
-                  displayValue={false}
+                  size={120}
                 />
               </div>
 

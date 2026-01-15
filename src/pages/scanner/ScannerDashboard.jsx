@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { ScrollArea } from '../../components/ui/scroll-area';
-import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown, Monitor } from 'lucide-react';
+import { LogOut, Scan, CheckCircle, XCircle, AlertTriangle, User, Calendar, Tag, Clock, History, Keyboard, ChevronDown, Monitor, Camera, CameraOff } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+import CameraScanner from '../../components/ui/CameraScanner';
 import { toast } from 'sonner';
 
 const ScannerDashboard = () => {
@@ -51,7 +52,10 @@ const ScannerDashboard = () => {
     // History State
     const [scanHistory, setScanHistory] = useState([]);
 
-    // Buffer for barcode input
+    // Camera Scanner State
+    const [cameraActive, setCameraActive] = useState(false);
+
+    // Buffer for QR code input (keyboard/hardware scanner)
     const barcodeBuffer = useRef('');
     const lastKeyTime = useRef(Date.now());
     const scanTimeout = useRef(null);
@@ -250,7 +254,7 @@ const ScannerDashboard = () => {
 
                         {/* Status Display */}
                         <div className="text-center">
-                            {scanStatus === 'IDLE' && (
+                            {scanStatus === 'IDLE' && !cameraActive && (
                                 <div className="space-y-6 animate-in fade-in">
                                     <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
                                         <Scan className="w-16 h-16 text-slate-400" />
@@ -259,6 +263,27 @@ const ScannerDashboard = () => {
                                         <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('scanner.ready')}</h1>
                                         <p className="text-lg text-slate-500">{t('scanner.pointScanner')}</p>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Camera Scanner View */}
+                            {cameraActive && scanStatus === 'IDLE' && (
+                                <div className="space-y-4 animate-in fade-in w-full max-w-sm mx-auto">
+                                    <CameraScanner
+                                        active={cameraActive}
+                                        onScan={(code) => {
+                                            // Auto-process the scanned code
+                                            processBarcode(code);
+                                        }}
+                                        onError={(err) => {
+                                            console.error('Camera error:', err);
+                                            toast.error(t('scanner.cameraError') || 'Camera error');
+                                        }}
+                                        className="rounded-xl overflow-hidden shadow-lg"
+                                    />
+                                    <p className="text-sm text-slate-500 text-center">
+                                        {t('scanner.scanQR') || 'Arahkan kamera ke QR Code'}
+                                    </p>
                                 </div>
                             )}
 
@@ -326,8 +351,31 @@ const ScannerDashboard = () => {
                             )}
                         </div>
 
-                        {/* Manual Entry Form */}
-                        <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-md mx-auto">
+                        {/* Scan Controls */}
+                        <div className="mt-8 pt-8 border-t border-slate-200/60 max-w-md mx-auto space-y-4">
+                            {/* Camera Toggle Button */}
+                            <div className="flex justify-center">
+                                <Button
+                                    variant={cameraActive ? "default" : "outline"}
+                                    size="lg"
+                                    className={`h-12 px-6 ${cameraActive ? 'bg-sky-600 hover:bg-sky-700 text-white' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+                                    onClick={() => setCameraActive(!cameraActive)}
+                                >
+                                    {cameraActive ? (
+                                        <>
+                                            <CameraOff className="w-5 h-5 mr-2" />
+                                            {t('scanner.stopCamera') || 'Matikan Kamera'}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Camera className="w-5 h-5 mr-2" />
+                                            {t('scanner.startCamera') || 'Aktifkan Kamera'}
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+
+                            {/* Manual Entry Form */}
                             <form onSubmit={handleManualSubmit} className="flex gap-2">
                                 <div className="relative flex-1">
                                     <Keyboard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

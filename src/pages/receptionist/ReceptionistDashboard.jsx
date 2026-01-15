@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
-import Barcode from '../../components/ui/Barcode';
+import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 
 // Import Supabase services
@@ -622,9 +622,9 @@ const ReceptionistDashboard = () => {
                       <h3 className="text-base font-bold text-slate-800">{ticket.category_name}</h3>
                     </div>
 
-                    {/* Barcode - constrained width */}
+                    {/* QR Code - constrained size */}
                     <div className="w-full flex justify-center py-1 overflow-hidden">
-                      <Barcode value={ticket.ticket_code} width={1.2} height={40} displayValue={false} />
+                      <QRCode value={ticket.ticket_code} size={80} />
                     </div>
 
                     {/* Details */}
@@ -815,15 +815,11 @@ const ReceptionistDashboard = () => {
               <h3 className="text-xs font-semibold mt-0.5 uppercase">{ticket.category_name}</h3>
             </div>
 
-            {/* Barcode - Centered & Safe Range for 80mm */}
+            {/* QR Code - Centered & Safe Range for 80mm */}
             <div className="flex justify-center my-2 overflow-hidden" style={{ maxWidth: '70mm', margin: '0 auto' }}>
-              <Barcode
+              <QRCode
                 value={ticket.ticket_code}
-                width={1.0}
-                height={45}
-                fontSize={10}
-                displayValue={false}
-                margin={0}
+                size={120}
               />
             </div>
 

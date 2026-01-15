@@ -17,12 +17,48 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Check for stored user on mount and validate session
+    const validateSession = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+
+          // Validate UUID format (should be 36 chars with hyphens)
+          const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsedUser.id);
+
+          if (!isValidUUID) {
+            console.warn('Invalid user ID format, clearing session');
+            localStorage.removeItem('user');
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+
+          // Verify user still exists in database
+          const { data: dbUser, error } = await supabase
+            .from('users')
+            .select('id, is_active')
+            .eq('id', parsedUser.id)
+            .maybeSingle();
+
+          if (error || !dbUser || !dbUser.is_active) {
+            console.warn('User session invalid or user deleted, clearing session');
+            localStorage.removeItem('user');
+            setUser(null);
+          } else {
+            setUser(parsedUser);
+          }
+        } catch (e) {
+          console.error('Session validation error:', e);
+          localStorage.removeItem('user');
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    validateSession();
   }, []);
 
   // Unified login - no mode selection required upfront

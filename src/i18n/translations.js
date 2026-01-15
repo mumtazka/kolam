@@ -135,6 +135,12 @@ export const translations = {
             reviewTickets: 'Silakan periksa tiket sebelum mencetak',
             confirmPrint: 'Konfirmasi & Cetak',
             processing: 'Memproses...',
+            // Camera Scanner
+            startCamera: 'Aktifkan Kamera',
+            stopCamera: 'Matikan Kamera',
+            scanQR: 'Arahkan kamera ke QR Code',
+            cameraError: 'Tidak dapat mengakses kamera',
+            cameraPermission: 'Izin kamera diperlukan',
         },
         reports: {
             title: 'Laporan',
@@ -461,6 +467,12 @@ export const translations = {
             reviewTickets: 'Please review the tickets before printing',
             confirmPrint: 'Confirm & Print',
             processing: 'Processing...',
+            // Camera Scanner
+            startCamera: 'Start Camera',
+            stopCamera: 'Stop Camera',
+            scanQR: 'Point camera at QR Code',
+            cameraError: 'Cannot access camera',
+            cameraPermission: 'Camera permission required',
         },
         reports: {
             title: 'Reports',
