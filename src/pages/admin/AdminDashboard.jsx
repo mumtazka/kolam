@@ -8,6 +8,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { toast } from 'sonner';
 import { getUsers } from '../../services/userService';
 import { getDailyReport, getTotalVisits, getVisitsLast7Days } from '../../services/reportService';
+import DashboardSchedule from './DashboardSchedule';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -21,6 +22,15 @@ const AdminDashboard = () => {
   });
   const [visitsChartData, setVisitsChartData] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -138,131 +148,147 @@ const AdminDashboard = () => {
         })}
       </div>
 
-      {/* Premium Visits Chart */}
-      <Card className="p-6 border-0 shadow-sm">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>
-              {t('admin.visitsChart')}
-            </h2>
-            <p className="text-sm text-slate-500 mt-1 font-medium">
-              Visitor trends over the last 7 days
-            </p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-teal-50 rounded-lg border border-teal-100/50">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
-            </span>
-            <span className="text-xs font-semibold text-teal-700 uppercase tracking-wider">{t('admin.visitors')}</span>
-          </div>
-        </div>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+        {/* Left Column: Chart & Actions */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Premium Visits Chart */}
+          <Card className="p-6 border-0 shadow-sm">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                  {t('admin.visitsChart')}
+                </h2>
 
-        <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={visitsChartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis
-                dataKey="date"
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(date) => formatChartDate(date)}
-                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
-                dx={-10}
-              />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
-                        <p className="text-xs font-semibold text-slate-500 mb-1 pointer-events-none">
-                          {formatChartDate(label)}
-                        </p>
-                        <div className="flex items-center gap-2 pointer-events-none">
-                          <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                          <span className="text-lg font-bold text-slate-900 pointer-events-none">
-                            {payload[0].value}
-                          </span>
-                          <span className="text-xs text-slate-500 font-medium pointer-events-none">
-                            Visitors
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="total_scan"
-                stroke="#14b8a6"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorVisits)"
-                activeDot={{ r: 6, strokeWidth: 0, fill: '#0f766e' }} // Darker teal for active dot
-                animationDuration={1500}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+              </div>
 
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>{t('admin.quickActions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button
-            className="h-20 bg-teal-500 hover:bg-teal-600 text-white"
-            data-testid="view-reports-button"
-            onClick={() => navigate('/admin/reports')}
-          >
-            {t('admin.viewTodayReport')}
-          </Button>
-          <Button
-            className="h-20 bg-teal-500 hover:bg-teal-600 text-white"
-            data-testid="manage-staff-button"
-            onClick={() => navigate('/admin/users')}
-          >
-            {t('admin.manageStaff')}
-          </Button>
-          <Button
-            className="h-20 bg-teal-500 hover:bg-teal-600 text-white"
-            data-testid="update-prices-button"
-            onClick={() => navigate('/admin/categories')}
-          >
-            {t('admin.updatePrices')}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="p-6">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-4" style={{ fontFamily: 'Outfit' }}>{t('admin.systemStatus')}</h2>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-slate-700 font-medium">{t('admin.allSystemsOperational')}</span>
             </div>
+
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={visitsChartData}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(date) => formatChartDate(date)}
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+                    dx={-10}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white p-4 rounded-xl shadow-xl border border-slate-100">
+                            <p className="text-xs font-semibold text-slate-500 mb-1 pointer-events-none">
+                              {formatChartDate(label)}
+                            </p>
+                            <div className="flex items-center gap-2 pointer-events-none">
+                              <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                              <span className="text-lg font-bold text-slate-900 pointer-events-none">
+                                {payload[0].value}
+                              </span>
+                              <span className="text-xs text-slate-500 font-medium pointer-events-none">
+                                {language === 'id' ? 'Pengunjung' : 'Visitors'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="total_scan"
+                    stroke="#14b8a6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorVisits)"
+                    activeDot={{ r: 6, strokeWidth: 0, fill: '#0f766e' }}
+                    animationDuration={1500}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Quick Actions & System Status Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Quick Actions */}
+            <Card className="p-6 h-full flex flex-col justify-center">
+              <div className="flex gap-4 h-full">
+                <Button
+                  className="flex-1 h-full flex flex-col items-center justify-center text-center p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-teal-500 transition-all font-medium rounded-xl space-y-3 group"
+                  variant="ghost"
+                  onClick={() => navigate('/admin/reports')}
+                >
+                  <div className="p-3 bg-slate-50 rounded-full group-hover:bg-teal-50 transition-colors">
+                    <Activity className="w-8 h-8 text-slate-400 group-hover:text-teal-600 transition-colors" />
+                  </div>
+                  <span className="text-sm font-bold group-hover:text-teal-700 transition-colors">{t('admin.viewTodayReport')}</span>
+                </Button>
+
+                <Button
+                  className="flex-1 h-full flex flex-col items-center justify-center text-center p-4 bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-indigo-500 transition-all font-medium rounded-xl space-y-3 group"
+                  variant="ghost"
+                  onClick={() => navigate('/admin/categories')}
+                >
+                  <div className="p-3 bg-slate-50 rounded-full group-hover:bg-indigo-50 transition-colors">
+                    <Ticket className="w-8 h-8 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                  </div>
+                  <span className="text-sm font-bold group-hover:text-indigo-700 transition-colors">{t('admin.updatePrices')}</span>
+                </Button>
+              </div>
+            </Card>
+
+            {/* System Status - Digital Clock */}
+            <Card className="p-6 h-full relative overflow-hidden bg-slate-900 text-white flex flex-col items-center justify-center">
+              {/* Background ambient glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500 rounded-full blur-[80px] opacity-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500 rounded-full blur-[80px] opacity-20"></div>
+
+              <div className="relative z-10 flex flex-col items-center">
+                {/* Removed Header Text */}
+                <div className="text-5xl font-bold font-mono tracking-wider tabular-nums">
+                  {currentTime.toLocaleTimeString('en-GB', { hour12: false })}
+                </div>
+                <div className="mt-2 text-sm font-medium text-slate-400 bg-white/10 px-3 py-1 rounded-full border border-white/5">
+                  {currentTime.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+
+                <div className="mt-8 flex items-center gap-2">
+                  {/* Operational Status Removed */}
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
-      </Card>
+
+        {/* Right Column: Calendar & Schedule */}
+        <div className="lg:col-span-1 h-full">
+          <Card className="h-full p-2 border-0 shadow-sm overflow-hidden bg-white">
+            <DashboardSchedule />
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

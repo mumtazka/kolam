@@ -26,7 +26,7 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, subtitle: t('admin.welcomeBack') },
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, subtitle: '' },
     { path: '/admin/users', label: t('admin.staffManagement'), icon: Users, subtitle: t('admin.usersSubtitle') },
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket, subtitle: t('admin.categoriesSubtitle') },
     { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: t('admin.sessionsSubtitle') },
