@@ -217,21 +217,7 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-sm text-slate-600 font-medium mb-2">{t('auth.demoCredentials') || 'Demo Credentials'}:</p>
-            <div className="space-y-2 text-sm text-slate-700">
-              <div>
-                <p className="font-medium text-slate-800">Admin:</p>
-                <p>Email: <span className="font-mono">admin@kolamuny.ac.id</span></p>
-                <p>Password: <span className="font-mono">admin123</span></p>
-              </div>
-              <div className="border-t border-slate-200 pt-2 mt-2">
-                <p className="font-medium text-slate-800">Staff:</p>
-                <p>Email: <span className="font-mono">resepsionis@kolamuny.ac.id</span></p>
-                <p>Password: <span className="font-mono">admin123</span></p>
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

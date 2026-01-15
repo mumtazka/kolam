@@ -193,62 +193,64 @@ const ScannerDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col overflow-hidden font-['Outfit']">
-            {/* Header matches Admin Layout style */}
-            <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-sm">
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center">
-                        <Scan className="w-6 h-6 mr-2 text-teal-600" />
-                        <span className="font-bold text-xl text-slate-900 tracking-tight">WebKolam Scanner</span>
+        <div className={`${user?.type === 'ADMIN' ? 'h-full' : 'min-h-screen'} bg-slate-50 flex flex-col overflow-hidden font-['Outfit']`}>
+            {/* Header matches Admin Layout style - Conditional Rendering */}
+            {user?.type !== 'ADMIN' && (
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 shadow-sm">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                            <ScanLine className="w-6 h-6 mr-2 text-teal-600" />
+                            <span className="font-bold text-xl text-slate-900 tracking-tight">Kolam Renang UNY Scanner</span>
+                        </div>
+                        <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                        <div className="flex items-center space-x-4 text-sm text-slate-600">
+                            <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Calendar className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedShift}</span>
+                            <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Tag className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedLocation}</span>
+                        </div>
                     </div>
-                    <div className="h-6 w-px bg-slate-200 mx-2"></div>
-                    <div className="flex items-center space-x-4 text-sm text-slate-600">
-                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Calendar className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedShift}</span>
-                        <span className="flex items-center bg-slate-100 px-3 py-1 rounded-full"><Tag className="w-4 h-4 mr-1.5 text-slate-500" /> {selectedLocation}</span>
+                    <div className="flex gap-2 items-center">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="flex items-center space-x-2 hover:bg-slate-50">
+                                    <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
+                                        <User className="w-4 h-4 text-slate-600" />
+                                    </div>
+                                    <span className="text-slate-700 font-medium">{user?.name}</span>
+                                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">{user?.name}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">{t('auth.modeScanner')}</p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    onClick={async () => {
+                                        try {
+                                            await switchMode('CASHIER');
+                                            navigate('/receptionist');
+                                        } catch (e) {
+                                            toast.error(e.message);
+                                        }
+                                    }}
+                                    className="cursor-pointer"
+                                >
+                                    <Monitor className="w-4 h-4 mr-2" />
+                                    <span>Ganti Mode Kasir</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => { logout(); navigate('/login'); }} className="text-rose-600 focus:text-rose-600 cursor-pointer">
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    <span>{t('common.logout')}</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
-                </div>
-                <div className="flex gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="flex items-center space-x-2 hover:bg-slate-50">
-                                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-slate-600" />
-                                </div>
-                                <span className="text-slate-700 font-medium">{user?.name}</span>
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>
-                                <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">{user?.name}</p>
-                                    <p className="text-xs leading-none text-muted-foreground">{t('auth.modeScanner')}</p>
-                                </div>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={async () => {
-                                    try {
-                                        await switchMode('CASHIER');
-                                        navigate('/receptionist');
-                                    } catch (e) {
-                                        toast.error(e.message);
-                                    }
-                                }}
-                                className="cursor-pointer"
-                            >
-                                <Monitor className="w-4 h-4 mr-2" />
-                                <span>{t('auth.switchMode')}: {t('auth.modeCashier')}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { logout(); navigate('/login'); }} className="text-rose-600 focus:text-rose-600 cursor-pointer">
-                                <LogOut className="w-4 h-4 mr-2" />
-                                <span>{t('common.logout')}</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+                </header>
+            )}
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Side: Main Scanner Area */}

@@ -85,13 +85,17 @@ function App() {
 
                 <Route path="shifts" element={<ShiftManagement />} />
                 <Route path="reports" element={<Reports />} />
+
+                {/* Embedded Tools */}
+                <Route path="pos" element={<ReceptionistDashboard />} />
+                <Route path="scan" element={<ScannerDashboard />} />
               </Route>
 
-              {/* Receptionist Route - Requires CASHIER mode */}
+              {/* Receptionist Route - Requires CASHIER mode or ADMIN */}
               <Route
                 path="/receptionist"
                 element={
-                  <ProtectedRoute allowedRoles={['CASHIER']}>
+                  <ProtectedRoute allowedRoles={['CASHIER', 'ADMIN']}>
                     <ReceptionistLayout />
                   </ProtectedRoute>
                 }
@@ -102,11 +106,11 @@ function App() {
                 <Route path="pools" element={<ReceptionistPools />} />
               </Route>
 
-              {/* Scanner Route - Requires SCANNER mode */}
+              {/* Scanner Route - Requires SCANNER mode or ADMIN */}
               <Route
                 path="/scanner"
                 element={
-                  <ProtectedRoute allowedRoles={['SCANNER']}>
+                  <ProtectedRoute allowedRoles={['SCANNER', 'ADMIN']}>
                     <ScannerDashboard />
                   </ProtectedRoute>
                 }

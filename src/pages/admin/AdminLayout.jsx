@@ -10,7 +10,9 @@ import {
   Ticket,
   Clock, // Keep Clock for Shift Management if needed, or remove if unused for Shifts
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  Printer,
+  ScanLine
 } from 'lucide-react';
 
 import PoolLogo from '../../components/ui/PoolLogo';
@@ -32,6 +34,9 @@ const AdminLayout = () => {
     { path: '/admin/pools', label: t('admin.pools'), icon: PoolManagementIcon, subtitle: t('admin.poolsSubtitle') },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock, subtitle: t('shift.subtitle') },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: t('reports.viewReports') },
+    // Cross-role Navigation
+    { path: '/admin/pos', label: 'Kasir / Print', icon: Printer, subtitle: 'Mode Kasir (Admin)' },
+    { path: '/admin/scan', label: 'Scanner', icon: ScanLine, subtitle: 'Mode Scanner (Admin)' },
   ];
 
   // Determine Page Title and Subtitle

@@ -8,7 +8,8 @@ import {
     Printer,
     History,
     BarChart3,
-    CalendarDays
+    CalendarDays,
+    ScanLine
 } from 'lucide-react';
 
 import PoolLogo from '../../components/ui/PoolLogo';
@@ -28,6 +29,7 @@ const ReceptionistLayout = () => {
         { path: '/receptionist/schedule', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: 'Lihat jadwal dan sesi kolam renang' },
         { path: '/receptionist/pools', label: 'Info Kolam', icon: PoolManagementIcon, subtitle: 'Informasi fasilitas kolam renang' },
         { path: '/receptionist/history', label: 'Laporan', icon: BarChart3, subtitle: 'Laporan harian penjualan tiket anda' },
+        { path: '/scanner', label: 'Scanner', icon: ScanLine, subtitle: 'Pindah ke mode Scanner' },
     ];
 
     // Determine Page Title and Subtitle
