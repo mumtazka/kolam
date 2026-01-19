@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -647,11 +648,11 @@ const ReceptionistDashboard = () => {
         )}
       </div>
 
-      {/* Ticket Preview Modal */}
+      {/* Ticket Preview Modal - Portaled to Body to avoid Layout Clipping */}
       {
-        showPreview && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-auto">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        showPreview && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">
@@ -734,7 +735,8 @@ const ReceptionistDashboard = () => {
                 )}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
@@ -798,132 +800,156 @@ const ReceptionistDashboard = () => {
         )
       }
 
-      {/* 57mm Thermal Print Template */}
-      <div className="print-container hidden print:block text-black">
-        <style type="text/css" media="print">
-          {`
-             @page { 
-               size: 80mm 80mm; 
-               margin: 0; 
-             }
-             
-             html, body { 
-               width: 80mm; 
-               height: 80mm;
-               margin: 0; 
-               padding: 0;
-               overflow: hidden;
-               font-family: 'Inter', sans-serif;
-             }
-             
-             .print-container {
-               position: absolute;
-               top: 0;
-               left: 0;
-               width: 80mm;
-               margin: 0;
-               padding: 0;
-               display: block;
-               background: white;
-             }
+      {/* 57mm Thermal Print Template - Portaled to Body to avoid Layout Clipping */}
+      {createPortal(
+        <div className="print-container hidden print:block text-black">
+          <style type="text/css" media="print">
+            {`
+               @page { 
+                 size: 80mm 80mm; 
+                 margin: 0; 
+               }
+               
+               html, body { 
+                 width: 80mm !important; 
+                 height: 80mm !important;
+                 margin: 0 !important; 
+                 padding: 0 !important;
+                 overflow: hidden !important;
+                 font-family: 'Inter', sans-serif;
+                 background: white !important;
+               }
+               
+               .print-container {
+                 position: absolute;
+                 top: 0;
+                 left: 0;
+                 width: 80mm !important;
+                 margin: 0 !important;
+                 padding: 0 !important;
+                 display: block !important;
+                 background: white !important;
+                 z-index: 99999 !important;
+               }
+  
+               .printable-ticket { 
+                 width: 80mm !important;
+                 height: 80mm !important;
+                 max-height: 80mm !important;
+                 padding: 10px 6mm !important; 
+                 margin: 0 !important;
+                 box-sizing: border-box !important;
+                 border: none !important;
+                 display: flex !important;
+                 flex-direction: column;
+                 justify-content: flex-start;
+                 align-items: center;
+                 gap: 5px !important;
+                 overflow: hidden !important;
+                 page-break-after: always !important; 
+                 page-break-inside: avoid !important;
+                 break-after: page !important;
+                 break-inside: avoid !important;
+                 background: white !important;
+                 box-shadow: none !important;
+               }
+  
+               .printable-ticket:last-child {
+                 page-break-after: auto !important;
+                 break-after: auto !important;
+               }
+               
+               .printable-ticket * {
+                 -webkit-print-color-adjust: exact !important;
+                 print-color-adjust: exact !important;
+               }
+  
+               .printable-ticket.isSpecial .tick-h2, 
+               .printable-ticket.isSpecial .tick-h3, 
+               .printable-ticket.isSpecial .tick-val,
+               .printable-ticket.isSpecial .tick-label,
+               .printable-ticket.isSpecial p,
+               .printable-ticket.isSpecial span,
+               .printable-ticket.isSpecial h2,
+               .printable-ticket.isSpecial h3 {
+                  color: black !important;
+               }
+               
+               .printable-ticket.isSpecial .tick-qr {
+                  background: white !important;
+                  padding: 4px !important;
+                  border-radius: 4px !important;
+               }
+  
+               .printable-ticket.isSpecial .border-black {
+                  border-color: black !important;
+               }
+               
+               .printable-ticket.isSpecial .bg-black {
+                  background-color: black !important;
+               }
+             `}
+          </style>
 
-             .printable-ticket { 
-               width: 80mm;
-               height: 80mm;
-               max-height: 80mm;
-               padding: 15px 10px; 
-               margin: 0;
-               box-sizing: border-box;
-               display: flex;
-               flex-direction: column;
-               justify-content: flex-start;
-               align-items: center;
-               gap: 8px;
-               overflow: hidden;
-               page-break-after: always; 
-               page-break-inside: avoid;
-               break-after: page;
-               break-inside: avoid;
-               background: white;
-             }
+          {printedTickets.map((ticket) => {
+            // Identify if ticket is special (starts with K)
+            // Check generated code or preview code (PREVIEW-K-...)
+            const isSpecial = ticket.ticket_code.startsWith('K') || (ticket.ticket_code.startsWith('PREVIEW') && ticket.category_name.toLowerCase().includes('khusus'));
 
-             .printable-ticket:last-child {
-               page-break-after: auto;
-               break-after: auto;
-             }
-             
-             .printable-ticket * {
-               -webkit-print-color-adjust: exact;
-               print-color-adjust: exact;
-             }
+            return (
+              <div key={ticket.id} className={`printable-ticket ${isSpecial ? 'isSpecial' : ''}`}>
+                {/* Header */}
+                <div className="text-center w-full pb-2 border-b border-black border-dashed">
+                  <h2 className="text-[16px] font-extrabold uppercase leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang UNY</h2>
+                  <h3 className="text-[12px] font-bold uppercase leading-tight mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</h3>
+                </div>
 
-             .printable-ticket.isSpecial .tick-h2, 
-             .printable-ticket.isSpecial .tick-h3, 
-             .printable-ticket.isSpecial .tick-val,
-             .printable-ticket.isSpecial .tick-label,
-             .printable-ticket.isSpecial p,
-             .printable-ticket.isSpecial span,
-             .printable-ticket.isSpecial h2,
-             .printable-ticket.isSpecial h3 {
-                color: black !important;
-             }
-             
-             .printable-ticket.isSpecial .tick-qr {
-                background: white;
-                padding: 4px;
-                border-radius: 4px;
-             }
+                {/* QR Code */}
+                <div className="tick-qr flex justify-center w-full py-2">
+                  <QRCode
+                    value={ticket.ticket_code}
+                    size={110}
+                  />
+                </div>
 
-             .printable-ticket.isSpecial .border-black {
-                border-color: black !important;
-             }
-             
-             .printable-ticket.isSpecial .bg-black {
-                background-color: black !important;
-             }
-           `}
-        </style>
+                {/* Ticket Details */}
+                <div className="w-full font-mono text-[10px] uppercase leading-relaxed px-1 space-y-1" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+                  <div className="flex justify-between items-start">
+                    <span className="font-semibold text-slate-600">KODE</span>
+                    <span className="font-bold text-black text-right">{ticket.ticket_code}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-slate-600">HARGA</span>
+                    <span className="font-bold text-black text-right">Rp {ticket.price.toLocaleString('id-ID')}</span>
+                  </div>
+                  {ticket.nim && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-slate-600">NIM</span>
+                      <span className="font-bold text-black text-right">{ticket.nim}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-slate-600">TANGGAL</span>
+                    <span className="font-bold text-black text-right">
+                      {new Date(ticket.created_at).toLocaleString('id-ID', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      }).replace(/\./g, ':')}
+                    </span>
+                  </div>
+                </div>
 
-        {printedTickets.map((ticket) => {
-          // Identify if ticket is special (starts with K)
-          // Check generated code or preview code (PREVIEW-K-...)
-          const isSpecial = ticket.ticket_code.startsWith('K') || (ticket.ticket_code.startsWith('PREVIEW') && ticket.category_name.toLowerCase().includes('khusus'));
-
-          return (
-            <div key={ticket.id} className={`printable-ticket ${isSpecial ? 'isSpecial' : ''}`}>
-              {/* Header */}
-              <div className="text-center w-full">
-                <h2 className="text-sm font-bold uppercase leading-none" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang UNY</h2>
-                <h3 className="text-[10px] font-semibold uppercase leading-none mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</h3>
+                {/* Footer */}
+                <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
+                  <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketValidOneTime')}</p>
+                  <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketNoRefund')}</p>
+                </div>
               </div>
-
-              {/* QR Code */}
-              <div className="tick-qr flex justify-center w-full" style={{ margin: '5px 0' }}>
-                <QRCode
-                  value={ticket.ticket_code}
-                  size={90}
-                />
-              </div>
-
-              {/* Ticket Details */}
-              <div className="w-full font-mono text-[9px] uppercase leading-tight px-1" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
-                <p className="flex justify-between mb-0.5"><span>{t('common.code')}:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
-                <p className="flex justify-between mb-0.5"><span>{t('dashboard.price')}:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
-                {ticket.nim && <p className="flex justify-between mb-0.5"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
-                <p className="flex justify-between"><span>{t('common.date')}:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
-                  day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
-                })}</span></p>
-              </div>
-
-              {/* Footer */}
-              <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
-                <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketValidOneTime')}</p>
-                <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketNoRefund')}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>,
+        document.body
+      )}
     </>
   );
 };
