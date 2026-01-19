@@ -235,20 +235,20 @@ const ShiftManagement = () => {
             {/* Staff Schedule Card */}
             <Card className="overflow-hidden">
                 {/* Day Selector */}
-                <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-slate-500" />
                         <h2 className="text-lg font-semibold text-slate-900">{t('shift.staffSchedule')}</h2>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
-                        <div className="flex bg-slate-200 rounded-lg p-1">
+                    <div className="flex items-center gap-2 w-full sm:w-auto overflow-hidden">
+                        <Calendar className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                        <div className="flex bg-slate-200 rounded-lg p-1 overflow-x-auto w-full sm:w-auto no-scrollbar">
                             {DAYS.map((day) => (
                                 <button
                                     key={day.key}
                                     onClick={() => setSelectedDay(day.key)}
                                     className={cn(
-                                        "px-3 py-1.5 text-sm font-medium rounded-md transition-all",
+                                        "px-3 py-1.5 text-sm font-medium rounded-md transition-all whitespace-nowrap flex-shrink-0",
                                         selectedDay === day.key
                                             ? "bg-white text-slate-900 shadow-sm"
                                             : "text-slate-600 hover:text-slate-900"
@@ -262,7 +262,8 @@ const ShiftManagement = () => {
                 </div>
 
                 {/* Staff Table */}
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-200">
                             <tr>
@@ -353,6 +354,82 @@ const ShiftManagement = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Mobile Card View */}
+                <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+                    {staffSchedules.map((staff) => {
+                        const isAdmin = staff.default_role === 'ADMIN';
+                        return (
+                            <div key={staff.user_id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600">
+                                            {staff.name?.charAt(0)}
+                                        </div>
+                                        <div className="overflow-hidden">
+                                            <div className="font-semibold text-slate-900 truncate">{staff.name}</div>
+                                            <div className="text-sm text-slate-500 truncate text-ellipsis w-[150px]">{staff.email}</div>
+                                        </div>
+                                    </div>
+                                    <span className={cn("text-xs font-bold px-2 py-1 rounded-full bg-slate-100 flex-shrink-0", getRoleBadgeColor(staff.default_role))}>
+                                        {getRoleLabel(staff.default_role)}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    {/* Morning */}
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col items-center justify-center text-center">
+                                        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mb-1">
+                                            <Sunrise className="w-3 h-3 text-amber-500" />
+                                            {t('shift.morning')}
+                                        </div>
+                                        {isAdmin ? (
+                                            <span className="text-slate-400 text-sm italic">Admin</span>
+                                        ) : (
+                                            (() => {
+                                                const RoleIcon = getRoleIcon(staff.morning_role);
+                                                return (
+                                                    <div className={cn("flex items-center gap-1.5", getShiftRoleStyle(staff.morning_role))}>
+                                                        <RoleIcon className="w-4 h-4" />
+                                                        <span className="font-semibold text-sm">{getSubRoleLabel(staff.morning_role)}</span>
+                                                    </div>
+                                                )
+                                            })()
+                                        )}
+                                    </div>
+
+                                    {/* Afternoon */}
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col items-center justify-center text-center">
+                                        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mb-1">
+                                            <Sunset className="w-3 h-3 text-indigo-500" />
+                                            {t('shift.afternoon')}
+                                        </div>
+                                        {isAdmin ? (
+                                            <span className="text-slate-400 text-sm italic">Admin</span>
+                                        ) : (
+                                            (() => {
+                                                const RoleIcon = getRoleIcon(staff.afternoon_role);
+                                                return (
+                                                    <div className={cn("flex items-center gap-1.5", getShiftRoleStyle(staff.afternoon_role))}>
+                                                        <RoleIcon className="w-4 h-4" />
+                                                        <span className="font-semibold text-sm">{getSubRoleLabel(staff.afternoon_role)}</span>
+                                                    </div>
+                                                )
+                                            })()
+                                        )}
+                                    </div>
+                                </div>
+
+                                {!isAdmin && (
+                                    <Button variant="outline" className="w-full" onClick={() => handleOpenEdit(staff)}>
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        {t('common.edit')}
+                                    </Button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </Card>
 
             {/* Edit Dialog */}
@@ -369,7 +446,8 @@ const ShiftManagement = () => {
                     </DialogHeader>
 
                     <div className="mt-4">
-                        <table className="w-full">
+                        {/* Desktop Table */}
+                        <table className="w-full hidden md:table">
                             <thead>
                                 <tr className="border-b border-slate-200">
                                     <th className="py-3 text-left text-sm font-semibold text-slate-700 w-1/4">{t('admin.days') || 'Day'}</th>
@@ -413,6 +491,45 @@ const ShiftManagement = () => {
                                 ))}
                             </tbody>
                         </table>
+
+                        {/* Mobile Stacked View */}
+                        <div className="md:hidden space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            {weeklySchedule.map((day, idx) => (
+                                <div key={day.day_of_week} className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                                    <div className="font-semibold text-slate-900 mb-3 pb-2 border-b border-slate-200">
+                                        {getDayLabel(day.day_of_week)}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs text-slate-500 flex items-center gap-1">
+                                                <Sunrise className="w-3 h-3 text-amber-500" /> {t('shift.morning')}
+                                            </label>
+                                            <Select value={day.morning_role} onValueChange={(v) => handleScheduleChange(idx, 'morning_role', v)}>
+                                                <SelectTrigger className="w-full bg-white h-9 text-sm"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    {ROLES.map(role => (
+                                                        <SelectItem key={role} value={role}>{getSubRoleLabel(role)}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs text-slate-500 flex items-center gap-1">
+                                                <Sunset className="w-3 h-3 text-indigo-500" /> {t('shift.afternoon')}
+                                            </label>
+                                            <Select value={day.afternoon_role} onValueChange={(v) => handleScheduleChange(idx, 'afternoon_role', v)}>
+                                                <SelectTrigger className="w-full bg-white h-9 text-sm"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    {ROLES.map(role => (
+                                                        <SelectItem key={role} value={role}>{getSubRoleLabel(role)}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-3 mt-6">
