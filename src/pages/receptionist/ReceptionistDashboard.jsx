@@ -14,6 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../../components/ui/sheet";
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 
@@ -382,6 +389,156 @@ const ReceptionistDashboard = () => {
     }, 1000);
   };
 
+  const renderCartContent = (isMobile = false) => {
+    if (cart.length === 0) {
+      return (
+        <div className="text-center py-12 text-slate-400 flex-1 flex flex-col justify-center">
+          <Ticket className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="text-sm font-medium">{t('dashboard.noTicketsSelected')}</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="space-y-3 flex-1 overflow-auto pb-4 px-1">
+          {cart.map(item => (
+            <Card key={item.unique_id} className="p-3 border-slate-200 shadow-none bg-slate-50/50">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-sm text-slate-900 block">{item.category_name}</span>
+                    {item.package_name && (
+                      <span className="text-xs font-bold text-teal-600 bg-teal-50 px-1 rounded flex items-center mt-0.5">
+                        <Ticket className="w-3 h-3 mr-1" />
+                        {item.package_name}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.unique_id)}
+                    className="text-rose-500 hover:text-rose-700 p-1 rounded-md hover:bg-rose-50 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center bg-white rounded-md border border-slate-200">
+                    <button
+                      className="p-2 hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-50"
+                      onClick={() => adjustQuantity(item.unique_id, -1)}
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    {/* Manually Enterable Input */}
+                    <input
+                      type="number"
+                      className="w-10 text-center border-none p-0 text-sm font-bold text-slate-900 focus:ring-0 appearance-none bg-transparent focus:outline-none"
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityInput(item.unique_id, e.target.value)}
+                      onBlur={() => handleInputBlur(item.unique_id)}
+                    />
+                    <button
+                      className="p-2 hover:bg-slate-100 text-slate-600 transition-colors"
+                      onClick={() => adjustQuantity(item.unique_id, 1)}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-semibold text-sm text-slate-900 block">
+                      Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString('id-ID')}
+                    </span>
+                    {/* Show breakdown if package */}
+                    {item.package_id && (
+                      <span className="text-[10px] text-slate-500">
+                        {item.quantity} x @{item.price.toLocaleString('id-ID')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {item.requires_nim && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs text-slate-500 font-medium">
+                      {Number(item.quantity) > 1
+                        ? t('dashboard.enterNimPlural').replace('{{count}}', item.quantity)
+                        : t('dashboard.enterNimSingle')}
+                    </p>
+                    {Array.from({ length: Number(item.quantity) || 1 }).map((_, index) => {
+                      const errorKey = `${item.category_id}-${index}`;
+                      const hasError = nimErrors[errorKey];
+                      const nimArray = nimInputs[item.category_id] || [];
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-2">
+                            {Number(item.quantity) > 1 && (
+                              <span className="text-xs text-slate-400 w-4">{index + 1}.</span>
+                            )}
+                            <Input
+                              placeholder={`${t('dashboard.nimPlaceholder')} ${Number(item.quantity) > 1 ? index + 1 : ''}`}
+                              value={nimArray[index] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^\d*$/.test(val)) {
+                                  updateNimAtIndex(item.category_id, index, val);
+                                }
+                              }}
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className={`h-8 text-xs bg-white flex-1 ${hasError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
+                            />
+                          </div>
+                          {hasError && (
+                            <p className="text-xs text-rose-500 mt-1 ml-6">⚠️ {nimErrors[errorKey]}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div className={`pt-4 border-t-2 border-slate-100 mt-auto ${isMobile ? 'pb-6' : ''}`}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-base font-semibold text-slate-600">{t('dashboard.total')}</span>
+            <span className="text-2xl font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
+          </div>
+          {hasNimErrors() && (
+            <div className="mb-3 p-2 bg-rose-50 border border-rose-200 rounded-md">
+              <p className="text-xs text-rose-600 font-medium">⚠️ {t('dashboard.duplicateNimError')}</p>
+            </div>
+          )}
+          {/* Actions: Preview & Checkout */}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handlePreviewTickets}
+              disabled={printing || cart.length === 0 || hasNimErrors()}
+              className="w-12 h-12 bg-white border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-50"
+              title={t('scanner.ticketPreview')}
+            >
+              <Eye className="w-5 h-5" />
+            </Button>
+
+            <Button
+              onClick={handleProcessTickets}
+              disabled={printing || cart.length === 0 || hasNimErrors()}
+              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-base font-semibold shadow-xl shadow-slate-200 disabled:opacity-50 text-white"
+            >
+              <Printer className="w-5 h-5 mr-2" />
+              {printing ? t('scanner.processing') : t('dashboard.checkout')}
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -450,317 +607,192 @@ const ReceptionistDashboard = () => {
               </div>
             </div>
 
-            {cart.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 flex-1 flex flex-col justify-center">
-                <Ticket className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm font-medium">{t('dashboard.noTicketsSelected')}</p>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-3 flex-1 overflow-auto pb-4">
-                  {cart.map(item => (
-                    <Card key={item.unique_id} className="p-3 border-slate-200 shadow-none bg-slate-50/50">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-semibold text-sm text-slate-900 block">{item.category_name}</span>
-                            {item.package_name && (
-                              <span className="text-xs font-bold text-teal-600 bg-teal-50 px-1 rounded flex items-center mt-0.5">
-                                <Ticket className="w-3 h-3 mr-1" />
-                                {item.package_name}
-                              </span>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(item.unique_id)}
-                            className="text-rose-500 hover:text-rose-700 p-1 rounded-md hover:bg-rose-50 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center bg-white rounded-md border border-slate-200">
-                            <button
-                              className="p-2 hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-50"
-                              onClick={() => adjustQuantity(item.unique_id, -1)}
-                            >
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            {/* Manually Enterable Input */}
-                            <input
-                              type="number"
-                              className="w-10 text-center border-none p-0 text-sm font-bold text-slate-900 focus:ring-0 appearance-none bg-transparent focus:outline-none"
-                              value={item.quantity}
-                              onChange={(e) => handleQuantityInput(item.unique_id, e.target.value)}
-                              onBlur={() => handleInputBlur(item.unique_id)}
-                            />
-                            <button
-                              className="p-2 hover:bg-slate-100 text-slate-600 transition-colors"
-                              onClick={() => adjustQuantity(item.unique_id, 1)}
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-semibold text-sm text-slate-900 block">
-                              Rp {(item.price * (Number(item.quantity) || 0)).toLocaleString('id-ID')}
-                            </span>
-                            {/* Show breakdown if package */}
-                            {item.package_id && (
-                              <span className="text-[10px] text-slate-500">
-                                {item.quantity} x @{item.price.toLocaleString('id-ID')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {item.requires_nim && (
-                          <div className="space-y-2 mt-2">
-                            <p className="text-xs text-slate-500 font-medium">
-                              {Number(item.quantity) > 1
-                                ? t('dashboard.enterNimPlural').replace('{{count}}', item.quantity)
-                                : t('dashboard.enterNimSingle')}
-                            </p>
-                            {Array.from({ length: Number(item.quantity) || 1 }).map((_, index) => {
-                              const errorKey = `${item.category_id}-${index}`;
-                              const hasError = nimErrors[errorKey];
-                              const nimArray = nimInputs[item.category_id] || [];
-                              return (
-                                <div key={index}>
-                                  <div className="flex items-center gap-2">
-                                    {Number(item.quantity) > 1 && (
-                                      <span className="text-xs text-slate-400 w-4">{index + 1}.</span>
-                                    )}
-                                    <Input
-                                      placeholder={`${t('dashboard.nimPlaceholder')} ${Number(item.quantity) > 1 ? index + 1 : ''}`}
-                                      value={nimArray[index] || ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (/^\d*$/.test(val)) {
-                                          updateNimAtIndex(item.category_id, index, val);
-                                        }
-                                      }}
-                                      inputMode="numeric"
-                                      pattern="[0-9]*"
-                                      className={`h-8 text-xs bg-white flex-1 ${hasError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500' : ''}`}
-                                    />
-                                  </div>
-                                  {hasError && (
-                                    <p className="text-xs text-rose-500 mt-1 ml-6">⚠️ {nimErrors[errorKey]}</p>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="pt-4 border-t-2 border-slate-100 mt-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-base font-semibold text-slate-600">{t('dashboard.total')}</span>
-                    <span className="text-2xl font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
-                  </div>
-                  {hasNimErrors() && (
-                    <div className="mb-3 p-2 bg-rose-50 border border-rose-200 rounded-md">
-                      <p className="text-xs text-rose-600 font-medium">⚠️ {t('dashboard.duplicateNimError')}</p>
-                    </div>
-                  )}
-                  {/* Actions: Preview & Checkout */}
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={handlePreviewTickets}
-                      disabled={printing || cart.length === 0 || hasNimErrors()}
-                      className="w-12 h-12 bg-white border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-50"
-                      title={t('scanner.ticketPreview')}
-                    >
-                      <Eye className="w-5 h-5" />
-                    </Button>
-
-                    <Button
-                      onClick={handleProcessTickets}
-                      disabled={printing || cart.length === 0 || hasNimErrors()}
-                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-base font-semibold shadow-xl shadow-slate-200 disabled:opacity-50 text-white"
-                    >
-                      <Printer className="w-5 h-5 mr-2" />
-                      {printing ? t('scanner.processing') : t('dashboard.checkout')}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
+            {renderCartContent(false)}
           </div>
         </div>
 
         {/* Mobile Cart Bar - Fixed bottom */}
         {cart.length > 0 && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-bold">
-                  {getTotalItems()} tiket
+          <Sheet>
+            <SheetTrigger asChild>
+              <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-bold">
+                      {getTotalItems()} tiket
+                    </div>
+                    <span className="text-lg font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-slate-900 text-white hover:bg-slate-800"
+                  >
+                    Detail / Bayar
+                  </Button>
                 </div>
-                <span className="text-lg font-bold text-slate-900">Rp {getTotalAmount().toLocaleString('id-ID')}</span>
               </div>
-              <Button
-                onClick={handleProcessTickets}
-                disabled={printing || hasNimErrors()}
-                className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-sm font-semibold disabled:opacity-50 text-white"
-              >
-                <Printer className="w-4 h-4 mr-2" />
-                {printing ? '...' : 'Checkout'}
-              </Button>
-            </div>
-          </div>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[85vh] flex flex-col rounded-t-xl">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-left font-bold text-xl flex items-center justify-between">
+                  <span>Keranjang Tiket</span>
+                  <div className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-bold">
+                    {getTotalItems()} Item
+                  </div>
+                </SheetTitle>
+              </SheetHeader>
+              {renderCartContent(true)}
+            </SheetContent>
+          </Sheet>
         )}
       </div>
 
       {/* Ticket Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">
-                  {t('scanner.ticketPreview')}
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  {t('scanner.reviewTickets')}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowPreview(false)}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="p-8 overflow-y-auto flex-1 bg-slate-100/50">
-              <div className="flex flex-wrap gap-8 justify-center">
-                {printedTickets.map((ticket) => (
-                  <div key={ticket.id} className="bg-white p-4 rounded-none shadow-md border border-slate-200 flex flex-col items-center justify-between relative overflow-hidden" style={{ width: '302px', height: '302px' }}>
-                    {/* Cut lines */}
-                    <div className="absolute -left-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
-                    <div className="absolute -right-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
-
-                    {/* Header */}
-                    <div className="text-center w-full">
-                      <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wide">Kolam Renang UNY</h2>
-                      <div className="w-full h-px bg-slate-200 my-1"></div>
-                      <h3 className="text-base font-bold text-slate-800">{ticket.category_name}</h3>
-                    </div>
-
-                    {/* QR Code - constrained size */}
-                    <div className="w-full flex justify-center py-1 overflow-hidden">
-                      <QRCode value={ticket.ticket_code} size={80} />
-                    </div>
-
-                    {/* Details */}
-                    <div className="w-full space-y-1 font-mono text-xs text-slate-600">
-                      <div className="flex justify-between">
-                        <span>{t('common.code')}:</span>
-                        <span className="font-bold text-slate-900 text-[11px]">{ticket.ticket_code}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{t('dashboard.price')}:</span>
-                        <span className="font-bold">Rp {ticket.price.toLocaleString('id-ID')}</span>
-                      </div>
-                      {ticket.nim && (
-                        <div className="flex justify-between text-blue-600">
-                          <span>NIM:</span>
-                          <span className="font-bold">{ticket.nim}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between text-[10px] text-slate-400">
-                        <span>{t('common.date')}:</span>
-                        <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="pt-2 border-t-2 border-dashed border-slate-200 text-center w-full">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('scanner.ticketValidOneTime')}</p>
-                      <p className="text-[9px] text-slate-300">{t('scanner.ticketNoRefund')}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-slate-100 bg-white flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowPreview(false)}>
-                {isPreviewMode ? 'Tutup' : t('common.cancel')}
-              </Button>
-              {!isPreviewMode && (
-                <Button onClick={handlePrintConfirm} className="bg-slate-900 hover:bg-slate-800 min-w-[150px]">
-                  <Printer className="w-4 h-4 mr-2" />
-                  {t('scanner.confirmPrint')}
+      {
+        showPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {t('scanner.ticketPreview')}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {t('scanner.reviewTickets')}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setShowPreview(false)}>
+                  <X className="w-5 h-5" />
                 </Button>
-              )}
+              </div>
+
+              <div className="p-8 overflow-y-auto flex-1 bg-slate-100/50">
+                <div className="flex flex-wrap gap-8 justify-center">
+                  {printedTickets.map((ticket) => (
+                    <div key={ticket.id} className="bg-white p-4 rounded-none shadow-md border border-slate-200 flex flex-col items-center justify-between relative overflow-hidden" style={{ width: '302px', height: '302px' }}>
+                      {/* Cut lines */}
+                      <div className="absolute -left-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
+                      <div className="absolute -right-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
+
+                      {/* Header */}
+                      <div className="text-center w-full">
+                        <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wide">Kolam Renang UNY</h2>
+                        <div className="w-full h-px bg-slate-200 my-1"></div>
+                        <h3 className="text-base font-bold text-slate-800">{ticket.category_name}</h3>
+                      </div>
+
+                      {/* QR Code - constrained size */}
+                      <div className="w-full flex justify-center py-1 overflow-hidden">
+                        <QRCode value={ticket.ticket_code} size={80} />
+                      </div>
+
+                      {/* Details */}
+                      <div className="w-full space-y-1 font-mono text-xs text-slate-600">
+                        <div className="flex justify-between">
+                          <span>{t('common.code')}:</span>
+                          <span className="font-bold text-slate-900 text-[11px]">{ticket.ticket_code}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{t('dashboard.price')}:</span>
+                          <span className="font-bold">Rp {ticket.price.toLocaleString('id-ID')}</span>
+                        </div>
+                        {ticket.nim && (
+                          <div className="flex justify-between text-blue-600">
+                            <span>NIM:</span>
+                            <span className="font-bold">{ticket.nim}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-[10px] text-slate-400">
+                          <span>{t('common.date')}:</span>
+                          <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="pt-2 border-t-2 border-dashed border-slate-200 text-center w-full">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('scanner.ticketValidOneTime')}</p>
+                        <p className="text-[9px] text-slate-300">{t('scanner.ticketNoRefund')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                  {isPreviewMode ? 'Tutup' : t('common.cancel')}
+                </Button>
+                {!isPreviewMode && (
+                  <Button onClick={handlePrintConfirm} className="bg-slate-900 hover:bg-slate-800 min-w-[150px]">
+                    <Printer className="w-4 h-4 mr-2" />
+                    {t('scanner.confirmPrint')}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Package Selection Dialog */}
-      {packageDialogOpen && selectedCategoryForPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden transform transition-all scale-100">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
-              <div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: 'Outfit' }}>{t('dashboard.selectSpecialTicket')}</h3>
-                <p className="text-sm text-slate-300 mt-1">{t('dashboard.selectPackageDescription')}</p>
+      {
+        packageDialogOpen && selectedCategoryForPackage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden transform transition-all scale-100">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                <div>
+                  <h3 className="text-xl font-bold" style={{ fontFamily: 'Outfit' }}>{t('dashboard.selectSpecialTicket')}</h3>
+                  <p className="text-sm text-slate-300 mt-1">{t('dashboard.selectPackageDescription')}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setPackageDialogOpen(false)} className="text-white hover:bg-slate-800 rounded-full">
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setPackageDialogOpen(false)} className="text-white hover:bg-slate-800 rounded-full">
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
 
-            <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
-              <div className="space-y-4">
+              <div className="p-6 overflow-y-auto bg-slate-50 flex-1">
+                <div className="space-y-4">
 
 
-                {/* Option 2: Packages */}
-                {ticketPackages.length === 0 ? (
-                  <div className="text-center py-4 text-slate-400 italic">{t('dashboard.noPackagesAvailable')}</div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ticketPackages.map(pkg => (
-                      <div
-                        key={pkg.id}
-                        onClick={() => handlePackageSelect(pkg)}
-                        className="bg-white p-4 rounded-xl border-2 border-teal-100 hover:border-teal-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
-                      >
-                        <div className="absolute top-0 right-0 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
-                          {t('dashboard.saverPackage')}
-                        </div>
+                  {/* Option 2: Packages */}
+                  {ticketPackages.length === 0 ? (
+                    <div className="text-center py-4 text-slate-400 italic">{t('dashboard.noPackagesAvailable')}</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {ticketPackages.map(pkg => (
+                        <div
+                          key={pkg.id}
+                          onClick={() => handlePackageSelect(pkg)}
+                          className="bg-white p-4 rounded-xl border-2 border-teal-100 hover:border-teal-600 cursor-pointer transition-all hover:shadow-md group relative overflow-hidden"
+                        >
+                          <div className="absolute top-0 right-0 bg-teal-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                            {t('dashboard.saverPackage')}
+                          </div>
 
-                        <div className="mb-3">
-                          <h4 className="font-bold text-lg text-teal-950 group-hover:text-teal-700">{pkg.name}</h4>
-                          <p className="text-xs text-teal-600/80 font-medium">{pkg.description}</p>
-                        </div>
+                          <div className="mb-3">
+                            <h4 className="font-bold text-lg text-teal-950 group-hover:text-teal-700">{pkg.name}</h4>
+                            <p className="text-xs text-teal-600/80 font-medium">{pkg.description}</p>
+                          </div>
 
-                        <div className="space-y-1 text-sm text-slate-600">
-                          <p className="flex justify-between">
-                            <span>{t('dashboard.minPeople')}:</span>
-                            <span className="font-bold text-slate-900">{pkg.min_people} {t('dashboard.people')}</span>
-                          </p>
-                          <p className="flex justify-between">
-                            <span>{t('dashboard.packagePrice')}:</span>
-                            <span className="font-bold text-teal-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
-                          </p >
+                          <div className="space-y-1 text-sm text-slate-600">
+                            <p className="flex justify-between">
+                              <span>{t('dashboard.minPeople')}:</span>
+                              <span className="font-bold text-slate-900">{pkg.min_people} {t('dashboard.people')}</span>
+                            </p>
+                            <p className="flex justify-between">
+                              <span>{t('dashboard.packagePrice')}:</span>
+                              <span className="font-bold text-teal-600">Rp {pkg.price_per_person.toLocaleString('id-ID')}</span>
+                            </p >
+                          </div >
                         </div >
-                      </div >
-                    ))}
-                  </div >
-                )}
+                      ))}
+                    </div >
+                  )}
+                </div >
               </div >
             </div >
           </div >
-        </div >
-      )}
+        )
+      }
 
       {/* 57mm Thermal Print Template */}
       <div className="print-container hidden print:block text-black">
