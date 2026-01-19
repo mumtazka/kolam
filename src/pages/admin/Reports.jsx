@@ -369,11 +369,12 @@ const Reports = () => {
         {!loading && !error && reportData && reportData.by_category && reportData.by_category.length > 0 && (
           <div className="flex flex-col xl:flex-row gap-8">
             {/* Stats Cards - Left Side */}
-            <div className="flex flex-col sm:flex-row xl:flex-col gap-6 xl:w-80 flex-shrink-0">
-              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+            {/* Stats Cards - Left Side */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-4 xl:w-80 flex-shrink-0">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[160px] xl:h-[180px] group">
                 <div className="flex justify-between items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="xl:w-7 xl:h-7">
                       <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
                       <path d="M13 5v2" />
                       <path d="M13 17v2" />
@@ -381,18 +382,18 @@ const Reports = () => {
                     </svg>
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-xs text-teal-600 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
+                    <p className="text-[10px] xl:text-xs text-teal-600 font-bold uppercase tracking-wider">{t('reports.sold')}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
+                  <p className="text-3xl xl:text-4xl font-bold text-slate-900">{reportData.tickets_sold || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[160px] xl:h-[180px] group">
                 <div className="flex justify-between items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="xl:w-7 xl:h-7">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                       <circle cx="9" cy="7" r="4" />
                       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -400,25 +401,25 @@ const Reports = () => {
                     </svg>
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
+                    <p className="text-[10px] xl:text-xs text-emerald-600 font-bold uppercase tracking-wider">{t('reports.scanned')}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
+                  <p className="text-3xl xl:text-4xl font-bold text-slate-900">{reportData.tickets_scanned || 0}</p>
                 </div>
               </div>
 
-              <div className="flex-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[180px] group">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-[160px] xl:h-[180px] group">
                 <div className="flex justify-between items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
-                    <span className="text-2xl font-bold">Rp</span>
+                  <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+                    <span className="text-xl xl:text-2xl font-bold">Rp</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
+                    <p className="text-[10px] xl:text-xs text-amber-600 font-bold uppercase tracking-wider">{t('reports.revenue')}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">
+                  <p className="text-2xl xl:text-3xl font-bold text-slate-900 truncate" title={`Rp ${(reportData.total_revenue || 0).toLocaleString('id-ID')}`}>
                     Rp {(reportData.total_revenue || 0).toLocaleString('id-ID')}
                   </p>
                 </div>
@@ -438,7 +439,7 @@ const Reports = () => {
                 </div>
               </div>
 
-              <div className="relative h-96 flex items-end justify-around gap-8 px-6">
+              <div className="w-full overflow-x-auto relative h-96 flex items-end justify-around gap-8 px-6 pb-2">
                 {/* Grid Lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-14 pt-4">
                   {[...Array(6)].map((_, i) => (
@@ -663,7 +664,7 @@ const Reports = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50/50 border-b border-slate-100">
                     <tr>
@@ -752,6 +753,74 @@ const Reports = () => {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+                {getPaginatedTickets().map((ticket, idx) => {
+                  const date = new Date(ticket.created_at);
+                  const isPackage = ticket.max_usage && ticket.max_usage > 1;
+                  const status = isPackage
+                    ? ((ticket.usage_count || 0) >= ticket.max_usage ? 'used' : (ticket.usage_count || 0) > 0 ? 'partial' : 'unused')
+                    : (ticket.status === 'USED' ? 'used' : 'unused');
+
+                  const statusLabel = isPackage
+                    ? ((ticket.usage_count || 0) >= ticket.max_usage ? 'Dipakai' : (ticket.usage_count || 0) > 0 ? 'Sebagian' : 'Belum Digunakan')
+                    : (ticket.status === 'USED' ? 'Dipakai' : 'Belum Digunakan');
+
+                  const statusColor = status === 'used'
+                    ? 'bg-teal-100 text-teal-800'
+                    : status === 'partial'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-slate-100 text-slate-600';
+
+                  return (
+                    <div key={ticket.id} onClick={() => setSelectedTicket(ticket)} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm active:scale-95 transition-transform">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <span className="font-mono text-xs text-teal-700 font-bold block mb-1">
+                            {ticket.ticket_code || ticket.id?.substring(0, 8)}
+                          </span>
+                          <div className="font-bold text-slate-900 line-clamp-1">{ticket.category_name}</div>
+                        </div>
+                        <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${statusColor}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                        <div className="bg-slate-50 p-2 rounded-lg">
+                          <div className="text-xs text-slate-500 mb-1">{t('reports.price')}</div>
+                          <div className="font-bold text-slate-800">
+                            {isPackage ? (
+                              <>
+                                Rp {(parseFloat(ticket.price || 0) * ticket.max_usage).toLocaleString('id-ID')}
+                              </>
+                            ) : (
+                              <>Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</>
+                            )}
+                          </div>
+                        </div>
+                        <div className="bg-slate-50 p-2 rounded-lg">
+                          <div className="text-xs text-slate-500 mb-1">Jumlah</div>
+                          <div className="font-bold text-slate-800">
+                            {isPackage ? `${ticket.usage_count || 0}/${ticket.max_usage}` : '1'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs text-slate-500 pt-3 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" />
+                          {(reportType === 'monthly' || reportType === 'yearly' || reportType === 'lifetime')
+                            ? date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')
+                            : date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div className="font-medium">{ticket.created_by_name?.split(' ')[0]}</div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Pagination */}
