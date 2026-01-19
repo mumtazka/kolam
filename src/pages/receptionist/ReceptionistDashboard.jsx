@@ -801,11 +801,14 @@ const ReceptionistDashboard = () => {
              @page { size: 80mm 80mm; margin: 0; }
              html, body { 
                width: 80mm; 
-               height: 80mm;
+               height: auto;
                margin: 0; 
                padding: 0; 
              }
              .print-container {
+               position: absolute;
+               top: 0;
+               left: 0;
                width: 80mm;
                margin: 0;
                padding: 0;
