@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X, RefreshCw, ArrowUpDown } from 'lucide-react';
+import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X, RefreshCw, ArrowUpDown, Clock } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
