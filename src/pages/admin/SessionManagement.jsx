@@ -400,14 +400,14 @@ const SessionManagement = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
                 {/* Left Column: Calendar */}
-                <div className="lg:col-span-6 xl:col-span-6">
-                    <Card className="p-6 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-6">
+                <div className="lg:col-span-6 xl:col-span-6 order-2 lg:order-1">
+                    <Card className="p-3 sm:p-4 md:p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-4 md:mb-6">
                             <div className="flex items-center space-x-2 text-slate-900">
-                                <CalendarIcon className="w-5 h-5 text-teal-600" />
-                                <h2 className="text-xl font-bold">{t('common.calendar')}</h2>
+                                <CalendarIcon className="w-4 h-4 md:w-5 md:h-5 text-teal-600" />
+                                <h2 className="text-base sm:text-lg md:text-xl font-bold">{t('common.calendar')}</h2>
                             </div>
                         </div>
                         <div className="flex-1 flex justify-center">
@@ -415,7 +415,7 @@ const SessionManagement = () => {
                                 mode="single"
                                 selected={date}
                                 onSelect={setDate}
-                                className="rounded-md border shadow-sm p-6 w-full flex justify-center"
+                                className="rounded-md border shadow-sm p-2 sm:p-4 md:p-6 w-full flex justify-center"
                                 classNames={{
                                     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                                     month: "space-y-4",
@@ -426,11 +426,11 @@ const SessionManagement = () => {
                                     nav_button_previous: "absolute left-1",
                                     nav_button_next: "absolute right-1",
                                     table: "w-full border-collapse space-y-1",
-                                    head_row: "flex",
-                                    head_cell: "text-slate-500 rounded-md w-14 font-bold text-lg",
-                                    row: "flex w-full mt-2",
-                                    cell: "h-14 w-14 text-center text-lg p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                    day: "h-14 w-14 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors text-lg",
+                                    head_row: "flex justify-between",
+                                    head_cell: "text-slate-500 rounded-md w-8 sm:w-10 md:w-12 lg:w-14 font-semibold text-xs sm:text-sm md:text-base lg:text-lg text-center",
+                                    row: "flex w-full mt-1 sm:mt-2 justify-between",
+                                    cell: "h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 text-center text-sm sm:text-base md:text-lg p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-full transition-colors text-sm sm:text-base md:text-lg",
                                     day_range_end: "day-range-end",
                                     day_selected: "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white",
                                     day_today: "bg-slate-100 text-slate-900 font-bold",
@@ -477,14 +477,17 @@ const SessionManagement = () => {
                 </div>
 
                 {/* Right Column: Session List */}
-                <div className="lg:col-span-6 xl:col-span-6">
-                    <Card className="p-6 h-[600px] flex flex-col">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center space-x-2">
-                                <CalendarIcon className="w-5 h-5 text-teal-600" />
-                                <h2 className="text-xl font-bold text-slate-900">{t('admin.sessionList')}: {formattedDate}</h2>
+                <div className="lg:col-span-6 xl:col-span-6 order-1 lg:order-2">
+                    <Card className="p-3 sm:p-4 md:p-6 min-h-[300px] md:min-h-[400px] lg:h-[600px] flex flex-col">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 md:mb-8">
+                            <div className="flex items-center space-x-2 min-w-0">
+                                <CalendarIcon className="w-4 h-4 md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+                                <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-slate-900 truncate">
+                                    {t('admin.sessionList')}: <span className="hidden sm:inline">{formattedDate}</span>
+                                    <span className="sm:hidden">{date?.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short' })}</span>
+                                </h2>
                             </div>
-                            <span className="px-3 py-1 bg-slate-100 text-slate-900 font-medium rounded-md border border-slate-200">
+                            <span className="px-2 py-1 sm:px-3 bg-slate-100 text-slate-900 font-medium rounded-md border border-slate-200 text-xs sm:text-sm w-fit">
                                 {formattedDay}
                             </span>
                         </div>
@@ -505,16 +508,16 @@ const SessionManagement = () => {
                                     {filteredSessions.map((session) => (
                                         <div
                                             key={session.id}
-                                            className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 hover:border-teal-300"
+                                            className="group relative bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 hover:shadow-md transition-all duration-200 hover:border-teal-300"
                                         >
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h3 className="font-bold text-lg text-slate-900 mb-1 group-hover:text-teal-700 transition-colors">
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4">
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="font-bold text-sm sm:text-base md:text-lg text-slate-900 mb-1 group-hover:text-teal-700 transition-colors truncate">
                                                         {session.name}
                                                     </h3>
-                                                    <div className="flex flex-wrap gap-2">
+                                                    <div className="flex flex-wrap gap-1 sm:gap-2">
                                                         {session.days?.map(day => (
-                                                            <span key={day} className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${day === selectedDayName
+                                                            <span key={day} className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded uppercase border ${day === selectedDayName
                                                                 ? 'bg-teal-100 text-teal-700 border-teal-200'
                                                                 : 'bg-slate-50 text-slate-400 border-slate-100'
                                                                 }`}>
@@ -524,13 +527,13 @@ const SessionManagement = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="text-right">
-                                                    <div className="inline-flex items-center bg-slate-900 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm mb-2">
+                                                <div className="text-left sm:text-right flex-shrink-0">
+                                                    <div className="inline-flex items-center bg-slate-900 text-white px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-bold shadow-sm mb-1 sm:mb-2">
                                                         {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                     </div>
-                                                    <p className="text-slate-400 text-xs font-medium">
+                                                    <p className="text-slate-400 text-[10px] sm:text-xs font-medium">
                                                         {session.valid_until && session.valid_until < new Date().toISOString().split('T')[0] ? (
-                                                            <span className="text-red-500 font-bold flex items-center justify-end gap-1">
+                                                            <span className="text-red-500 font-bold flex items-center sm:justify-end gap-1">
                                                                 <Trash2 className="w-3 h-3" /> Expired
                                                             </span>
                                                         ) : (
@@ -540,23 +543,23 @@ const SessionManagement = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Actions */}
-                                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white shadow-sm rounded-lg border border-slate-100 p-1">
+                                            {/* Actions - Always visible on mobile, hover on desktop */}
+                                            <div className="mt-2 sm:mt-0 sm:absolute sm:top-4 sm:right-4 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 bg-white sm:shadow-sm rounded-lg sm:border sm:border-slate-100 p-1 w-fit">
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="h-8 w-8 hover:bg-slate-50 hover:text-teal-600"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-slate-50 hover:text-teal-600"
                                                     onClick={() => openEditDialog(session)}
                                                 >
-                                                    <Edit className="w-4 h-4" />
+                                                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 </Button>
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-red-50 hover:text-red-600"
                                                     onClick={() => handleDelete(session.id)}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -568,21 +571,21 @@ const SessionManagement = () => {
                 </div>
 
                 {/* Bottom Section: All Sessions List */}
-                <div className="col-span-1 lg:col-span-12">
-                    <Card className="p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-slate-900">{t('admin.allSessions')}</h2>
+                <div className="col-span-1 lg:col-span-12 order-3">
+                    <Card className="p-3 sm:p-4 md:p-6">
+                        <div className="flex items-center justify-between mb-4 md:mb-6">
+                            <h2 className="text-base sm:text-lg md:text-xl font-bold text-slate-900">{t('admin.allSessions')}</h2>
                         </div>
 
-                        <div className="rounded-md border border-slate-200 overflow-hidden">
-                            <table className="w-full text-sm text-left">
+                        <div className="rounded-md border border-slate-200 overflow-x-auto">
+                            <table className="w-full text-xs sm:text-sm text-left min-w-[600px]">
                                 <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                                     <tr>
-                                        <th className="px-4 py-3">{t('admin.sessionName')}</th>
-                                        <th className="px-4 py-3">{t('admin.days')}</th>
-                                        <th className="px-4 py-3">{t('admin.time')}</th>
-                                        <th className="px-4 py-3">{t('admin.contract')}</th>
-                                        <th className="px-4 py-3 text-right">{t('admin.actions')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.sessionName')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.days')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.time')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.contract')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap">{t('admin.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -603,22 +606,22 @@ const SessionManagement = () => {
                                             return true;
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-3 font-medium text-slate-900">{session.name}</td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 whitespace-nowrap">{session.name}</td>
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3">
                                                     <div className="flex flex-wrap gap-1">
                                                         {session.days?.map(day => (
-                                                            <span key={day} className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200">
+                                                            <span key={day} className="text-[8px] sm:text-[10px] uppercase font-bold px-1 sm:px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200">
                                                                 {t(`common.days.${day.substring(0, 3)}`)}
                                                             </span>
                                                         ))}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 font-mono text-slate-600">
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3 font-mono text-slate-600 whitespace-nowrap">
                                                     {session.start_time?.substring(0, 5)} - {session.end_time?.substring(0, 5)}
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3">
                                                     {session.valid_from || session.valid_until ? (
-                                                        <div className="text-xs space-y-0.5">
+                                                        <div className="text-[10px] sm:text-xs space-y-0.5 whitespace-nowrap">
                                                             {session.valid_from && (
                                                                 <div className="text-emerald-600">
                                                                     <span className="font-semibold">From:</span> {new Date(session.valid_from).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-GB')}
@@ -631,26 +634,26 @@ const SessionManagement = () => {
                                                             )}
                                                         </div>
                                                     ) : (
-                                                        <span className="text-xs text-slate-400 italic">{t('admin.noContract')}</span>
+                                                        <span className="text-[10px] sm:text-xs text-slate-400 italic">{t('admin.noContract')}</span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3 text-right">
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                                                     <div className="flex items-center justify-end space-x-1">
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
-                                                            className="h-8 w-8 hover:bg-slate-100 hover:text-teal-600"
+                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-slate-100 hover:text-teal-600"
                                                             onClick={() => openEditDialog(session)}
                                                         >
-                                                            <Edit className="w-4 h-4" />
+                                                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                                                         </Button>
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
-                                                            className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-red-50 hover:text-red-600"
                                                             onClick={() => handleDelete(session.id)}
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                                         </Button>
                                                     </div>
                                                 </td>
