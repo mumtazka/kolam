@@ -1,4 +1,3 @@
--- =============================================
 -- Kolam Renang UNY - Final Database Schema
 -- Combined Schema: Includes all tables, migrations, and policies
 -- =============================================

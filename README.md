@@ -21,9 +21,17 @@ This is the frontend application for the Kolam Renang UNY Management System, bui
     npm install
     ```
 
+### Database Setup
+
+The project includes a complete database definition file.
+
+1.  Open your Supabase SQL Editor.
+2.  Copy the content of `FINAL_SCHEMA.sql` from the project root.
+3.  Run the script to create all tables, policies, and seed data.
+
 ### Environment Configuration
 
-Create a `.env` file in the `frontend` root directory with the following variables:
+Create a `.env` file in the root directory with the following variables:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
@@ -50,16 +58,40 @@ The application will be available at `http://localhost:5173`.
 
 ## 📂 Project Structure
 
--   `src/components`: Reusable UI components (buttons, cards, etc.)
--   `src/pages`: Main application pages (Admin, Receptionist, Scanner views)
--   `src/services`: API service layers for communicating with Supabase
--   `src/stats`: Context providers (Auth, Theme, etc.)
+-   `src/components`: Reusable UI components (buttons, forms, layout, etc.)
+-   `src/pages`: Main application views (**Admin**, **Receptionist**, **Scanner**, **Login**)
+-   `src/services`: API service layers (Supabase integration)
+-   `src/contexts`: Global state providers (AuthContext, etc.)
+-   `src/lib`: Utility functions and helpers
+-   `database`: SQL migration files and schemas
+-   `FINAL_SCHEMA.sql`: **Master database definition file**
 
 ## 🔑 Key Features
 
--   **Admin Dashboard**: Manage staff, categories, prices, sessions, packages, and reports.
--   **Receptionist View**: Ticket sales, member lookup, and transaction handling.
--   **Ticket Scanner**: Mobile-optimized view for scanning QR tickets.
+-   **Admin Dashboard**:
+    -   **Reporting**: Detailed financial reports, daily usage, and export to Excel.
+    -   **Staff Management**: Shift scheduling (Morning/Afternoon) and role management.
+    -   **Master Data**: Manage Ticket Categories, Packages, Pools, and Prices.
+-   **Receptionist View**:
+    -   **Fast POS**: Touch-friendly interface for selling tickets.
+    -   **Thermal Printing**: Optimized 80mm ticket printing support.
+    -   **History**: View recent transactions and reprint capability.
+-   **Ticket Scanner**:
+    -   **QR Scanning**: Fast validation of visitor tickets.
+    -   **Multi-Scan**: Support for package tickets (e.g., 5-visit pass).
+
+## 🎫 Ticket System Logic
+
+### Special Request / Custom Tickets (Prefix 'K')
+
+The system includes a specialized ticket category "Khusus" (Prefix: **K**) designed for flexible usage scenarios like bulk packages, member passes, or contracts.
+
+-   **Multi-Use Capability**: Unlike standard tickets (single-use), 'K' tickets can be linked to **Ticket Packages** (e.g., "Paket 10x Renang").
+-   **Usage Tracking**: The system tracks `usage_count` for these tickets. A scanner can scan the same ticket multiple times until it reaches its quota.
+-   **Pricing**: These tickets often have dynamic pricing:
+    -   If linked to a package, the price defaults to the package's `price_per_person`.
+    -   They can be issued with custom pricing for special billing requirements.
+-   **Reporting**: In admin reports, usage for 'K' tickets is displayed as `Current/Max` (e.g., "5/10") to track consumption of prepaid packages.
 
 ## 📦 Building for Production
 
