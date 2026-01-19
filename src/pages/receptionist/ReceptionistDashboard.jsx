@@ -650,9 +650,9 @@ const ReceptionistDashboard = () => {
       {/* Ticket Preview Modal */}
       {
         showPreview && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">
                     {t('scanner.ticketPreview')}
@@ -666,52 +666,56 @@ const ReceptionistDashboard = () => {
                 </Button>
               </div>
 
-              <div className="p-8 overflow-y-auto flex-1 bg-slate-100/50">
-                <div className="flex flex-wrap gap-8 justify-center">
+              <div className="p-8 overflow-y-auto flex-1 bg-slate-700" style={{ minHeight: 0 }}>
+                <div className="flex flex-wrap gap-6 justify-center">
                   {printedTickets.map((ticket) => (
-                    <div key={ticket.id} className="bg-white p-4 rounded-none shadow-md border border-slate-200 flex flex-col items-center justify-between relative overflow-hidden" style={{ width: '302px', height: '302px' }}>
-                      {/* Cut lines */}
-                      <div className="absolute -left-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
-                      <div className="absolute -right-2 top-1/2 w-4 h-4 bg-slate-100 rounded-full"></div>
-
+                    <div
+                      key={ticket.id}
+                      className="bg-white flex flex-col items-center justify-between shadow-2xl"
+                      style={{
+                        width: '302px',
+                        height: '302px',
+                        padding: '16px', // Scaled up slightly for screen visibility, roughly 4mm
+                        boxSizing: 'border-box'
+                      }}
+                    >
                       {/* Header */}
                       <div className="text-center w-full">
-                        <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wide">Kolam Renang UNY</h2>
-                        <div className="w-full h-px bg-slate-200 my-1"></div>
-                        <h3 className="text-base font-bold text-slate-800">{ticket.category_name}</h3>
+                        <h2 className="text-sm font-bold text-black uppercase leading-none">Kolam Renang UNY</h2>
+                        <h3 className="text-[10px] font-semibold text-black uppercase leading-none mt-1">{ticket.category_name}</h3>
                       </div>
 
-                      {/* QR Code - constrained size */}
-                      <div className="w-full flex justify-center py-1 overflow-hidden">
-                        <QRCode value={ticket.ticket_code} size={80} />
+                      {/* QR Code - Centered */}
+                      <div className="flex justify-center" style={{ margin: '8px auto' }}>
+                        <QRCode value={ticket.ticket_code} size={100} /> {/* Kept slightly larger for screen readability, printed is 80 */}
                       </div>
 
                       {/* Details */}
-                      <div className="w-full space-y-1 font-mono text-xs text-slate-600">
+                      <div className="w-full font-mono text-[9px] text-black uppercase leading-tight">
                         <div className="flex justify-between">
                           <span>{t('common.code')}:</span>
-                          <span className="font-bold text-slate-900 text-[11px]">{ticket.ticket_code}</span>
+                          <span className="font-bold">{ticket.ticket_code}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>{t('dashboard.price')}:</span>
-                          <span className="font-bold">Rp {ticket.price.toLocaleString('id-ID')}</span>
+                          <span>Rp {ticket.price.toLocaleString('id-ID')}</span>
                         </div>
                         {ticket.nim && (
-                          <div className="flex justify-between text-blue-600">
+                          <div className="flex justify-between">
                             <span>NIM:</span>
                             <span className="font-bold">{ticket.nim}</span>
                           </div>
                         )}
-                        <div className="flex justify-between text-[10px] text-slate-400">
+                        <div className="flex justify-between">
                           <span>{t('common.date')}:</span>
                           <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
 
                       {/* Footer */}
-                      <div className="pt-2 border-t-2 border-dashed border-slate-200 text-center w-full">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t('scanner.ticketValidOneTime')}</p>
-                        <p className="text-[9px] text-slate-300">{t('scanner.ticketNoRefund')}</p>
+                      <div className="text-center pt-2 border-t border-black border-dashed w-full">
+                        <p className="font-bold text-[8px] text-black leading-tight">{t('scanner.ticketValidOneTime')}</p>
+                        <p className="text-[8px] text-black leading-tight">{t('scanner.ticketNoRefund')}</p>
                       </div>
                     </div>
                   ))}
@@ -798,13 +802,20 @@ const ReceptionistDashboard = () => {
       <div className="print-container hidden print:block text-black">
         <style type="text/css" media="print">
           {`
-             @page { size: 80mm 80mm; margin: 0; }
+             @page { 
+               size: 80mm 80mm; 
+               margin: 0; 
+             }
+             
              html, body { 
                width: 80mm; 
-               height: auto;
+               height: 80mm;
                margin: 0; 
-               padding: 0; 
+               padding: 0;
+               overflow: hidden;
+               font-family: 'Inter', sans-serif;
              }
+             
              .print-container {
                position: absolute;
                top: 0;
@@ -819,21 +830,26 @@ const ReceptionistDashboard = () => {
              .printable-ticket { 
                width: 80mm;
                height: 80mm;
-               padding: 8px; 
+               max-height: 80mm;
+               padding: 15px 10px; 
                margin: 0;
                box-sizing: border-box;
                display: flex;
                flex-direction: column;
-               justify-content: space-between;
+               justify-content: flex-start;
+               align-items: center;
+               gap: 8px;
+               overflow: hidden;
                page-break-after: always; 
+               page-break-inside: avoid;
                break-after: page;
-               border-bottom: 1px dashed #000; 
+               break-inside: avoid;
+               background: white;
              }
 
              .printable-ticket:last-child {
                page-break-after: auto;
                break-after: auto;
-               border-bottom: none;
              }
              
              .printable-ticket * {
@@ -841,11 +857,6 @@ const ReceptionistDashboard = () => {
                print-color-adjust: exact;
              }
 
-             .printable-ticket.isSpecial {
-                /* Remove black background for printing - printers don't print backgrounds by default */
-                /* This ensures text is visible (black on white) instead of invisible (white on white) */
-             }
-             
              .printable-ticket.isSpecial .tick-h2, 
              .printable-ticket.isSpecial .tick-h3, 
              .printable-ticket.isSpecial .tick-val,
@@ -854,7 +865,6 @@ const ReceptionistDashboard = () => {
              .printable-ticket.isSpecial span,
              .printable-ticket.isSpecial h2,
              .printable-ticket.isSpecial h3 {
-                /* Use default black text for printing */
                 color: black !important;
              }
              
@@ -882,33 +892,33 @@ const ReceptionistDashboard = () => {
           return (
             <div key={ticket.id} className={`printable-ticket ${isSpecial ? 'isSpecial' : ''}`}>
               {/* Header */}
-              <div className="text-center mb-1 px-1">
-                <h2 className="text-base font-bold uppercase leading-tight">Kolam Renang UNY</h2>
-                <h3 className="text-xs font-semibold mt-0.5 uppercase">{ticket.category_name}</h3>
+              <div className="text-center w-full">
+                <h2 className="text-sm font-bold uppercase leading-none" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang UNY</h2>
+                <h3 className="text-[10px] font-semibold uppercase leading-none mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</h3>
               </div>
 
-              {/* QR Code - Centered & Safe Range for 80mm */}
-              <div className="tick-qr flex justify-center my-2 overflow-hidden" style={{ maxWidth: '70mm', margin: '8px auto' }}>
+              {/* QR Code */}
+              <div className="tick-qr flex justify-center w-full" style={{ margin: '5px 0' }}>
                 <QRCode
                   value={ticket.ticket_code}
-                  size={120}
+                  size={90}
                 />
               </div>
 
               {/* Ticket Details */}
-              <div className="space-y-0.5 font-mono text-[10px] uppercase px-1 leading-tight">
-                <p className="flex justify-between"><span>{t('common.code')}:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
-                <p className="flex justify-between"><span>{t('dashboard.price')}:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
-                {ticket.nim && <p className="flex justify-between"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
+              <div className="w-full font-mono text-[9px] uppercase leading-tight px-1" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
+                <p className="flex justify-between mb-0.5"><span>{t('common.code')}:</span> <span className="font-bold">{ticket.ticket_code}</span></p>
+                <p className="flex justify-between mb-0.5"><span>{t('dashboard.price')}:</span> <span>Rp {ticket.price.toLocaleString('id-ID')}</span></p>
+                {ticket.nim && <p className="flex justify-between mb-0.5"><span>NIM:</span> <span className="font-bold">{ticket.nim}</span></p>}
                 <p className="flex justify-between"><span>{t('common.date')}:</span> <span>{new Date(ticket.created_at).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', {
                   day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
                 })}</span></p>
               </div>
 
               {/* Footer */}
-              <div className="text-center pt-2 mt-2 border-t border-black border-dashed mx-1">
-                <p className="font-bold text-[9px]">{t('scanner.ticketValidOneTime')}</p>
-                <p className="text-[9px]">{t('scanner.ticketNoRefund')}</p>
+              <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
+                <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketValidOneTime')}</p>
+                <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketNoRefund')}</p>
               </div>
             </div>
           );

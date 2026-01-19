@@ -110,7 +110,10 @@ const AdminLayout = () => {
         />
 
         {/* Content Area */}
-        <main className="flex-1 overflow-auto p-6 relative">
+        <main className={`flex-1 relative ${location.pathname.endsWith('/pos') || location.pathname.endsWith('/scan')
+            ? 'overflow-hidden p-0'
+            : 'overflow-auto p-6'
+          }`}>
           <Outlet />
         </main>
       </div>
