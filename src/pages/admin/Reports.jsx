@@ -8,6 +8,7 @@ import QRCode from '../../components/ui/QRCode';
 import TicketPrintTemplate from '../../components/TicketPrintTemplate';
 import PrintSettingsModal from '../../components/PrintSettingsModal';
 import { toast } from 'sonner';
+import XLSX from 'xlsx-js-style';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
 
@@ -317,14 +318,14 @@ const Reports = () => {
 
     try {
       const tickets = [...reportData.tickets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      // ========== DATA PREPARATION ==========
       const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
-      const rows = tickets.map((ticket, index) => {
+
+      const ticketRows = tickets.map((ticket, index) => {
         const date = new Date(ticket.created_at);
         const quantity = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : (ticket.quantity || 1);
         const unitPrice = parseFloat(ticket.price || 0);
-        // If max_usage > 1, the ticket.price is treated as unit price in the UI, so we multiply for total value
-        // If it's a standard ticket, ticket.price is the total price.
-        // Logic matches the table display logic.
         const rowTotal = ticket.max_usage && ticket.max_usage > 1 ? (unitPrice * ticket.max_usage) : unitPrice;
 
         return [
@@ -337,47 +338,178 @@ const Reports = () => {
           rowTotal,
           ticket.status === 'USED' ? 'Dipakai' : 'Belum Dipakai',
           date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US'),
-          date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US')
+          date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
         ];
       });
 
-      const totalRevenue = tickets.reduce((sum, t) => {
+      // Calculate totals for bottom of left side
+      const totalRevenueTicket = tickets.reduce((sum, t) => {
         const p = parseFloat(t.price || 0);
         const m = t.max_usage && t.max_usage > 1 ? t.max_usage : 1;
-        return sum + (p * m); // Assuming price is unit price for packages, same as rowTotal logic
-        // Wait, for standard tickets (m=1), p * 1 = p. Correct.
-        // For packages (m=10), p * 10. Correct.
+        return sum + (p * m);
       }, 0);
 
-      const totalQuantity = tickets.reduce((sum, t) => {
+      const totalQuantityTicket = tickets.reduce((sum, t) => {
         const m = t.max_usage && t.max_usage > 1 ? t.max_usage : (t.quantity || 1);
         return sum + m;
       }, 0);
 
-      rows.push(['', '', '', '', 'TOTAL', totalQuantity, totalRevenue, '', '', '']);
+      ticketRows.push(['', '', '', '', 'TOTAL', totalQuantityTicket, totalRevenueTicket, '', '', '']);
 
-      const csvContent = 'sep=;\n' + [headers, ...rows]
-        .map(row => row.map(cell => `"${cell || ''}"`).join(';'))
-        .join('\n');
+      // ========== SUMMARY PREPARATION (RIGHT SIDE) ==========
+      const summaryData = [];
 
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      let filename;
+      // Date/Month/Year Label
+      const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+      let dateLabel = '';
+      let dateValue = '';
+
       if (reportType === 'daily') {
-        filename = `ticket_history_${selectedDate}.csv`;
+        const dateObj = new Date(selectedDate);
+        const dayName = dayNames[dateObj.getDay()];
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = dateObj.getFullYear();
+        dateLabel = 'Hari / Tanggal';
+        dateValue = `${dayName} / ${day}-${month}-${year}`;
       } else if (reportType === 'monthly') {
-        filename = `ticket_history_${selectedYear}-${String(selectedMonth).padStart(2, '0')}.csv`;
+        dateLabel = 'Bulan / Tahun';
+        dateValue = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
       } else if (reportType === 'yearly') {
-        filename = `ticket_history_${selectedYear}.csv`;
+        dateLabel = 'Tahun';
+        dateValue = `${selectedYear}`;
       } else {
-        filename = `ticket_history_lifetime.csv`;
+        dateLabel = 'Periode';
+        dateValue = 'Semua Data';
       }
 
-      link.setAttribute('href', URL.createObjectURL(blob));
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Collect unique staff names
+      const staffNames = [...new Set(tickets.map(t => t.created_by_name).filter(Boolean))];
+
+      // Build Summary Rows [Label, Value, Value2]
+      summaryData.push([dateLabel, dateValue, '']);
+      summaryData.push(['Shift', staffNames.join(', ') || '-', '']);
+      summaryData.push(['', '', '']); // Spacer
+
+      // Dynamic category stats
+      const categoryStats = {};
+      tickets.forEach(ticket => {
+        const catName = ticket.category_name || 'Lainnya';
+        if (!categoryStats[catName]) {
+          categoryStats[catName] = { count: 0, revenue: 0 };
+        }
+        const qty = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+        const price = parseFloat(ticket.price || 0);
+        categoryStats[catName].count += qty;
+        categoryStats[catName].revenue += price * qty;
+      });
+
+      Object.entries(categoryStats).forEach(([catName, stats]) => {
+        summaryData.push([catName, stats.count, `Rp ${stats.revenue.toLocaleString('id-ID')}`]);
+      });
+
+      summaryData.push(['', '', '']); // Spacer
+
+      // Check-in status stats
+      let sudahCheckinCount = 0;
+      let sudahCheckinRevenue = 0;
+      let belumCheckinCount = 0;
+      let belumCheckinRevenue = 0;
+
+      tickets.forEach(ticket => {
+        const qty = ticket.max_usage && ticket.max_usage > 1 ? ticket.max_usage : 1;
+        const usageCount = ticket.usage_count || 0;
+        const price = parseFloat(ticket.price || 0);
+
+        // For revenue calculation logic
+        if (ticket.max_usage && ticket.max_usage > 1) {
+          const usedQty = Math.min(usageCount, ticket.max_usage);
+          const unusedQty = ticket.max_usage - usedQty;
+
+          sudahCheckinCount += usedQty;
+          sudahCheckinRevenue += usedQty * price;
+          belumCheckinCount += unusedQty;
+          belumCheckinRevenue += unusedQty * price;
+        } else {
+          if (ticket.status === 'USED') {
+            sudahCheckinCount += 1;
+            sudahCheckinRevenue += price * qty;
+          } else {
+            belumCheckinCount += 1;
+            belumCheckinRevenue += price * qty;
+          }
+        }
+      });
+
+      summaryData.push(['Belum Check-in', belumCheckinCount, `Rp ${belumCheckinRevenue.toLocaleString('id-ID')}`]);
+      summaryData.push(['Sudah Check-in', sudahCheckinCount, `Rp ${sudahCheckinRevenue.toLocaleString('id-ID')}`]);
+
+      const grandTotalCount = sudahCheckinCount + belumCheckinCount;
+      const grandTotalRevenue = sudahCheckinRevenue + belumCheckinRevenue;
+      summaryData.push(['Total', grandTotalCount, `Rp ${grandTotalRevenue.toLocaleString('id-ID')}`]);
+
+
+      // ========== COMBINE LEFT AND RIGHT ==========
+      const finalLines = [];
+      const headerLine = [...headers, '', ...['RINGKASAN', '', '']]; // Column K empty, L starts summary
+      finalLines.push(headerLine);
+
+      // Determine max rows needed
+      const maxRows = Math.max(ticketRows.length, summaryData.length);
+
+      for (let i = 0; i < maxRows; i++) {
+        const left = ticketRows[i] || Array(headers.length).fill('');
+        const right = summaryData[i] || ['', '', ''];
+        finalLines.push([...left, '', ...right]); // Empty string      // Combine summary and data sections
+      }
+      const ws = XLSX.utils.aoa_to_sheet(finalLines);
+
+      // Auto-fit columns
+      const colWidths = finalLines[0].map((_, colIndex) => {
+        // Separator column (Gap between data and summary)
+        if (colIndex === 10) return { wch: 2 };
+
+        let maxLen = 0;
+        finalLines.forEach(row => {
+          const cellValue = row[colIndex] ? String(row[colIndex]) : "";
+          maxLen = Math.max(maxLen, cellValue.length);
+        });
+        return { wch: maxLen + 2 };
+      });
+      ws['!cols'] = colWidths;
+
+      // Apply bold styling to summary columns (L, M, N - columns 11, 12, 13)
+      const summaryStartCol = 11; // Column L (0-indexed)
+      const summaryEndCol = 13; // Column N
+      const range = XLSX.utils.decode_range(ws['!ref']);
+
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = summaryStartCol; C <= summaryEndCol; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (ws[cellAddress] && ws[cellAddress].v !== '' && ws[cellAddress].v !== undefined) {
+            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            ws[cellAddress].s.font = { bold: true };
+          }
+        }
+      }
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+      let filename;
+      if (reportType === 'daily') {
+        filename = `ticket_report_${selectedDate}.xlsx`;
+      } else if (reportType === 'monthly') {
+        filename = `ticket_report_${selectedYear}-${String(selectedMonth).padStart(2, '0')}.xlsx`;
+      } else if (reportType === 'yearly') {
+        filename = `ticket_report_${selectedYear}.xlsx`;
+      } else {
+        filename = `ticket_report_lifetime.xlsx`;
+      }
+
+      XLSX.writeFile(wb, filename);
 
       toast.success(t('reports.exportSuccess'));
     } catch (err) {
