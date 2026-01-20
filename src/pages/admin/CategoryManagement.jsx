@@ -14,7 +14,8 @@ import {
     createCategory,
     updateCategory,
     toggleCategoryActive,
-    deleteCategory
+    deleteCategory,
+    parseSessionMetadata
 } from '../../services/categoryService';
 import { getTicketPackages } from '../../services/adminService';
 
@@ -368,6 +369,14 @@ const CategoryManagement = () => {
                 {categories.map((category) => {
                     const isSpecial = category.code_prefix === 'K';
 
+                    // Check if session ticket (from database or JSON metadata)
+                    const isSessionTicket = !!(category.session_id || category.sessions);
+                    const sessionData = category.sessions; // From database join
+                    const sessionMetadata = parseSessionMetadata(category.description); // Backward compatibility
+
+                    // Determine if one-time based on booking_date or metadata
+                    const isOneTime = category.booking_date ? true : (sessionMetadata ? !sessionMetadata.is_recurring : false);
+
                     return (
                         <Card
                             key={category.id}
@@ -375,10 +384,26 @@ const CategoryManagement = () => {
                                 ? 'opacity-60 bg-slate-50'
                                 : isSpecial
                                     ? 'bg-slate-900 text-white border-slate-700'
-                                    : ''
+                                    : isSessionTicket
+                                        ? 'border-2 border-teal-500 bg-teal-50/30'
+                                        : ''
                                 }`}
                             data-testid={`category-card-${category.id}`}
                         >
+                            {/* Session Badge */}
+                            {isSessionTicket && (
+                                <div className="mb-3 flex items-center gap-2 pb-2 border-b border-teal-200">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 text-white text-xs font-bold rounded-full">
+                                        📅 Session Ticket
+                                    </span>
+                                    {isOneTime && (
+                                        <span className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+                                            One-time
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
@@ -391,7 +416,9 @@ const CategoryManagement = () => {
                                     </div>
                                     <div>
                                         <h3 className={`font-semibold text-lg ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
-                                        <p className={`text-sm ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description || t('common.unknown')}</p>
+                                        <p className={`text-sm ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            {category.description || t('common.unknown')}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

@@ -1,20 +1,95 @@
 import { supabase } from '../lib/supabase';
 
 /**
- * Get all categories
+ * Parse session metadata from description field
+ * Returns null if description is not session metadata
  */
+export const parseSessionMetadata = (description) => {
+    if (!description || typeof description !== 'string') return null;
+
+    try {
+        const parsed = JSON.parse(description);
+        if (parsed.type === 'session_ticket') {
+            return parsed;
+        }
+    } catch (e) {
+        // Not JSON or not session metadata
+        return null;
+    }
+    return null;
+};
+
+/**
+ * Create session metadata JSON string for description field
+ */
+export const createSessionMetadata = (sessionId, sessionData) => {
+    const metadata = {
+        type: 'session_ticket',
+        session_id: sessionId,
+        session_name: sessionData.name,
+        session_time: `${sessionData.start_time} - ${sessionData.end_time}`,
+        days: sessionData.days || [],
+        is_recurring: sessionData.is_recurring || false,
+        booking_date: sessionData.booking_date || null
+    };
+    return JSON.stringify(metadata);
+};
+
+/**
+ * Check if a category is a session ticket and not expired
+ */
+export const isValidSessionTicket = (category) => {
+    const metadata = parseSessionMetadata(category.description);
+    if (!metadata) return true; // Not a session ticket, always valid
+
+    // If it's a one-time session ticket, check if it's expired
+    if (!metadata.is_recurring && metadata.booking_date) {
+        const bookingDate = new Date(metadata.booking_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        bookingDate.setHours(0, 0, 0, 0);
+
+        // Hide if booking date is in the past
+        return bookingDate >= today;
+    }
+
+    // Recurring or no booking date - always valid
+    return true;
+};
+
 /**
  * Get all categories (excluding soft-deleted ones)
  */
 export const getCategories = async () => {
     const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select(`
+            *,
+            sessions (
+                id,
+                name,
+                start_time,
+                end_time,
+                days,
+                is_recurring
+            )
+        `)
         .is('deleted_at', null)
         .order('name');
 
     if (error) throw error;
-    return data;
+
+    // Filter out expired one-time session tickets
+    const today = new Date().toISOString().split('T')[0];
+    return data.filter(category => {
+        // If has booking_date and it's in the past, hide it
+        if (category.booking_date && category.booking_date < today) {
+            return false;
+        }
+
+        // Backward compatibility: also check description field
+        return isValidSessionTicket(category);
+    });
 };
 
 /**
@@ -23,13 +98,34 @@ export const getCategories = async () => {
 export const getActiveCategories = async () => {
     const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select(`
+            *,
+            sessions (
+                id,
+                name,
+                start_time,
+                end_time,
+                days,
+                is_recurring
+            )
+        `)
         .is('deleted_at', null)
         .eq('active', true)
         .order('name');
 
     if (error) throw error;
-    return data;
+
+    // Filter out expired one-time session tickets
+    const today = new Date().toISOString().split('T')[0];
+    return data.filter(category => {
+        // If has booking_date and it's in the past, hide it
+        if (category.booking_date && category.booking_date < today) {
+            return false;
+        }
+
+        // Backward compatibility: also check description field
+        return isValidSessionTicket(category);
+    });
 };
 
 /**

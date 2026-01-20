@@ -8,10 +8,11 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
-import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '../../components/ui/calendar';
 import { getSessions, createSession, updateSession, deleteSession } from '../../services/adminService';
+import { createCategory } from '../../services/categoryService';
 import { id, enUS } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { ScrollArea } from '../../components/ui/scroll-area';
@@ -139,6 +140,13 @@ const SessionManagement = () => {
     const [specificDate, setSpecificDate] = useState(new Date().toISOString().split('T')[0]); // For non-recurring sessions
     const [confirmDialog, setConfirmDialog] = useState({ open: false, sessionId: null });
     const [conflictDialog, setConflictDialog] = useState({ open: false, sessionData: null }); // New conflict dialog state
+    const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
+    const [selectedSessionForTicket, setSelectedSessionForTicket] = useState(null);
+    const [ticketFormData, setTicketFormData] = useState({
+        name: '',
+        code_prefix: '',
+        price: ''
+    });
     const [formData, setFormData] = useState({
         name: '',
         start_time: '07:00',
@@ -350,6 +358,52 @@ const SessionManagement = () => {
                 ? prev.days.filter(d => d !== dayId)
                 : [...prev.days, dayId]
         }));
+    };
+
+    // Handle Create Ticket from Session
+    const handleCreateTicket = (session) => {
+        setSelectedSessionForTicket(session);
+        setTicketFormData({
+            name: session.name + ' Ticket',
+            code_prefix: '',
+            price: ''
+        });
+        setTicketDialogOpen(true);
+    };
+
+    const handleTicketSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!ticketFormData.name.trim() || !ticketFormData.code_prefix.trim() || !ticketFormData.price) {
+            toast.error(t('common.required'));
+            return;
+        }
+
+        try {
+            const categoryData = {
+                name: ticketFormData.name.trim(),
+                code_prefix: ticketFormData.code_prefix.toUpperCase().trim(),
+                price: parseFloat(ticketFormData.price),
+                requires_nim: false,
+                active: true,
+                // Use database columns for session linkage
+                session_id: selectedSessionForTicket.id,
+                booking_date: selectedSessionForTicket.is_recurring
+                    ? null
+                    : selectedSessionForTicket.valid_from,
+                // Keep description for display (session name and time)
+                description: `${selectedSessionForTicket.name} • ${selectedSessionForTicket.start_time} - ${selectedSessionForTicket.end_time}`
+            };
+
+            await createCategory(categoryData);
+            toast.success('Ticket category created successfully!');
+            setTicketDialogOpen(false);
+            setTicketFormData({ name: '', code_prefix: '', price: '' });
+            setSelectedSessionForTicket(null);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || 'Failed to create ticket category');
+        }
     };
 
     // Filter sessions for selected date
@@ -590,8 +644,8 @@ const SessionManagement = () => {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {sessions.filter(s => {
+                                        // Only filter out expired sessions, show all others (recurring AND one-time)
                                         if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
-                                        if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                         return true;
                                     }).length === 0 ? (
                                         <tr>
@@ -601,8 +655,8 @@ const SessionManagement = () => {
                                         </tr>
                                     ) : (
                                         sessions.filter(s => {
+                                            // Only filter out expired sessions, show all others (recurring AND one-time)
                                             if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
-                                            if (!s.is_recurring) return false; // Filter out non-recurring sessions
                                             return true;
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
@@ -639,6 +693,15 @@ const SessionManagement = () => {
                                                 </td>
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                                                     <div className="flex items-center justify-end space-x-1">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-teal-50 hover:text-teal-600"
+                                                            onClick={() => handleCreateTicket(session)}
+                                                            title="Create Ticket Category"
+                                                        >
+                                                            <Ticket className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                        </Button>
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
@@ -863,6 +926,80 @@ const SessionManagement = () => {
                 cancelText="Batal"
                 variant="warning"
             />
+
+            {/* Create Ticket from Session Dialog */}
+            <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create Ticket Category from Session</DialogTitle>
+                        <DialogDescription>
+                            Create a ticket category for session: {selectedSessionForTicket?.name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleTicketSubmit} className="space-y-4">
+                        {selectedSessionForTicket && (
+                            <div className="p-3 bg-slate-50 rounded-md border border-slate-200">
+                                <div className="text-sm space-y-1">
+                                    <div><span className="font-semibold">Session:</span> {selectedSessionForTicket.name}</div>
+                                    <div><span className="font-semibold">Time:</span> {selectedSessionForTicket.start_time} - {selectedSessionForTicket.end_time}</div>
+                                    <div><span className="font-semibold">Days:</span> {selectedSessionForTicket.days?.join(', ')}</div>
+                                    <div><span className="font-semibold">Type:</span> {selectedSessionForTicket.is_recurring ? 'Recurring' : 'One-time'}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <Label htmlFor="ticket_name">Category Name *</Label>
+                            <Input
+                                id="ticket_name"
+                                value={ticketFormData.name}
+                                onChange={(e) => setTicketFormData({ ...ticketFormData, name: e.target.value })}
+                                placeholder="e.g., Sesar Ticket"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="ticket_prefix">Code Prefix * (1-3 chars)</Label>
+                            <Input
+                                id="ticket_prefix"
+                                value={ticketFormData.code_prefix}
+                                onChange={(e) => setTicketFormData({ ...ticketFormData, code_prefix: e.target.value.toUpperCase().slice(0, 3) })}
+                                placeholder="e.g., SES"
+                                maxLength={3}
+                                className="uppercase"
+                                required
+                            />
+                            <p className="text-xs text-slate-500 mt-1">
+                                Ticket code: {ticketFormData.code_prefix || 'XXX'}-20260120-0001-A1B2
+                            </p>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="ticket_price">Price (Rp) *</Label>
+                            <Input
+                                id="ticket_price"
+                                type="number"
+                                min="0"
+                                step="1000"
+                                value={ticketFormData.price}
+                                onChange={(e) => setTicketFormData({ ...ticketFormData, price: e.target.value })}
+                                placeholder="e.g., 15000"
+                                required
+                            />
+                        </div>
+
+                        <div className="flex space-x-2 pt-4">
+                            <Button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700">
+                                Create Ticket Category
+                            </Button>
+                            <Button type="button" variant="outline" onClick={() => setTicketDialogOpen(false)} className="flex-1">
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
