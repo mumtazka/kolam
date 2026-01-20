@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { ChevronDown, Download, ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown, RefreshCw } from 'lucide-react';
+import { ChevronDown, Download, ChevronLeft, ChevronRight, AlertCircle, X, FileSpreadsheet, Calendar, Clock, TrendingUp, ArrowUpDown, RefreshCw, Printer } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDailyReport } from '../../services/reportService';
+import TicketPrintTemplate from '../../components/TicketPrintTemplate';
+import PrintSettingsModal from '../../components/PrintSettingsModal';
 
 // Indonesian Calendar Component
 const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
@@ -217,6 +219,10 @@ const ReceptionistHistory = () => {
     const [selectedDate, setSelectedDate] = useState(formatLocalDateMain(new Date()));
     const [historyPage, setHistoryPage] = useState(1);
     const [selectedTicket, setSelectedTicket] = useState(null);
+    const [printingTicket, setPrintingTicket] = useState(null);
+    const [printingCopies, setPrintingCopies] = useState(1);
+    const [showPrintSettings, setShowPrintSettings] = useState(false);
+    const [ticketToPrint, setTicketToPrint] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
     const HISTORY_PER_PAGE = 20;
@@ -401,6 +407,41 @@ const ReceptionistHistory = () => {
         }
     };
 
+    const handleReprint = (ticket) => {
+        // Only show adjust limit for package tickets (> 1 max usage)
+        if (ticket.max_usage && ticket.max_usage > 1) {
+            setTicketToPrint(ticket);
+            setShowPrintSettings(true);
+        } else {
+            // Direct print for single tickets
+            setPrintingTicket(ticket);
+            setPrintingCopies(1);
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    setPrintingTicket(null);
+                    setPrintingCopies(1);
+                }, 1000);
+            }, 500);
+        }
+    };
+
+    const handleConfirmPrint = (copies) => {
+        setShowPrintSettings(false);
+        setPrintingTicket(ticketToPrint);
+        setPrintingCopies(copies);
+        // Wait for render
+        setTimeout(() => {
+            window.print();
+            // Cleanup
+            setTimeout(() => {
+                setPrintingTicket(null);
+                setTicketToPrint(null);
+                setPrintingCopies(1);
+            }, 1000);
+        }, 500);
+    };
+
     const getPaginatedTickets = () => {
         if (!reportData || !reportData.tickets) return [];
         const sortedTickets = [...reportData.tickets].sort((a, b) => {
@@ -424,7 +465,7 @@ const ReceptionistHistory = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 print:hidden">
             {/* Main Content */}
             <div className="space-y-6">
                 {/* Chart Section with Stats on Left */}
@@ -703,6 +744,7 @@ const ReceptionistHistory = () => {
                                             <th className="px-4 py-3 text-right font-semibold text-slate-700">{t('reports.price')}</th>
                                             <th className="px-4 py-3 text-center font-semibold text-slate-700">{t('admin.status')}</th>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('reports.time')}</th>
+                                            <th className="px-4 py-3 text-center font-semibold text-slate-700">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
@@ -770,6 +812,20 @@ const ReceptionistHistory = () => {
                                                     <td className="px-4 py-3 text-slate-500 text-xs">
                                                         {date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                                     </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleReprint(ticket);
+                                                            }}
+                                                            title="Cetak Lagi"
+                                                        >
+                                                            <Printer className="w-4 h-4" />
+                                                        </Button>
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
@@ -805,9 +861,23 @@ const ReceptionistHistory = () => {
                                                     </span>
                                                     <div className="font-bold text-slate-900 line-clamp-1">{ticket.category_name}</div>
                                                 </div>
-                                                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${statusColor}`}>
-                                                    {statusLabel}
-                                                </span>
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${statusColor}`}>
+                                                        {statusLabel}
+                                                    </span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-7 px-2 text-xs border-teal-200 text-teal-700 hover:bg-teal-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleReprint(ticket);
+                                                        }}
+                                                    >
+                                                        <Printer className="w-3 h-3 mr-1" />
+                                                        Cetak
+                                                    </Button>
+                                                </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-3 text-sm mb-3">
@@ -971,19 +1041,41 @@ const ReceptionistHistory = () => {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="p-6 border-t border-slate-100 bg-slate-50">
+                            <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row gap-3">
                                 <Button
                                     onClick={() => setSelectedTicket(null)}
-                                    className="w-full bg-slate-900 hover:bg-slate-800"
+                                    className="w-full sm:flex-1 bg-slate-900 hover:bg-slate-800"
                                 >
                                     Tutup
+                                </Button>
+                                <Button
+                                    onClick={() => handleReprint(selectedTicket)}
+                                    className="w-full sm:flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                                >
+                                    <Printer className="w-4 h-4 mr-2" />
+                                    Cetak Lagi
                                 </Button>
                             </div>
                         </div>
                     </div>
                 )
             }
-        </div >
+
+            {/* Print Settings Modal */}
+            <PrintSettingsModal
+                isOpen={showPrintSettings}
+                onClose={() => setShowPrintSettings(false)}
+                onPrint={handleConfirmPrint}
+                ticket={ticketToPrint}
+            />
+
+            {/* Hidden Print Template */}
+            {printingTicket && (
+                <div className="hidden print:flex fixed inset-0 items-center justify-center bg-white z-[9999]">
+                    <TicketPrintTemplate ticket={printingTicket} copies={printingCopies} language={language} />
+                </div>
+            )}
+        </div>
     );
 };
 

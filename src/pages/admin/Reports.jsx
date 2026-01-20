@@ -3,8 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X, RefreshCw, ArrowUpDown, Clock } from 'lucide-react';
+import { Calendar, FileSpreadsheet, ChevronLeft, ChevronRight, AlertCircle, X, RefreshCw, ArrowUpDown, Clock, Printer } from 'lucide-react';
 import QRCode from '../../components/ui/QRCode';
+import TicketPrintTemplate from '../../components/TicketPrintTemplate';
+import PrintSettingsModal from '../../components/PrintSettingsModal';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
@@ -210,6 +212,10 @@ const Reports = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [historyPage, setHistoryPage] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [printingTicket, setPrintingTicket] = useState(null);
+  const [printingCopies, setPrintingCopies] = useState(1);
+  const [showPrintSettings, setShowPrintSettings] = useState(false);
+  const [ticketToPrint, setTicketToPrint] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const calendarRef = useRef(null);
   const HISTORY_PER_PAGE = 20;
@@ -235,6 +241,41 @@ const Reports = () => {
     const monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][date.getMonth()];
     return `${dayName}, ${date.getDate()} ${monthName} ${date.getFullYear()}`;
   };
+  const handleReprint = (ticket) => {
+    // Only show adjust limit for package tickets (> 1 max usage)
+    if (ticket.max_usage && ticket.max_usage > 1) {
+      setTicketToPrint(ticket);
+      setShowPrintSettings(true);
+    } else {
+      // Direct print for single tickets
+      setPrintingTicket(ticket);
+      setPrintingCopies(1);
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          setPrintingTicket(null);
+          setPrintingCopies(1);
+        }, 1000);
+      }, 500);
+    }
+  };
+
+  const handleConfirmPrint = (copies) => {
+    setShowPrintSettings(false);
+    setPrintingTicket(ticketToPrint);
+    setPrintingCopies(copies);
+    // Wait for render
+    setTimeout(() => {
+      window.print();
+      // Cleanup
+      setTimeout(() => {
+        setPrintingTicket(null);
+        setTicketToPrint(null);
+        setPrintingCopies(1);
+      }, 1000);
+    }, 500);
+  };
+
 
 
   const fetchReport = async () => {
@@ -362,7 +403,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-slate-50 min-h-screen">
+    <div className="space-y-6 p-6 bg-slate-50 min-h-screen print:hidden">
       {/* Main Content */}
       <div className="space-y-6">
         {/* Chart Section with Stats on Left */}
@@ -677,6 +718,7 @@ const Reports = () => {
                       <th className="px-6 py-4 text-right font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.price')}</th>
                       <th className="px-6 py-4 text-center font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('admin.status')}</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('reports.time')}</th>
+                      <th className="px-6 py-4 text-center font-semibold text-slate-600 text-xs uppercase tracking-wider">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -748,6 +790,20 @@ const Reports = () => {
                               ? `${date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US')} • ${date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}`
                               : date.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                           </td>
+                          <td className="px-6 py-4 text-center">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReprint(ticket);
+                              }}
+                              title="Cetak Lagi"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                          </td>
                         </tr>
                       );
                     })}
@@ -783,9 +839,23 @@ const Reports = () => {
                           </span>
                           <div className="font-bold text-slate-900 line-clamp-1">{ticket.category_name}</div>
                         </div>
-                        <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${statusColor}`}>
-                          {statusLabel}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-xs border-teal-200 text-teal-700 hover:bg-teal-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReprint(ticket);
+                            }}
+                          >
+                            <Printer className="w-3 h-3 mr-1" />
+                            Cetak
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
@@ -952,15 +1022,37 @@ const Reports = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50">
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => setSelectedTicket(null)}
-                className="w-full bg-slate-900 hover:bg-slate-800"
+                className="w-full sm:flex-1 bg-slate-900 hover:bg-slate-800"
               >
                 Tutup
               </Button>
+              <Button
+                onClick={() => handleReprint(selectedTicket)}
+                className="w-full sm:flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Cetak Lagi
+              </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Print Settings Modal */}
+      <PrintSettingsModal
+        isOpen={showPrintSettings}
+        onClose={() => setShowPrintSettings(false)}
+        onPrint={handleConfirmPrint}
+        ticket={ticketToPrint}
+      />
+
+      {/* Hidden Print Template */}
+      {printingTicket && (
+        <div className="hidden print:flex fixed inset-0 items-center justify-center bg-white z-[9999]">
+          <TicketPrintTemplate ticket={printingTicket} copies={printingCopies} language={language} />
         </div>
       )}
     </div>
