@@ -1096,19 +1096,19 @@ const SessionManagement = () => {
             <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Create Ticket Category from Session</DialogTitle>
+                        <DialogTitle>{t('admin.createTicketFromSession')}</DialogTitle>
                         <DialogDescription>
-                            Create a ticket category for session: {selectedSessionForTicket?.name}
+                            {t('admin.createTicketForSession')}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleTicketSubmit} className="space-y-4">
                         {selectedSessionForTicket && (
                             <div className="p-3 bg-slate-50 rounded-md border border-slate-200">
                                 <div className="text-sm space-y-1">
-                                    <div><span className="font-semibold">Session:</span> {selectedSessionForTicket.name}</div>
-                                    <div><span className="font-semibold">Time:</span> {selectedSessionForTicket.start_time} - {selectedSessionForTicket.end_time}</div>
-                                    <div><span className="font-semibold">Days:</span> {selectedSessionForTicket.days?.join(', ')}</div>
-                                    <div><span className="font-semibold">Type:</span> {selectedSessionForTicket.is_recurring ? 'Recurring' : 'One-time'}</div>
+                                    <div><span className="font-semibold">{t('admin.sessionLabel')}</span> {selectedSessionForTicket.name}</div>
+                                    <div><span className="font-semibold">{t('admin.timeLabel')}</span> {selectedSessionForTicket.start_time} - {selectedSessionForTicket.end_time}</div>
+                                    <div><span className="font-semibold">{t('admin.daysLabel')}</span> {selectedSessionForTicket.days?.join(', ')}</div>
+                                    <div><span className="font-semibold">{t('admin.typeLabel')}</span> {selectedSessionForTicket.is_recurring ? t('admin.recurring') : t('admin.oneTime')}</div>
                                 </div>
                             </div>
                         )}
@@ -1126,7 +1126,7 @@ const SessionManagement = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="ticket_prefix">Code Prefix * (1-3 chars)</Label>
+                            <Label htmlFor="ticket_prefix">{t('admin.codePrefixLabel')}</Label>
                             <Input
                                 id="ticket_prefix"
                                 value={ticketFormData.code_prefix}
@@ -1137,12 +1137,12 @@ const SessionManagement = () => {
                                 required
                             />
                             <p className="text-xs text-slate-500 mt-1">
-                                Ticket code: {ticketFormData.code_prefix || 'XXX'}-20260120-0001-A1B2
+                                {t('admin.ticketCodeHelper')} {ticketFormData.code_prefix || 'XXX'}-20260120-0001-A1B2
                             </p>
                         </div>
 
                         <div>
-                            <Label htmlFor="ticket_price">Price (Rp) *</Label>
+                            <Label htmlFor="ticket_price">{t('admin.priceLabel')}</Label>
                             <Input
                                 id="ticket_price"
                                 type="number"
@@ -1157,10 +1157,10 @@ const SessionManagement = () => {
 
                         <div className="flex space-x-2 pt-4">
                             <Button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700">
-                                Create Ticket Category
+                                {t('admin.createTicketAction')}
                             </Button>
                             <Button type="button" variant="outline" onClick={() => setTicketDialogOpen(false)} className="flex-1">
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                         </div>
                     </form>

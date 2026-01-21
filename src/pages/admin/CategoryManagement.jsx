@@ -104,8 +104,7 @@ const CategoryManagement = () => {
             toast.error(t('admin.codePrefix') + ' max 3 chars');
             return;
         }
-        // Skip price validation for special tickets (K prefix) - they use custom payment
-        if (formData.code_prefix !== 'K' && (!formData.price || parseFloat(formData.price) < 0)) {
+        if (!formData.price || parseFloat(formData.price) < 0) {
             toast.error(t('dashboard.price') + ' ' + t('common.required'));
             return;
         }
@@ -224,9 +223,7 @@ const CategoryManagement = () => {
                                         const newPrefix = e.target.value.toUpperCase().slice(0, 3);
                                         setFormData({
                                             ...formData,
-                                            code_prefix: newPrefix,
-                                            // Set price to 0 for special tickets (K prefix)
-                                            price: newPrefix === 'K' ? '0' : formData.price
+                                            code_prefix: newPrefix
                                         });
                                     }}
                                     placeholder="e.g., U, VIP, M"
@@ -241,23 +238,17 @@ const CategoryManagement = () => {
 
                             <div>
                                 <Label htmlFor="price">{t('dashboard.price')} (Rp) *</Label>
-                                {formData.code_prefix === 'K' ? (
-                                    <div className="h-10 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 flex items-center">
-                                        {t('admin.customPayment')}
-                                    </div>
-                                ) : (
-                                    <Input
-                                        id="price"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        placeholder="e.g., 15000"
-                                        className="mt-1"
-                                        data-testid="category-price-input"
-                                    />
-                                )}
+                                <Input
+                                    id="price"
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                    placeholder="e.g., 15000"
+                                    className="mt-1"
+                                    data-testid="category-price-input"
+                                />
                             </div>
 
                             <div>
@@ -273,52 +264,20 @@ const CategoryManagement = () => {
                             </div>
                         </div>
 
-                        {formData.code_prefix === 'K' && (
-                            <div className="rounded-md border border-slate-200 bg-slate-50/50 p-4 space-y-3 mt-4">
-                                <Label className="text-sm text-slate-900 font-semibold uppercase tracking-wider flex items-center gap-2">
-                                    <Ticket className="w-4 h-4" />
-                                    {t('admin.activePackages')}
-                                </Label>
-                                {activePackages.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
-                                        {activePackages.map(pkg => (
-                                            <div key={pkg.id} className="flex justify-between items-center bg-white p-3 rounded-md border border-slate-200 shadow-sm">
-                                                <span className="font-medium text-slate-900 truncate mr-2" title={pkg.name}>
-                                                    {pkg.name}
-                                                </span>
-                                                <div className="text-right">
-                                                    <div className="text-sm font-bold text-slate-900">
-                                                        Rp {pkg.price_per_person?.toLocaleString('id-ID')}
-                                                    </div>
-                                                    <div className="text-[10px] text-slate-500 uppercase">
-                                                        {t('admin.perPerson')}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-sm text-slate-400 italic py-4 text-center bg-white rounded-md border border-dashed border-slate-300">
-                                        {t('admin.noActivePackages')}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+
 
                         <div className="flex items-center gap-6 pt-2">
-                            {formData.code_prefix !== 'K' && (
-                                <div className="flex items-center space-x-2">
-                                    <Switch
-                                        id="requires_nim"
-                                        checked={formData.requires_nim}
-                                        onCheckedChange={(checked) => setFormData({ ...formData, requires_nim: checked })}
-                                        data-testid="category-nim-switch"
-                                    />
-                                    <Label htmlFor="requires_nim" className="cursor-pointer">
-                                        {t('admin.requiresNim')} (Student ID)
-                                    </Label>
-                                </div>
-                            )}
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="requires_nim"
+                                    checked={formData.requires_nim}
+                                    onCheckedChange={(checked) => setFormData({ ...formData, requires_nim: checked })}
+                                    data-testid="category-nim-switch"
+                                />
+                                <Label htmlFor="requires_nim" className="cursor-pointer">
+                                    {t('admin.requiresNim')} (Student ID)
+                                </Label>
+                            </div>
 
                             <div className="flex items-center space-x-2">
                                 <Switch
