@@ -113,7 +113,11 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
 
                     {/* Footer */}
                     <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
-                        <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>TIKET HANYA BERLAKU 1 KALI</p>
+                        <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            {ticket.max_usage && ticket.max_usage > 1
+                                ? `TIKET BERLAKU ${ticket.max_usage} KALI`
+                                : 'TIKET HANYA BERLAKU 1 KALI'}
+                        </p>
                         <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>TIKET YANG SUDAH DIBELI TIDAK DAPAT DIKEMBALIKAN</p>
                     </div>
                 </div>

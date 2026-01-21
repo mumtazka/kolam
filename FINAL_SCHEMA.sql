@@ -253,6 +253,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Transactional Ticket Creation RPC
+-- Handles session tickets: when qty > 1, creates ONE ticket with max_usage = qty
 CREATE OR REPLACE FUNCTION process_ticket_transaction(
     p_items JSONB,           -- Array of { category_id, quantity, package_id, nims[] }
     p_created_by UUID,       -- User ID of creator
@@ -269,13 +270,16 @@ DECLARE
     v_nims JSONB; -- array of strings
     v_category_name TEXT;
     v_category_prefix TEXT;
+    v_category_session_id UUID;
     v_price DECIMAL;
     v_ticket_code TEXT;
     v_created_tickets JSONB := '[]'::JSONB;
     v_new_ticket RECORD;
+    v_single_ticket_json JSONB;
     i INTEGER;
     date_str TEXT;
     batch_str TEXT;
+    v_is_session_ticket BOOLEAN;
 BEGIN
     -- Generate new Batch ID
     v_batch_id := uuid_generate_v4();
@@ -303,25 +307,33 @@ BEGIN
 
         v_nims := v_item->'nims'; -- might be null
 
-        -- Get Base Category Details
-        SELECT name, code_prefix, price INTO v_category_name, v_category_prefix, v_price
+        -- Get Base Category Details including session_id
+        SELECT name, code_prefix, price, session_id 
+        INTO v_category_name, v_category_prefix, v_price, v_category_session_id
         FROM categories WHERE id = v_category_id;
+        
+        -- Determine if this is a session ticket (has session_id)
+        v_is_session_ticket := (v_category_session_id IS NOT NULL);
         
         -- Override price if this is a Package item
         IF v_package_id IS NOT NULL THEN
              SELECT price_per_person INTO v_price FROM ticket_packages WHERE id = v_package_id;
         END IF;
 
-        -- Generate individual tickets
-        FOR i IN 1..v_quantity LOOP
-            -- Generate Code: PREFIX-YYYYMMDD-BATCH-RANDOM
+        -- ============================================
+        -- SESSION TICKET LOGIC: Same Code, Multiple Prints
+        -- When a session ticket is printed with quantity > 1,
+        -- create ONE ticket with max_usage = quantity
+        -- ============================================
+        IF v_is_session_ticket AND v_quantity > 1 THEN
+            -- Generate ONE ticket code
             v_ticket_code := v_category_prefix || '-' || date_str || '-' || batch_str || '-' || generate_random_string(4);
             
-            -- Insert Ticket
+            -- Insert ONE ticket with max_usage = quantity
             INSERT INTO tickets (
                 id, ticket_code, batch_id, category_id, category_name, 
                 status, price, nim, qr_code, created_by, created_by_name, 
-                shift, package_id, usage_count
+                shift, package_id, usage_count, max_usage
             ) VALUES (
                 uuid_generate_v4(),
                 v_ticket_code,
@@ -330,22 +342,61 @@ BEGIN
                 v_category_name,
                 'UNUSED',
                 v_price,
-                -- Extract NIM if available for this index
-                CASE WHEN v_nims IS NOT NULL AND jsonb_array_length(v_nims) >= i 
-                     THEN v_nims->>(i-1) 
-                     ELSE NULL 
-                END,
+                NULL, -- No NIM for session tickets with shared code
                 'https://barcodeapi.org/api/128/' || v_ticket_code,
                 p_created_by,
                 p_created_by_name,
                 p_shift,
                 v_package_id,
-                0
+                0,
+                v_quantity  -- max_usage = number of people/prints
             ) RETURNING * INTO v_new_ticket;
+            
+            -- Append the SAME ticket to result array N times (for printing N copies)
+            v_single_ticket_json := to_jsonb(v_new_ticket);
+            FOR i IN 1..v_quantity LOOP
+                v_created_tickets := v_created_tickets || v_single_ticket_json;
+            END LOOP;
+            
+        ELSE
+            -- ============================================
+            -- NORMAL TICKET LOGIC: Individual Codes
+            -- ============================================
+            FOR i IN 1..v_quantity LOOP
+                -- Generate Code: PREFIX-YYYYMMDD-BATCH-RANDOM
+                v_ticket_code := v_category_prefix || '-' || date_str || '-' || batch_str || '-' || generate_random_string(4);
+                
+                -- Insert Ticket
+                INSERT INTO tickets (
+                    id, ticket_code, batch_id, category_id, category_name, 
+                    status, price, nim, qr_code, created_by, created_by_name, 
+                    shift, package_id, usage_count, max_usage
+                ) VALUES (
+                    uuid_generate_v4(),
+                    v_ticket_code,
+                    v_batch_id,
+                    v_category_id,
+                    v_category_name,
+                    'UNUSED',
+                    v_price,
+                    -- Extract NIM if available for this index
+                    CASE WHEN v_nims IS NOT NULL AND jsonb_array_length(v_nims) >= i 
+                         THEN v_nims->>(i-1) 
+                         ELSE NULL 
+                    END,
+                    'https://barcodeapi.org/api/128/' || v_ticket_code,
+                    p_created_by,
+                    p_created_by_name,
+                    p_shift,
+                    v_package_id,
+                    0,
+                    1 -- Normal tickets have max_usage = 1
+                ) RETURNING * INTO v_new_ticket;
 
-            -- Append to result array
-            v_created_tickets := v_created_tickets || to_jsonb(v_new_ticket);
-        END LOOP;
+                -- Append to result array
+                v_created_tickets := v_created_tickets || to_jsonb(v_new_ticket);
+            END LOOP;
+        END IF;
     END LOOP;
 
     -- Return Batch Summary

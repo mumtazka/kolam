@@ -121,20 +121,22 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
         };
     }
 
-    // --- SPECIAL TICKET LOGIC MAIN IMPLEMENTATION ---
+    // --- MULTI-USE TICKET LOGIC (Session Tickets, Package Tickets, etc.) ---
 
     // 1. Determine Limits based on max_usage column (set by RPC when creating ticket)
-    // Fallback: K prefix = 100, others = 1
-    const isSpecial = ticket.ticket_code.toUpperCase().startsWith('K');
-    const maxLimit = ticket.max_usage || (isSpecial ? 100 : 1);
+    // Session tickets and package tickets have max_usage > 1
+    const maxLimit = ticket.max_usage || 1;
     const currentUsage = ticket.usage_count || 0;
+    const isMultiUse = maxLimit > 1; // Session tickets, package tickets, etc.
 
     // 2. Validate Usage
     if (ticket.status === 'USED' || currentUsage >= maxLimit) {
         return {
             success: false,
             status: 'USED',
-            message: `Ticket limit reached (${currentUsage}/${maxLimit})`,
+            message: isMultiUse
+                ? `Tiket sudah habis! (${currentUsage}/${maxLimit})`
+                : 'Tiket sudah digunakan',
             ticket: ticket
         };
     }
@@ -174,9 +176,9 @@ export const scanTicket = async (ticketIdentifier, scanner, shift = 'Unknown', p
     return {
         success: true,
         status: 'VALID',
-        message: isSpecial
-            ? `Special Ticket Valid (${newUsage}/${maxLimit})`
-            : 'Ticket Validated Successfully',
+        message: isMultiUse
+            ? `Tiket Valid (${newUsage}/${maxLimit})`
+            : 'Tiket Berhasil Divalidasi',
         ticket: updatedTicket
     };
 };
