@@ -7,7 +7,7 @@ import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash, X, Check, Ticket, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash, Trash2, X, Check, Ticket, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
     getCategories,
@@ -17,7 +17,7 @@ import {
     deleteCategory,
     parseSessionMetadata
 } from '../../services/categoryService';
-import { getTicketPackages } from '../../services/adminService';
+
 
 const CategoryManagement = () => {
     const { t } = useLanguage();
@@ -35,22 +35,13 @@ const CategoryManagement = () => {
     });
     const [submitting, setSubmitting] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({ open: false, categoryId: null });
-    const [activePackages, setActivePackages] = useState([]);
+
 
     useEffect(() => {
         fetchCategories();
-        fetchPackages();
     }, []);
 
-    const fetchPackages = async () => {
-        try {
-            const data = await getTicketPackages();
-            // Filter only active packages
-            setActivePackages(data.filter(pkg => pkg.is_active));
-        } catch (error) {
-            console.error('Failed to fetch packages:', error);
-        }
-    };
+
 
     const fetchCategories = async () => {
         try {
@@ -367,7 +358,6 @@ const CategoryManagement = () => {
             {/* Categories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {categories.map((category) => {
-                    const isSpecial = category.code_prefix === 'K';
 
                     // Check if session ticket (from database or JSON metadata)
                     const isSessionTicket = !!(category.session_id || category.sessions);
@@ -382,11 +372,9 @@ const CategoryManagement = () => {
                             key={category.id}
                             className={`p-5 transition-all relative h-full flex flex-col justify-between ${!category.active
                                 ? 'opacity-60 bg-slate-50'
-                                : isSpecial
-                                    ? 'bg-slate-900 text-white border-slate-700'
-                                    : isSessionTicket
-                                        ? 'border-2 border-teal-500 bg-teal-50/30'
-                                        : ''
+                                : isSessionTicket
+                                    ? 'border-2 border-teal-500 bg-teal-50/30'
+                                    : ''
                                 }`}
                             data-testid={`category-card-${category.id}`}
                         >
@@ -407,19 +395,17 @@ const CategoryManagement = () => {
 
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
-                                        ? 'bg-white text-slate-900' // Inverted for special card
-                                        : isSessionTicket
+                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSessionTicket
+                                        ? 'bg-teal-100 text-teal-700'
+                                        : category.active
                                             ? 'bg-teal-100 text-teal-700'
-                                            : category.active
-                                                ? 'bg-teal-100 text-teal-700'
-                                                : 'bg-slate-200 text-slate-500'
+                                            : 'bg-slate-200 text-slate-500'
                                         }`}>
                                         {category.code_prefix}
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold text-lg ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
-                                        <p className={`text-sm ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        <h3 className="font-semibold text-lg text-slate-900">{category.name}</h3>
+                                        <p className="text-sm text-slate-500">
                                             {category.description || t('common.unknown')}
                                         </p>
                                     </div>
@@ -428,17 +414,14 @@ const CategoryManagement = () => {
 
                             <div className="space-y-2 mb-4">
                                 <div className="flex justify-between text-sm">
-                                    <span className={isSpecial ? 'text-slate-400' : 'text-slate-600'}>{t('dashboard.price')}:</span>
-                                    <span className={`font-semibold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
-                                        {category.code_prefix === 'K'
-                                            ? t('admin.customPayment')
-                                            : `Rp ${(category.price || 0).toLocaleString('id-ID')}`
-                                        }
+                                    <span className="text-slate-600">{t('dashboard.price')}:</span>
+                                    <span className="font-semibold text-slate-900">
+                                        Rp {(category.price || 0).toLocaleString('id-ID')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className={isSpecial ? 'text-slate-400' : 'text-slate-600'}>{t('dashboard.ticket')} {t('common.code')}:</span>
-                                    <span className={`font-mono text-xs px-2 py-0.5 rounded ${isSpecial ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                                    <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>
+                                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                                         {category.code_prefix}-YYYYMMDD-XXXX
                                     </span>
                                 </div>
@@ -455,12 +438,12 @@ const CategoryManagement = () => {
                                 </div>
                             </div>
 
-                            <div className={`flex items-center gap-2 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-200'}`}>
+                            <div className="flex items-center gap-2 pt-3 border-t border-slate-200">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleEdit(category)}
-                                    className={`flex-1 ${isSpecial ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white' : ''}`}
+                                    className="flex-1"
                                     data-testid={`edit-category-${category.id}`}
                                 >
                                     <Pencil className="w-4 h-4 mr-1" />
@@ -470,47 +453,43 @@ const CategoryManagement = () => {
                                     variant={category.active ? 'outline' : 'default'}
                                     size="sm"
                                     onClick={() => handleToggleActive(category)}
-                                    className={`flex-1 ${!category.active
-                                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                                        : isSpecial
-                                            ? 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white'
-                                            : ''
-                                        }`}
+                                    className={`flex-1 ${!category.active ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                                     data-testid={`toggle-category-${category.id}`}
                                 >
                                     {category.active ? t('admin.disable') : t('admin.enable')}
                                 </Button>
-                                {category.code_prefix !== 'K' && (
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => handleDelete(category.id)}
-                                        className="w-9 h-9"
-                                        title="Delete"
-                                    >
-                                        <Trash className="w-4 h-4" />
-                                    </Button>
-                                )}
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={() => handleDelete(category.id)}
+                                    className="w-9 h-9"
+                                    title={t('common.delete')}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+
                             </div>
                         </Card>
                     );
                 })}
             </div>
 
-            {categories.length === 0 && (
-                <Card className="p-12 text-center">
-                    <Ticket className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">{t('admin.noCategories')}</h3>
-                    <p className="text-slate-600 mb-4">{t('admin.createFirst')}</p>
-                    <Button
-                        onClick={() => setShowForm(true)}
-                        className="bg-slate-900 hover:bg-slate-800"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t('admin.addCategory')}
-                    </Button>
-                </Card>
-            )}
+            {
+                categories.length === 0 && (
+                    <Card className="p-12 text-center">
+                        <Ticket className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                        <h3 className="text-xl font-semibold text-slate-900 mb-2">{t('admin.noCategories')}</h3>
+                        <p className="text-slate-600 mb-4">{t('admin.createFirst')}</p>
+                        <Button
+                            onClick={() => setShowForm(true)}
+                            className="bg-slate-900 hover:bg-slate-800"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            {t('admin.addCategory')}
+                        </Button>
+                    </Card>
+                )
+            }
 
             {/* Confirm Delete Dialog */}
             <ConfirmDialog
@@ -524,7 +503,7 @@ const CategoryManagement = () => {
                 cancelText={t('common.cancel')}
                 variant="danger"
             />
-        </div>
+        </div >
     );
 };
 

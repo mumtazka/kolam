@@ -18,7 +18,7 @@ import {
 import PoolLogo from '../../components/ui/PoolLogo';
 // Custom Icons
 import PoolManagementIcon from '../../components/ui/icons/PoolManagementIcon';
-import SpecialTicketIcon from '../../components/ui/icons/SpecialTicketIcon';
+
 
 const AdminLayout = () => {
   const { t } = useLanguage();
@@ -30,7 +30,7 @@ const AdminLayout = () => {
     { path: '/admin/users', label: t('admin.staffManagement'), icon: Users, subtitle: t('admin.usersSubtitle') },
     { path: '/admin/categories', label: t('admin.categories'), icon: Ticket, subtitle: t('admin.categoriesSubtitle') },
     { path: '/admin/sessions', label: 'Jadwal & Sesi', icon: CalendarDays, subtitle: t('admin.sessionsSubtitle') },
-    { path: '/admin/ticket-packages', label: 'Tiket Khusus', icon: SpecialTicketIcon, subtitle: 'Kelola paket harga khusus' },
+
     { path: '/admin/pools', label: t('admin.pools'), icon: PoolManagementIcon, subtitle: t('admin.poolsSubtitle') },
     { path: '/admin/shifts', label: t('shift.management'), icon: Clock, subtitle: t('shift.subtitle') },
     { path: '/admin/reports', label: t('admin.reports'), icon: BarChart3, subtitle: 'Lihat analisis penjualan dan operasional.' },
@@ -111,8 +111,8 @@ const AdminLayout = () => {
 
         {/* Content Area */}
         <main className={`flex-1 relative ${location.pathname.endsWith('/pos') || location.pathname.endsWith('/scan')
-            ? 'overflow-hidden p-0'
-            : 'overflow-auto p-6'
+          ? 'overflow-hidden p-0'
+          : 'overflow-auto p-6'
           }`}>
           <Outlet />
         </main>
