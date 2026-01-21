@@ -326,10 +326,23 @@ const CategoryManagement = () => {
                     // Determine if one-time based on booking_date or metadata
                     const isOneTime = category.booking_date ? true : (sessionMetadata ? !sessionMetadata.is_recurring : false);
 
+                    // Check for expiration
+                    const today = new Date();
+                    // Use local time for correct date comparison
+                    const offset = today.getTimezoneOffset() * 60000;
+                    const localTodayStr = new Date(today.getTime() - offset).toISOString().split('T')[0];
+                    const bookingDate = category.booking_date || (sessionMetadata?.booking_date);
+
+                    // Contract expiration (recurring sessions with validity period)
+                    const contractUntil = sessionData?.valid_until;
+                    const isContractExpired = sessionData?.is_recurring && contractUntil && contractUntil < localTodayStr;
+
+                    const isExpired = (isOneTime && bookingDate && bookingDate < localTodayStr) || isContractExpired;
+
                     return (
                         <Card
                             key={category.id}
-                            className={`p-5 transition-all relative h-full flex flex-col justify-between ${!category.active
+                            className={`p-5 transition-all relative h-full flex flex-col justify-between ${(!category.active || isExpired)
                                 ? 'opacity-60 bg-slate-50'
                                 : isSessionTicket
                                     ? 'border-2 border-teal-500 bg-teal-50/30'
@@ -344,7 +357,11 @@ const CategoryManagement = () => {
                                         <Ticket className="w-3 h-3" />
                                         Tiket Khusus
                                     </span>
-                                    {isOneTime && (
+                                    {isExpired ? (
+                                        <span className="inline-flex items-center px-2 py-1 bg-red-100/80 backdrop-blur-sm text-red-700 text-[10px] font-semibold rounded shadow-sm border border-red-200">
+                                            {t('admin.expired')}
+                                        </span>
+                                    ) : isOneTime && (
                                         <span className="inline-flex items-center px-2 py-1 bg-amber-100/80 backdrop-blur-sm text-amber-700 text-[10px] font-semibold rounded shadow-sm border border-amber-200">
                                             Satu Kali
                                         </span>
@@ -414,8 +431,10 @@ const CategoryManagement = () => {
                                     onClick={() => handleToggleActive(category)}
                                     className={`flex-1 ${!category.active ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                                     data-testid={`toggle-category-${category.id}`}
+                                    disabled={isExpired}
+                                    title={isExpired ? t('admin.expired') : ''}
                                 >
-                                    {category.active ? t('admin.disable') : t('admin.enable')}
+                                    {category.active && !isExpired ? t('admin.disable') : t('admin.enable')}
                                 </Button>
                                 <Button
                                     variant="destructive"

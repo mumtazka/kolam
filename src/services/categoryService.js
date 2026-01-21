@@ -69,9 +69,12 @@ export const getCategories = async () => {
                 id,
                 name,
                 start_time,
+                start_time,
                 end_time,
                 days,
-                is_recurring
+                is_recurring,
+                valid_from,
+                valid_until
             )
         `)
         .is('deleted_at', null)
@@ -79,21 +82,7 @@ export const getCategories = async () => {
 
     if (error) throw error;
 
-    // Filter out expired one-time session tickets
-    // Use local time for "today"
-    const today = new Date();
-    const offset = today.getTimezoneOffset() * 60000;
-    const localToday = new Date(today.getTime() - offset).toISOString().split('T')[0];
-
-    return data.filter(category => {
-        // If has booking_date and it's in the past, hide it
-        if (category.booking_date && category.booking_date < localToday) {
-            return false;
-        }
-
-        // Backward compatibility: also check description field
-        return isValidSessionTicket(category);
-    });
+    return data;
 };
 
 /**
@@ -110,7 +99,9 @@ export const getActiveCategories = async () => {
                 start_time,
                 end_time,
                 days,
-                is_recurring
+                is_recurring,
+                valid_from,
+                valid_until
             )
         `)
         .is('deleted_at', null)
