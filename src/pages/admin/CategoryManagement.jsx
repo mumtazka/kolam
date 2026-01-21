@@ -380,7 +380,7 @@ const CategoryManagement = () => {
                     return (
                         <Card
                             key={category.id}
-                            className={`p-5 transition-all ${!category.active
+                            className={`p-5 transition-all relative h-full flex flex-col justify-between ${!category.active
                                 ? 'opacity-60 bg-slate-50'
                                 : isSpecial
                                     ? 'bg-slate-900 text-white border-slate-700'
@@ -390,15 +390,16 @@ const CategoryManagement = () => {
                                 }`}
                             data-testid={`category-card-${category.id}`}
                         >
-                            {/* Session Badge */}
+                            {/* Session Badge - Absolute Positioned */}
                             {isSessionTicket && (
-                                <div className="mb-3 flex items-center gap-2 pb-2 border-b border-teal-200">
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 text-white text-xs font-bold rounded-full">
-                                        📅 Session Ticket
+                                <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-full shadow-sm">
+                                        <Ticket className="w-3 h-3" />
+                                        Tiket Khusus
                                     </span>
                                     {isOneTime && (
-                                        <span className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
-                                            One-time
+                                        <span className="inline-flex items-center px-2 py-1 bg-amber-100/80 backdrop-blur-sm text-amber-700 text-[10px] font-semibold rounded shadow-sm border border-amber-200">
+                                            Satu Kali
                                         </span>
                                     )}
                                 </div>
@@ -408,9 +409,11 @@ const CategoryManagement = () => {
                                 <div className="flex items-center gap-3">
                                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSpecial
                                         ? 'bg-white text-slate-900' // Inverted for special card
-                                        : category.active
+                                        : isSessionTicket
                                             ? 'bg-teal-100 text-teal-700'
-                                            : 'bg-slate-200 text-slate-500'
+                                            : category.active
+                                                ? 'bg-teal-100 text-teal-700'
+                                                : 'bg-slate-200 text-slate-500'
                                         }`}>
                                         {category.code_prefix}
                                     </div>
