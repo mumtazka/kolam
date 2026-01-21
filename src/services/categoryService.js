@@ -219,7 +219,9 @@ export const createCategory = async (categoryData) => {
             requires_nim: categoryData.requires_nim || false,
             price: categoryData.price || 0,
             active: categoryData.active !== undefined ? categoryData.active : true,
-            description: categoryData.description || null
+            description: categoryData.description || null,
+            session_id: categoryData.session_id || null,
+            booking_date: categoryData.booking_date || null
         })
         .select()
         .single();
@@ -243,7 +245,12 @@ export const updateCategory = async (categoryId, categoryData) => {
 
     const { data, error } = await supabase
         .from('categories')
-        .update(categoryData)
+        .update({
+            ...categoryData,
+            // Ensure these fields can be updated if present in categoryData
+            ...(categoryData.session_id !== undefined && { session_id: categoryData.session_id }),
+            ...(categoryData.booking_date !== undefined && { booking_date: categoryData.booking_date })
+        })
         .eq('id', categoryId)
         .select()
         .single();

@@ -26,7 +26,7 @@ import QRCode from '../../components/ui/QRCode';
 import { toast } from 'sonner';
 
 // Import Supabase services
-import { getActiveCategoriesWithPrices } from '../../services/categoryService';
+import { getActiveCategoriesWithPrices, parseSessionMetadata } from '../../services/categoryService';
 import { createBatchTickets } from '../../services/ticketService';
 import { getTicketPackages } from '../../services/adminService';
 
@@ -565,28 +565,68 @@ const ReceptionistDashboard = () => {
               {categories.length === 0 && <p className="col-span-full text-center text-slate-500 py-10">{t('dashboard.noActiveCategories')}</p>}
               {categories.map(category => {
                 const isSpecial = category.code_prefix === 'K';
+
+                // Session Ticket Logic
+                const isSessionTicket = !!(category.session_id || category.sessions);
+                const sessionMetadata = parseSessionMetadata(category.description);
+                const isOneTime = category.booking_date ? true : (sessionMetadata ? !sessionMetadata.is_recurring : false);
+
                 return (
                   <Card
                     key={category.id}
-                    className={`p-4 cursor-pointer ticket-category-card transition-colors shadow-sm ${isSpecial
-                      ? 'bg-slate-900 text-white border-slate-700 hover:border-teal-500'
-                      : 'hover:border-teal-500'
+                    className={`p-4 cursor-pointer ticket-category-card transition-all shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[120px] ${isSpecial
+                        ? 'bg-slate-900 text-white border-slate-700 hover:border-teal-500'
+                        : isSessionTicket
+                          ? 'border-2 border-teal-500 bg-teal-50/30'
+                          : 'hover:border-teal-500'
                       }`}
                     onClick={() => addToCart(category)}
                     data-testid={`ticket-category-${category.id}`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className={`text-base font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
-                        <p className={`text-xs mt-0.5 line-clamp-1 ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description}</p>
+                    {/* Session Badge - Absolute Positioned */}
+                    {isSessionTicket && (
+                      <div className="absolute top-0 right-0 z-10">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-bl-xl shadow-sm">
+                          <Ticket className="w-3 h-3" />
+                          Tiket Khusus
+                        </span>
                       </div>
-                      <Ticket className={`w-6 h-6 ${isSpecial ? 'text-teal-400' : 'text-teal-500'} opacity-80`} />
+                    )}
+
+                    <div className="flex items-start justify-between mb-2 mt-1">
+                      <div>
+                        <h3 className={`text-base font-bold leading-tight pr-8 ${isSpecial ? 'text-white' : 'text-slate-900'}`}>{category.name}</h3>
+                        <p className={`text-xs mt-1 line-clamp-1 ${isSpecial ? 'text-slate-400' : 'text-slate-500'}`}>{category.description}</p>
+
+                        {/* Show One-time badge inline here if needed, or below title */}
+                        {isSessionTicket && isOneTime && (
+                          <span className="inline-flex mt-1 items-center px-1.5 py-0.5 bg-amber-100/80 text-amber-700 text-[9px] font-semibold rounded border border-amber-200">
+                            Satu Kali
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Standard Code Block - Visible for all, consistent layout */}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${isSpecial
+                          ? 'bg-white text-slate-900'
+                          : isSessionTicket
+                            ? 'bg-teal-100 text-teal-700 mt-6' // Push down slightly to avoid badge
+                            : 'bg-slate-100 text-slate-500'
+                        }`}>
+                        {category.code_prefix}
+                      </div>
                     </div>
-                    <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isSpecial ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <div className={`flex items-center justify-between mt-auto pt-3 border-t ${isSpecial ? 'border-slate-800' : isSessionTicket ? 'border-teal-200' : 'border-slate-100'
+                      }`}>
                       <span className={`text-lg font-bold ${isSpecial ? 'text-white' : 'text-slate-900'}`}>
                         {category.code_prefix === 'K' ? t('dashboard.selectPackage') : `Rp ${category.price.toLocaleString('id-ID')}`}
                       </span>
-                      <Button size="icon" className={`h-7 w-7 rounded-full ${isSpecial ? 'bg-white text-slate-900 hover:bg-slate-200' : 'bg-slate-900 hover:bg-slate-800'}`}>
+                      <Button size="icon" className={`h-7 w-7 rounded-full ${isSpecial
+                        ? 'bg-white text-slate-900 hover:bg-slate-200'
+                        : isSessionTicket
+                          ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                          : 'bg-slate-900 hover:bg-slate-800'
+                        }`}>
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
