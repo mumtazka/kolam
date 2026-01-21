@@ -80,10 +80,14 @@ export const getCategories = async () => {
     if (error) throw error;
 
     // Filter out expired one-time session tickets
-    const today = new Date().toISOString().split('T')[0];
+    // Use local time for "today"
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localToday = new Date(today.getTime() - offset).toISOString().split('T')[0];
+
     return data.filter(category => {
         // If has booking_date and it's in the past, hide it
-        if (category.booking_date && category.booking_date < today) {
+        if (category.booking_date && category.booking_date < localToday) {
             return false;
         }
 
@@ -116,10 +120,14 @@ export const getActiveCategories = async () => {
     if (error) throw error;
 
     // Filter out expired one-time session tickets
-    const today = new Date().toISOString().split('T')[0];
+    // Use local time for "today"
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localToday = new Date(today.getTime() - offset).toISOString().split('T')[0];
+
     return data.filter(category => {
         // If has booking_date and it's in the past, hide it
-        if (category.booking_date && category.booking_date < today) {
+        if (category.booking_date && category.booking_date < localToday) {
             return false;
         }
 

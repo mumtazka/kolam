@@ -8,11 +8,11 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
-import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown, Ticket } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown, Ticket, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '../../components/ui/calendar';
 import { getSessions, createSession, updateSession, deleteSession } from '../../services/adminService';
-import { createCategory } from '../../services/categoryService';
+import { createCategory, getCategories } from '../../services/categoryService';
 import { id, enUS } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { ScrollArea } from '../../components/ui/scroll-area';
@@ -154,10 +154,34 @@ const SessionManagement = () => {
         days: [],
         is_recurring: false // Default to false as requested
     });
+    const [categories, setCategories] = useState([]);
+    const [existingTicketSessionIds, setExistingTicketSessionIds] = useState(new Set());
 
     useEffect(() => {
         fetchSessions();
+        fetchCategories();
     }, []);
+
+    // Update existing ticket IDs whenever categories change
+    useEffect(() => {
+        const ids = new Set(categories.map(c => c.session_id).filter(Boolean));
+
+        // Also check descriptions for backward compatibility
+        categories.forEach(c => {
+            if (!c.session_id && c.description) {
+                try {
+                    const meta = JSON.parse(c.description);
+                    if (meta.type === 'session_ticket' && meta.session_id) {
+                        ids.add(meta.session_id);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+        });
+
+        setExistingTicketSessionIds(ids);
+    }, [categories]);
 
     const fetchSessions = async () => {
         try {
@@ -168,6 +192,15 @@ const SessionManagement = () => {
             toast.error(t('common.error'));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const data = await getCategories();
+            setCategories(data);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
         }
     };
 
@@ -364,7 +397,7 @@ const SessionManagement = () => {
     const handleCreateTicket = (session) => {
         setSelectedSessionForTicket(session);
         setTicketFormData({
-            name: session.name + ' Ticket',
+            name: session.name, // Use exact session name
             code_prefix: '',
             price: ''
         });
@@ -373,6 +406,13 @@ const SessionManagement = () => {
 
     const handleTicketSubmit = async (e) => {
         e.preventDefault();
+
+        // Check if ticket already exists for this session (duplicate prevention)
+        if (selectedSessionForTicket && existingTicketSessionIds.has(selectedSessionForTicket.id)) {
+            toast.error(t('admin.ticketAlreadyExists') || 'Tiket untuk sesi ini sudah ada!');
+            setTicketDialogOpen(false);
+            return;
+        }
 
         if (!ticketFormData.name.trim() || !ticketFormData.code_prefix.trim() || !ticketFormData.price) {
             toast.error(t('common.required'));
@@ -400,6 +440,7 @@ const SessionManagement = () => {
             setTicketDialogOpen(false);
             setTicketFormData({ name: '', code_prefix: '', price: '' });
             setSelectedSessionForTicket(null);
+            fetchCategories(); // Refresh to update existingTicketSessionIds
         } catch (error) {
             console.error(error);
             toast.error(error.message || 'Failed to create ticket category');
@@ -639,25 +680,72 @@ const SessionManagement = () => {
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.days')}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.time')}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.contract')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.ticketStatus') || 'Tiket'}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 text-right whitespace-nowrap">{t('admin.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {sessions.filter(s => {
-                                        // Only filter out expired sessions, show all others (recurring AND one-time)
-                                        if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
-                                        return true;
+                                        // Fix Timezone Issue: Use local date string instead of toISOString (UTC)
+                                        const formatDateLocal = (d) => {
+                                            const dateObj = new Date(d);
+                                            const offset = dateObj.getTimezoneOffset() * 60000;
+                                            const localDate = new Date(dateObj.getTime() - offset);
+                                            return localDate.toISOString().split('T')[0];
+                                        };
+
+                                        const selectedDateStr = date ? formatDateLocal(date) : '';
+                                        const today = formatDateLocal(new Date());
+
+                                        // 1. Hide expired sessions generally (past contract end date relative to TODAY)
+                                        // Check strict contract expiry
+                                        if (s.valid_until && s.valid_until < today) return false;
+
+                                        // 2. Strict filtering based on SELECTED DATE
+                                        if (s.is_recurring) {
+                                            // Recurring: ALWAYS APPEAR until contract ends (relative to selected date)
+                                            if (s.valid_until && s.valid_until < selectedDateStr) return false;
+                                            return true;
+                                        } else {
+                                            // One-time:
+                                            // Appear BEFORE and ON the day.
+                                            // Do NOT appear AFTER the day.
+                                            // i.e. Show if SelectedDate <= BookingDate
+
+                                            const bookingDate = s.valid_from;
+                                            if (!bookingDate) return false;
+
+                                            return selectedDateStr <= bookingDate;
+                                        }
                                     }).length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                                            <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
                                                 {t('admin.noSessions')}
                                             </td>
                                         </tr>
                                     ) : (
                                         sessions.filter(s => {
-                                            // Only filter out expired sessions, show all others (recurring AND one-time)
-                                            if (s.valid_until && s.valid_until < new Date().toISOString().split('T')[0]) return false;
-                                            return true;
+                                            // Fix Timezone Issue: Duplicate logic for display consistency
+                                            const formatDateLocal = (d) => {
+                                                const dateObj = new Date(d);
+                                                const offset = dateObj.getTimezoneOffset() * 60000;
+                                                const localDate = new Date(dateObj.getTime() - offset);
+                                                return localDate.toISOString().split('T')[0];
+                                            };
+
+                                            const selectedDateStr = date ? formatDateLocal(date) : '';
+                                            const today = formatDateLocal(new Date());
+
+                                            if (s.valid_until && s.valid_until < today) return false;
+
+                                            if (s.is_recurring) {
+                                                if (s.valid_until && s.valid_until < selectedDateStr) return false;
+                                                return true;
+                                            } else {
+                                                const bookingDate = s.valid_from;
+                                                if (!bookingDate) return false;
+                                                return selectedDateStr <= bookingDate;
+                                            }
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 whitespace-nowrap">{session.name}</td>
@@ -691,21 +779,44 @@ const SessionManagement = () => {
                                                         <span className="text-[10px] sm:text-xs text-slate-400 italic">{t('admin.noContract')}</span>
                                                     )}
                                                 </td>
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3">
+                                                    {existingTicketSessionIds.has(session.id) ? (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                            {t('admin.ticketAvailable') || 'Tersedia'}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                                            {t('admin.ticketNotAvailable') || 'Tidak Tersedia'}
+                                                        </span>
+                                                    )}
+                                                </td>
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                                                     <div className="flex items-center justify-end space-x-1">
+                                                        {existingTicketSessionIds.has(session.id) ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                className="h-6 sm:h-8 text-xs bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                                                                disabled
+                                                                title={t('admin.ticketCreated')}
+                                                            >
+                                                                {t('admin.ticketCreated') || 'Tiket Aktif'}
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-teal-50 hover:text-teal-600"
+                                                                onClick={() => handleCreateTicket(session)}
+                                                                title="Create Ticket Category"
+                                                            >
+                                                                <Ticket className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                            </Button>
+                                                        )}
                                                         <Button
                                                             size="icon"
                                                             variant="ghost"
-                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-teal-50 hover:text-teal-600"
-                                                            onClick={() => handleCreateTicket(session)}
-                                                            title="Create Ticket Category"
-                                                        >
-                                                            <Ticket className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-slate-100 hover:text-teal-600"
+                                                            className="h-6 w-6 sm:h-8 sm:w-8 hover:bg-slate-50 hover:text-teal-600"
                                                             onClick={() => openEditDialog(session)}
                                                         >
                                                             <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -728,7 +839,7 @@ const SessionManagement = () => {
                         </div>
                     </Card>
                 </div>
-            </div>
+            </div >
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent data-testid="session-form-dialog">
@@ -948,14 +1059,15 @@ const SessionManagement = () => {
                             </div>
                         )}
 
-                        <div>
-                            <Label htmlFor="ticket_name">Category Name *</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="ticket-name">{t('admin.categoryName')}</Label>
                             <Input
-                                id="ticket_name"
+                                id="ticket-name"
                                 value={ticketFormData.name}
                                 onChange={(e) => setTicketFormData({ ...ticketFormData, name: e.target.value })}
-                                placeholder="e.g., Sesar Ticket"
-                                required
+                                // Make read-only as per user request to lock session name
+                                readOnly
+                                className="bg-slate-50 cursor-not-allowed"
                             />
                         </div>
 
@@ -1000,7 +1112,7 @@ const SessionManagement = () => {
                     </form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 

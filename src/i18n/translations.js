@@ -358,6 +358,11 @@ export const translations = {
             contract: 'Kontrak',
             noContract: 'Permanen',
             time: 'Waktu',
+            ticketCreated: 'Tiket Aktif',
+            ticketStatus: 'Tiket',
+            ticketAvailable: 'Tersedia',
+            ticketNotAvailable: 'Tidak Tersedia',
+            ticketAlreadyExists: 'Tiket untuk sesi ini sudah ada!',
         },
         shift: {
             management: 'Manajemen Shift',
@@ -738,6 +743,11 @@ export const translations = {
             contract: 'Contract',
             noContract: 'Permanent',
             time: 'Time',
+            ticketCreated: 'Active Ticket',
+            ticketStatus: 'Ticket',
+            ticketAvailable: 'Available',
+            ticketNotAvailable: 'Not Available',
+            ticketAlreadyExists: 'Ticket for this session already exists!',
         },
         shift: {
             management: 'Shift Management',
