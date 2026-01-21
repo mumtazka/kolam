@@ -156,15 +156,17 @@ const SessionManagement = () => {
     });
     const [categories, setCategories] = useState([]);
     const [existingTicketSessionIds, setExistingTicketSessionIds] = useState(new Set());
+    const [existingCategoryNames, setExistingCategoryNames] = useState(new Set());
 
     useEffect(() => {
         fetchSessions();
         fetchCategories();
     }, []);
 
-    // Update existing ticket IDs whenever categories change
+    // Update existing ticket IDs and category names whenever categories change
     useEffect(() => {
         const ids = new Set(categories.map(c => c.session_id).filter(Boolean));
+        const names = new Set(categories.map(c => c.name?.trim().toLowerCase()).filter(Boolean));
 
         // Also check descriptions for backward compatibility
         categories.forEach(c => {
@@ -181,7 +183,17 @@ const SessionManagement = () => {
         });
 
         setExistingTicketSessionIds(ids);
+        setExistingCategoryNames(names);
     }, [categories]);
+
+    // Helper to check if session already has a ticket (by session_id OR matching category name)
+    const sessionHasTicket = (session) => {
+        // Check by session_id
+        if (existingTicketSessionIds.has(session.id)) return true;
+        // Check by matching category name (case-insensitive)
+        if (existingCategoryNames.has(session.name?.trim().toLowerCase())) return true;
+        return false;
+    };
 
     const fetchSessions = async () => {
         try {
@@ -408,7 +420,8 @@ const SessionManagement = () => {
         e.preventDefault();
 
         // Check if ticket already exists for this session (duplicate prevention)
-        if (selectedSessionForTicket && existingTicketSessionIds.has(selectedSessionForTicket.id)) {
+        // Check by session_id OR by matching category name
+        if (selectedSessionForTicket && sessionHasTicket(selectedSessionForTicket)) {
             toast.error(t('admin.ticketAlreadyExists') || 'Tiket untuk sesi ini sudah ada!');
             setTicketDialogOpen(false);
             return;
@@ -780,7 +793,7 @@ const SessionManagement = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3">
-                                                    {existingTicketSessionIds.has(session.id) ? (
+                                                    {sessionHasTicket(session) ? (
                                                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
                                                             {t('admin.ticketAvailable') || 'Tersedia'}
                                                         </span>
@@ -792,7 +805,7 @@ const SessionManagement = () => {
                                                 </td>
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                                                     <div className="flex items-center justify-end space-x-1">
-                                                        {existingTicketSessionIds.has(session.id) ? (
+                                                        {sessionHasTicket(session) ? (
                                                             <Button
                                                                 size="sm"
                                                                 variant="secondary"
