@@ -991,22 +991,63 @@ const SessionManagement = () => {
                             <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="valid_from">{t('admin.validFrom')}</Label>
-                                    <Input
-                                        id="valid_from"
-                                        type="date"
-                                        value={formData.valid_from || ''}
-                                        onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
-                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={`w-full justify-start text-left font-normal ${!formData.valid_from && "text-muted-foreground"}`}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {formData.valid_from ? (
+                                                    new Date(formData.valid_from).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })
+                                                ) : (
+                                                    <span>{t('admin.selectDate') || 'Pilih Tanggal'}</span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <div className="p-2 bg-white rounded-md shadow-lg">
+                                                <IndonesianMiniCalendar
+                                                    selectedDate={formData.valid_from}
+                                                    onDateSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                                                />
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="valid_until">{t('admin.validUntil')}</Label>
-                                    <Input
-                                        id="valid_until"
-                                        type="date"
-                                        value={formData.valid_until || ''}
-                                        onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
-                                        min={formData.valid_from}
-                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={`w-full justify-start text-left font-normal ${!formData.valid_until && "text-muted-foreground"}`}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {formData.valid_until ? (
+                                                    new Date(formData.valid_until).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })
+                                                ) : (
+                                                    <span>{t('admin.selectDate') || 'Pilih Tanggal'}</span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <div className="p-2 bg-white rounded-md shadow-lg">
+                                                <IndonesianMiniCalendar
+                                                    selectedDate={formData.valid_until}
+                                                    onDateSelect={(date) => setFormData({ ...formData, valid_until: date })}
+                                                />
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
                         )}
