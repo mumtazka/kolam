@@ -255,7 +255,7 @@ const ScannerDashboard = () => {
 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 {/* Left Side: Main Scanner Area */}
-                <main className={`flex-1 transition-colors duration-300 ease-out flex flex-col items-center justify-center p-4 lg:p-8 ${getMainBg()}`}>
+                <main className={`flex-1 transition-colors duration-300 ease-out flex flex-col items-center justify-start p-4 lg:p-8 pt-8 lg:pt-16 overflow-y-auto ${getMainBg()}`}>
 
                     <div className="w-full max-w-2xl mx-auto space-y-6 lg:space-y-8">
 

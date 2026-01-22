@@ -145,11 +145,13 @@ CREATE TABLE scan_logs (
     pool_id UUID REFERENCES pools(id) ON DELETE SET NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     total_price DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_scan_logs_ticket_id ON scan_logs(ticket_id);
 CREATE INDEX idx_scan_logs_scanned_by ON scan_logs(scanned_by);
+CREATE INDEX idx_scan_logs_scanned_at ON scan_logs(scanned_at);
 CREATE INDEX idx_scan_logs_created_at ON scan_logs(created_at);
 CREATE INDEX idx_scan_logs_shift_label ON scan_logs(shift_label);
 CREATE INDEX idx_scan_logs_role_at_scan ON scan_logs(role_at_scan);
