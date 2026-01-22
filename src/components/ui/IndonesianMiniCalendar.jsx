@@ -157,7 +157,7 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect, minDate, className
     };
 
     return (
-        <div className={`bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden ${className || ''}`}>
+        <div className={`bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden w-[320px] ${className || ''}`}>
             {/* Calendar Header */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
