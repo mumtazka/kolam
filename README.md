@@ -9,3 +9,5 @@ Role	Email	Password
 ADMIN	admin@kolamuny.ac.id	admin123
 RECEPTIONIST	resepsionis@kolamuny.ac.id	admin123
 SCANNER	scanner@kolamuny.ac.id	admin123
+
+sama ada update ui, sama fungsi tipis tipis
