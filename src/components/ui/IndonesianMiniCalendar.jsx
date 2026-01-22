@@ -1,17 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
+const IndonesianMiniCalendar = ({ selectedDate, onDateSelect, minDate, className }) => {
+    // Helper to ensure we have a Date object
+    const toDate = (d) => {
+        if (!d) return new Date();
+        if (d instanceof Date) return d;
+        // Handle string date "YYYY-MM-DD"
+        return new Date(d);
+    };
+
+    // Helper to format date as YYYY-MM-DD in local time (NOT UTC)
+    const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const [currentMonth, setCurrentMonth] = useState(() => {
-        // If selectedDate is valid, use it. Otherwise use today.
-        const date = selectedDate ? new Date(selectedDate) : new Date();
-        // Validate date - if invalid date, fallback to today
-        if (isNaN(date.getTime())) {
-            const today = new Date();
-            return new Date(today.getFullYear(), today.getMonth(), 1);
-        }
-        return new Date(date.getFullYear(), date.getMonth(), 1);
+        const d = selectedDate ? toDate(selectedDate) : new Date();
+        return new Date(d.getFullYear(), d.getMonth(), 1);
     });
+
+    // Update current month if selectedDate changes externally
+    useEffect(() => {
+        if (selectedDate) {
+            const d = toDate(selectedDate);
+            // Optional: Jump to the month of the new selected date?
+            // For smoother UX, we might only want to do this on initial load
+            // But if the user selects a date via other means, the calendar should probably show it.
+            // setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+        }
+    }, [selectedDate]);
 
     // Indonesian day names (short)
     const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -69,20 +90,29 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Helper to format date as YYYY-MM-DD in local time (NOT UTC)
-    const formatLocalDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
     const isToday = (date) => {
-        return date.toDateString() === today.toDateString();
+        return date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
     };
 
     const isSelected = (date) => {
-        return formatLocalDate(date) === selectedDate;
+        if (!selectedDate) return false;
+        const s = toDate(selectedDate);
+        return date.getDate() === s.getDate() &&
+            date.getMonth() === s.getMonth() &&
+            date.getFullYear() === s.getFullYear();
+    };
+
+    const isDisabled = (date) => {
+        if (!minDate) return false;
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
+
+        const minDateCheck = toDate(minDate);
+        minDateCheck.setHours(0, 0, 0, 0);
+
+        return checkDate < minDateCheck;
     };
 
     const handlePrevMonth = () => {
@@ -94,18 +124,40 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
     };
 
     const handleDateClick = (dayInfo) => {
+        if (isDisabled(dayInfo.date)) return;
+
         const dateStr = formatLocalDate(dayInfo.date);
-        onDateSelect(dateStr);
+        if (onDateSelect) {
+            onDateSelect(dateStr);
+        }
     };
 
     const goToToday = () => {
-        const todayStr = formatLocalDate(new Date());
-        onDateSelect(todayStr);
-        setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+        const now = new Date();
+        if (isDisabled(now)) return;
+
+        const dateStr = formatLocalDate(now);
+        if (onDateSelect) {
+            onDateSelect(dateStr);
+        }
+        setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    };
+
+    const goToYesterday = () => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (isDisabled(yesterday)) return;
+
+        const dateStr = formatLocalDate(yesterday);
+        if (onDateSelect) {
+            onDateSelect(dateStr);
+        }
+        setCurrentMonth(new Date(yesterday.getFullYear(), yesterday.getMonth(), 1));
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+        <div className={`bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden ${className || ''}`}>
             {/* Calendar Header */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
                 <div className="flex items-center justify-between">
@@ -147,23 +199,34 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
             <div className="grid grid-cols-7 gap-px bg-slate-100 p-1">
                 {days.map((dayInfo, idx) => {
                     const isSunday = dayInfo.date.getDay() === 0;
+                    const disabled = isDisabled(dayInfo.date);
+                    const selected = isSelected(dayInfo.date);
+                    const today = isToday(dayInfo.date);
+                    const currentMonth = dayInfo.isCurrentMonth;
+
                     return (
                         <button
                             key={idx}
                             type="button"
                             onClick={() => handleDateClick(dayInfo)}
+                            disabled={disabled}
                             className={`
                                 aspect-square flex items-center justify-center text-base font-medium rounded-lg transition-all
-                                ${!dayInfo.isCurrentMonth ? 'text-slate-300 bg-white' : 'bg-white'}
-                                ${dayInfo.isCurrentMonth && !isSelected(dayInfo.date) && !isToday(dayInfo.date)
+                                ${disabled
+                                    ? 'text-slate-300 bg-slate-50 cursor-not-allowed'
+                                    : !currentMonth
+                                        ? 'text-slate-300 bg-white'
+                                        : 'bg-white'
+                                }
+                                ${!disabled && currentMonth && !selected && !today
                                     ? isSunday ? 'text-red-500 hover:bg-red-50' : 'text-slate-700 hover:bg-teal-50'
                                     : ''
                                 }
-                                ${isToday(dayInfo.date) && !isSelected(dayInfo.date)
+                                ${!disabled && today && !selected
                                     ? 'ring-2 ring-teal-400 ring-inset bg-teal-50 text-teal-600 font-bold'
                                     : ''
                                 }
-                                ${isSelected(dayInfo.date)
+                                ${!disabled && selected
                                     ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold shadow-md transform scale-105'
                                     : ''
                                 }
@@ -180,19 +243,20 @@ const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
                 <button
                     type="button"
                     onClick={goToToday}
-                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+                    disabled={isDisabled(new Date())}
+                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Hari Ini
                 </button>
                 <button
                     type="button"
-                    onClick={() => {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        onDateSelect(formatLocalDate(yesterday));
-                        setCurrentMonth(new Date(yesterday.getFullYear(), yesterday.getMonth(), 1));
-                    }}
-                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+                    onClick={goToYesterday}
+                    disabled={(() => {
+                        const y = new Date();
+                        y.setDate(y.getDate() - 1);
+                        return isDisabled(y);
+                    })()}
+                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     Kemarin
                 </button>

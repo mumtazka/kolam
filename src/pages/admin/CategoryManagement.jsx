@@ -17,6 +17,8 @@ import {
     deleteCategory,
     parseSessionMetadata
 } from '../../services/categoryService';
+import { updateSession } from '../../services/adminService';
+import IndonesianMiniCalendar from '../../components/ui/IndonesianMiniCalendar';
 
 
 const CategoryManagement = () => {
@@ -35,6 +37,13 @@ const CategoryManagement = () => {
     });
     const [submitting, setSubmitting] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({ open: false, categoryId: null });
+    const [renewalDialog, setRenewalDialog] = useState({
+        open: false,
+        categoryId: null,
+        sessionId: null,
+        currentDate: null
+    });
+    const [renewalDate, setRenewalDate] = useState(new Date());
 
 
     useEffect(() => {
@@ -139,6 +148,30 @@ const CategoryManagement = () => {
     };
 
     const handleToggleActive = async (category) => {
+        // Check if it's an expired recurring ticket (contract)
+        const sessionData = category.sessions;
+        const contractUntil = sessionData?.valid_until;
+        const isRecurring = sessionData?.is_recurring;
+
+        const today = new Date();
+        const offset = today.getTimezoneOffset() * 60000;
+        const localTodayStr = new Date(today.getTime() - offset).toISOString().split('T')[0];
+
+        const isContractExpired = isRecurring && contractUntil && contractUntil < localTodayStr;
+
+        // If it is an expired contract, ALWAYS open renewal dialog, regardless of current active state
+        if (isContractExpired) {
+            // Open Renewal Dialog
+            setRenewalDate(new Date()); // Default to today
+            setRenewalDialog({
+                open: true,
+                categoryId: category.id,
+                sessionId: sessionData.id,
+                currentDate: contractUntil
+            });
+            return;
+        }
+
         try {
             await toggleCategoryActive(category.id, !category.active);
             toast.success(t('common.success'));
@@ -146,6 +179,33 @@ const CategoryManagement = () => {
         } catch (error) {
             console.error(error);
             toast.error(t('common.error'));
+        }
+    };
+
+    const handleRenewContract = async () => {
+        if (!renewalDialog.sessionId || !renewalDialog.categoryId) return;
+
+        setSubmitting(true);
+        try {
+            // Update Session Contract Date
+            const offset = renewalDate.getTimezoneOffset() * 60000;
+            const newValidUntil = new Date(renewalDate.getTime() - offset).toISOString().split('T')[0];
+
+            await updateSession(renewalDialog.sessionId, {
+                valid_until: newValidUntil
+            });
+
+            // Re-activate Category
+            await toggleCategoryActive(renewalDialog.categoryId, true);
+
+            toast.success(t('common.success'));
+            setRenewalDialog({ open: false, categoryId: null, sessionId: null, currentDate: null });
+            fetchCategories();
+        } catch (error) {
+            console.error(error);
+            toast.error(t('common.error'));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -342,79 +402,79 @@ const CategoryManagement = () => {
                     return (
                         <Card
                             key={category.id}
-                            className={`p-5 transition-all relative h-full flex flex-col justify-between ${(!category.active || isExpired)
-                                ? 'opacity-60 bg-slate-50'
-                                : isSessionTicket
-                                    ? 'border-2 border-teal-500 bg-teal-50/30'
-                                    : ''
+                            className={`transition-all relative h-full flex flex-col justify-between ${isSessionTicket
+                                ? 'border-2 border-teal-500 bg-teal-50/30'
+                                : ''
                                 }`}
                             data-testid={`category-card-${category.id}`}
                         >
-                            {/* Session Badge - Absolute Positioned */}
-                            {isSessionTicket && (
-                                <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
-                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-full shadow-sm">
-                                        <Ticket className="w-3 h-3" />
-                                        Tiket Khusus
-                                    </span>
-                                    {isExpired ? (
-                                        <span className="inline-flex items-center px-2 py-1 bg-red-100/80 backdrop-blur-sm text-red-700 text-[10px] font-semibold rounded shadow-sm border border-red-200">
-                                            {t('admin.expired')}
+                            <div className={`p-5 pb-2 flex-grow ${(!category.active || isExpired) ? 'opacity-50' : ''}`}>
+                                {/* Session Badge - Absolute Positioned */}
+                                {isSessionTicket && (
+                                    <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 text-white text-[10px] font-bold rounded-full shadow-sm">
+                                            <Ticket className="w-3 h-3" />
+                                            Tiket Khusus
                                         </span>
-                                    ) : isOneTime && (
-                                        <span className="inline-flex items-center px-2 py-1 bg-amber-100/80 backdrop-blur-sm text-amber-700 text-[10px] font-semibold rounded shadow-sm border border-amber-200">
-                                            Satu Kali
-                                        </span>
-                                    )}
-                                </div>
-                            )}
+                                        {isExpired ? (
+                                            <span className="inline-flex items-center px-2 py-1 bg-red-100/80 backdrop-blur-sm text-red-700 text-[10px] font-semibold rounded shadow-sm border border-red-200">
+                                                {t('admin.expired')}
+                                            </span>
+                                        ) : isOneTime && (
+                                            <span className="inline-flex items-center px-2 py-1 bg-amber-100/80 backdrop-blur-sm text-amber-700 text-[10px] font-semibold rounded shadow-sm border border-amber-200">
+                                                Satu Kali
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
 
-                            <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSessionTicket
-                                        ? 'bg-teal-100 text-teal-700'
-                                        : category.active
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${isSessionTicket
                                             ? 'bg-teal-100 text-teal-700'
-                                            : 'bg-slate-200 text-slate-500'
-                                        }`}>
-                                        {category.code_prefix}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg text-slate-900">{category.name}</h3>
-                                        <p className="text-sm text-slate-500">
-                                            {category.description || t('common.unknown')}
-                                        </p>
+                                            : category.active
+                                                ? 'bg-teal-100 text-teal-700'
+                                                : 'bg-slate-200 text-slate-500'
+                                            }`}>
+                                            {category.code_prefix}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-lg text-slate-900">{category.name}</h3>
+                                            <p className="text-sm text-slate-500">
+                                                {category.description || t('common.unknown')}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2 mb-4">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">{t('dashboard.price')}:</span>
-                                    <span className="font-semibold text-slate-900">
-                                        Rp {(category.price || 0).toLocaleString('id-ID')}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>
-                                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                                        {category.code_prefix}-YYYYMMDD-XXXX
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 pt-1">
-                                    {category.requires_nim && (
-                                        <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
-                                            <AlertCircle className="w-3 h-3 mr-1" />
-                                            {t('admin.requiresNim')}
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-600">{t('dashboard.price')}:</span>
+                                        <span className="font-semibold text-slate-900">
+                                            Rp {(category.price || 0).toLocaleString('id-ID')}
                                         </span>
-                                    )}
-                                    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${category.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                                        {category.active ? t('admin.active') : t('admin.disable')}
-                                    </span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-600">{t('dashboard.ticket')} {t('common.code')}:</span>
+                                        <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                                            {category.code_prefix}-YYYYMMDD-XXXX
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        {category.requires_nim && (
+                                            <span className="inline-flex items-center px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                                                <AlertCircle className="w-3 h-3 mr-1" />
+                                                {t('admin.requiresNim')}
+                                            </span>
+                                        )}
+                                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${category.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                            {category.active ? t('admin.active') : t('admin.disable')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 pt-3 border-t border-slate-200">
+                            <div className="p-5 pt-0 flex items-center gap-2 mt-auto border-t border-slate-100 pt-3">
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -426,15 +486,15 @@ const CategoryManagement = () => {
                                     {t('common.edit')}
                                 </Button>
                                 <Button
-                                    variant={category.active ? 'outline' : 'default'}
+                                    variant={(category.active && !isContractExpired) ? 'outline' : 'default'}
                                     size="sm"
                                     onClick={() => handleToggleActive(category)}
-                                    className={`flex-1 ${!category.active ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                                    className={`flex-1 ${(isContractExpired || !category.active) ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
                                     data-testid={`toggle-category-${category.id}`}
-                                    disabled={isExpired}
-                                    title={isExpired ? t('admin.expired') : ''}
+                                    disabled={isExpired && !isContractExpired} // Disable only if expired AND NOT a recurring contract (which can be renewed)
+                                    title={isExpired ? (isContractExpired ? 'Klik untuk perpanjang kontrak' : t('admin.expired')) : ''}
                                 >
-                                    {category.active && !isExpired ? t('admin.disable') : t('admin.enable')}
+                                    {isContractExpired ? (t('admin.renewContract') || 'Perpanjang Kontrak') : (isExpired ? (t('admin.unavailable') || 'Tidak Tersedia') : (category.active ? t('admin.disable') : t('admin.enable')))}
                                 </Button>
                                 <Button
                                     variant="destructive"
@@ -445,7 +505,6 @@ const CategoryManagement = () => {
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
-
                             </div>
                         </Card>
                     );
@@ -481,6 +540,47 @@ const CategoryManagement = () => {
                 cancelText={t('common.cancel')}
                 variant="danger"
             />
+
+            {/* Renewal Dialog */}
+            <Dialog open={renewalDialog.open} onOpenChange={(open) => setRenewalDialog(prev => ({ ...prev, open }))}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>Perpanjang Kontrak Tiket</DialogTitle>
+                        <DialogDescription>
+                            Tiket ini telah kadaluwarsa. Silakan pilih tanggal berakhir kontrak baru untuk mengaktifkannya kembali.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-4 flex justify-center">
+                        <IndonesianMiniCalendar
+                            selectedDate={renewalDate ? renewalDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                            onDateSelect={(dateStr) => setRenewalDate(new Date(dateStr))}
+                            minDate={new Date().toISOString().split('T')[0]} // Disable past dates
+                            className="border rounded-lg shadow-sm"
+                        />
+                    </div>
+                    <div className="text-center text-sm font-medium mb-2">
+                        Berlaku Sampai: <span className="text-teal-600">{renewalDate?.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setRenewalDialog({ open: false, categoryId: null, sessionId: null, currentDate: null })}
+                            disabled={submitting}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            onClick={handleRenewContract}
+                            disabled={submitting}
+                            className="bg-slate-900 hover:bg-slate-800"
+                        >
+                            {submitting ? t('admin.saving') : 'Aktifkan & Perpanjang'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div >
     );
 };

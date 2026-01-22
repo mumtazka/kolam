@@ -237,6 +237,8 @@ export const translations = {
             createFirst: 'Buat kategori tiket pertama anda untuk memulai',
             enable: 'Aktifkan',
             disable: 'Nonaktifkan',
+            unavailable: 'Tidak Tersedia',
+            renewContract: 'Perpanjang Kontrak',
             saving: 'Menyimpan...',
             ticketCodeExample: 'Contoh Kode Tiket',
             categoryFormDescriptionUpdate: 'Perbarui detail kategori yang ada',
