@@ -39,6 +39,15 @@ export const translations = {
                 Sat: 'Sab',
                 Sun: 'Min'
             },
+            daysFull: {
+                Mon: 'Senin',
+                Tue: 'Selasa',
+                Wed: 'Rabu',
+                Thu: 'Kamis',
+                Fri: 'Jumat',
+                Sat: 'Sabtu',
+                Sun: 'Minggu'
+            },
             example: 'Contoh',
         },
         auth: {
@@ -438,6 +447,15 @@ export const translations = {
                 Fri: 'Fri',
                 Sat: 'Sat',
                 Sun: 'Sun'
+            },
+            daysFull: {
+                Mon: 'Monday',
+                Tue: 'Tuesday',
+                Wed: 'Wednesday',
+                Thu: 'Thursday',
+                Fri: 'Friday',
+                Sat: 'Saturday',
+                Sun: 'Sunday'
             },
             example: 'Example',
         },

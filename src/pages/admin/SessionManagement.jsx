@@ -1107,7 +1107,7 @@ const SessionManagement = () => {
                                 <div className="text-sm space-y-1">
                                     <div><span className="font-semibold">{t('admin.sessionLabel')}</span> {selectedSessionForTicket.name}</div>
                                     <div><span className="font-semibold">{t('admin.timeLabel')}</span> {selectedSessionForTicket.start_time} - {selectedSessionForTicket.end_time}</div>
-                                    <div><span className="font-semibold">{t('admin.daysLabel')}</span> {selectedSessionForTicket.days?.join(', ')}</div>
+                                    <div><span className="font-semibold">{t('admin.daysLabel')}</span> {selectedSessionForTicket.days?.map(day => t(`common.daysFull.${day.substring(0, 3)}`)).join(', ')}</div>
                                     <div><span className="font-semibold">{t('admin.typeLabel')}</span> {selectedSessionForTicket.is_recurring ? t('admin.recurring') : t('admin.oneTime')}</div>
                                 </div>
                             </div>

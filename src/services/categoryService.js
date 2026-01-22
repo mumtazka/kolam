@@ -154,7 +154,23 @@ export const getActiveCategoriesWithPrices = async () => {
         .order('name');
 
     if (error) throw error;
-    return data;
+    if (error) throw error;
+
+    // Filter out expired one-time session tickets
+    // Use local time for "today"
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localToday = new Date(today.getTime() - offset).toISOString().split('T')[0];
+
+    return data.filter(category => {
+        // If has booking_date and it's in the past, hide it
+        if (category.booking_date && category.booking_date < localToday) {
+            return false;
+        }
+
+        // Backward compatibility: also check description field
+        return isValidSessionTicket(category);
+    });
 };
 
 /**
