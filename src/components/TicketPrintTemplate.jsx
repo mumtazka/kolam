@@ -38,7 +38,7 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
              width: 80mm !important;
              height: 100mm !important;
              max-height: 100mm !important;
-             padding: 6px 5mm !important; 
+             padding: 2mm 5mm !important; 
              margin: 0 !important;
              box-sizing: border-box !important;
              border: none !important;
@@ -46,7 +46,7 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
              flex-direction: column;
              justify-content: flex-start;
              align-items: center;
-             gap: 3px !important;
+             gap: 2px !important;
              overflow: hidden !important;
              page-break-after: always !important; 
              page-break-inside: avoid !important;
@@ -73,81 +73,74 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
                 <div key={index} className="printable-ticket">
                     {/* Header - Venue Info */}
                     <div className="text-center w-full pb-1">
-                        <h2 className="text-[11px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang</h2>
-                        <h2 className="text-[11px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Vokasi UNY</h2>
+                        <h2 className="text-[12px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang</h2>
+                        <h2 className="text-[12px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Vokasi UNY</h2>
                         <p className="text-[9px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Jl Mandung, Pengasih, Kulon Progo</p>
                     </div>
 
                     {/* Receipt Label */}
                     <div className="text-center w-full py-1">
-                        <p className="text-[10px] font-bold tracking-[0.3em] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>R E C E I P T</p>
+                        <p className="text-[9px] font-bold tracking-[0.2em] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>R E C E I P T</p>
                     </div>
 
                     {/* Category Name */}
                     <div className="text-center w-full">
-                        <p className="text-[11px] font-bold uppercase text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</p>
+                        <p className="text-[12px] font-bold uppercase text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</p>
                     </div>
 
-                    {/* Price Calculation - More padding from edges */}
-                    <div className="w-full px-4 py-1">
-                        <div className="flex justify-between items-center text-[9px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            <span className="text-black">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')} x 1</span>
-                            <span className="text-black font-medium">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</span>
+                    {/* Price Calculation */}
+                    <div className="w-full px-6 py-0.5">
+                        <div className="flex justify-between items-center text-[8px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <span className="text-black leading-tight">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')} x 1</span>
+                            <span className="text-black font-medium leading-tight">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</span>
                         </div>
                     </div>
 
                     {/* Total */}
-                    <div className="text-center w-full py-1">
-                        <p className="text-[12px] font-bold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Total: Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</p>
+                    <div className="text-center w-full py-0.5">
+                        <p className="text-[11px] font-bold text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Total: Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</p>
                     </div>
 
                     {/* Tax Note */}
-                    <div className="text-center w-full">
-                        <p className="text-[9px] text-black font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>Termasuk Pajak Hiburan 10%</p>
+                    <div className="text-center w-full mb-0.5">
+                        <p className="text-[8px] text-black font-medium leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Termasuk Pajak Hiburan 10%</p>
                     </div>
 
                     {/* QR Code */}
                     <div className="tick-qr flex justify-center w-full py-1">
                         <QRCode
                             value={ticket.ticket_code || ticket.id}
-                            size={80}
+                            size={140}
                         />
                     </div>
 
                     {/* Ticket Code - Under QR */}
-                    <div className="text-center w-full">
-                        <p className="text-[9px] font-semibold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.ticket_code || ticket.id?.substring(0, 8)}</p>
+                    <div className="text-center w-full mt-0.5">
+                        <p className="text-[8px] font-semibold text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.ticket_code || ticket.id?.substring(0, 8)}</p>
                     </div>
 
                     {/* NIM if present */}
                     {ticket.nim && (
                         <div className="text-center w-full">
-                            <p className="text-[9px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>NIM: <span className="font-bold text-black">{ticket.nim}</span></p>
+                            <p className="text-[8px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>NIM: <span className="font-bold text-black">{ticket.nim}</span></p>
                         </div>
                     )}
 
-                    {/* Validity Note */}
-                    <div className="text-center w-full py-1">
-                        <p className="font-bold text-[8px] leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            {ticket.max_usage && ticket.max_usage > 1
-                                ? `TIKET BERLAKU ${ticket.max_usage} KALI`
-                                : 'TIKET HANYA BERLAKU 1 KALI'}
-                        </p>
-                    </div>
+
 
                     {/* Footer - Contact Info */}
                     <div className="text-center w-full pt-1 mt-auto border-t border-black">
-                        <p className="text-[9px] font-semibold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <p className="text-[8px] font-semibold text-black leading-tight mb-0.5" style={{ fontFamily: 'Inter, sans-serif' }}>
                             {ticket.created_by_name || 'Staff'}
                         </p>
-                        <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>kolamrenangwates@uny.ac.id</p>
-                        <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>IG: @kolamrenang_vokasiunywates</p>
-                        <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>0852-2562-0011</p>
+                        <p className="text-[7px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>kolamrenangwates@uny.ac.id</p>
+                        <p className="text-[7px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>IG: @kolamrenang_vokasiunywates</p>
+                        <p className="text-[7px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>0852-2562-0011</p>
                     </div>
 
                     {/* Timestamp */}
-                    <div className="text-center w-full pt-1">
-                        <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <div className="text-center w-full pt-0.5">
+                        <p className="text-[7px] text-black leading-none" style={{ fontFamily: 'Inter, sans-serif' }}>
                             {new Date(ticket.created_at).toLocaleString('id-ID', {
                                 day: '2-digit', month: '2-digit', year: 'numeric',
                                 hour: '2-digit', minute: '2-digit'
