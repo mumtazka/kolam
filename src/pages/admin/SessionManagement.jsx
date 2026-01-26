@@ -11,7 +11,7 @@ import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { Plus, Edit, Trash2, Clock, Calendar as CalendarIcon, MapPin, Hash, ChevronDown, Ticket, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '../../components/ui/calendar';
-import { getSessions, createSession, updateSession, deleteSession } from '../../services/adminService';
+import { getSessions, createSession, updateSession, deleteSession, getPools } from '../../services/adminService';
 import { createCategory, getCategories } from '../../services/categoryService';
 import { id, enUS } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
@@ -133,6 +133,7 @@ const SessionManagement = () => {
     ];
 
     const [sessions, setSessions] = useState([]);
+    const [pools, setPools] = useState([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
@@ -152,6 +153,7 @@ const SessionManagement = () => {
         start_time: '07:00',
         end_time: '08:30',
         days: [],
+        pool_id: '',
         is_recurring: false // Default to false as requested
     });
     const [categories, setCategories] = useState([]);
@@ -161,7 +163,18 @@ const SessionManagement = () => {
     useEffect(() => {
         fetchSessions();
         fetchCategories();
+        fetchPools();
     }, []);
+
+    const fetchPools = async () => {
+        try {
+            const data = await getPools();
+            setPools(data);
+        } catch (error) {
+            console.error('Failed to fetch pools:', error);
+            toast.error(t('common.error'));
+        }
+    };
 
     // Update existing ticket IDs and category names whenever categories change
     useEffect(() => {
@@ -368,6 +381,7 @@ const SessionManagement = () => {
             start_time: '07:00',
             end_time: '08:30',
             days: [],
+            pool_id: '',
             is_recurring: false, // Default false
             valid_from: null,
             valid_until: null
@@ -383,6 +397,7 @@ const SessionManagement = () => {
             start_time: session.start_time,
             end_time: session.end_time,
             days: session.days || [],
+            pool_id: session.pool_id || '',
             is_recurring: session.is_recurring,
             valid_from: session.valid_from,
             valid_until: session.valid_until
@@ -690,6 +705,7 @@ const SessionManagement = () => {
                                 <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                                     <tr>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.sessionName')}</th>
+                                        <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.poolType')}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.days')}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.time')}</th>
                                         <th className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">{t('admin.contract')}</th>
@@ -762,6 +778,9 @@ const SessionManagement = () => {
                                         }).map((session) => (
                                             <tr key={session.id} className="hover:bg-slate-50 transition-colors">
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 whitespace-nowrap">{session.name}</td>
+                                                <td className="px-2 sm:px-4 py-2 sm:py-3 text-slate-600 whitespace-nowrap">
+                                                    {pools.find(p => p.id === session.pool_id)?.name || '-'}
+                                                </td>
                                                 <td className="px-2 sm:px-4 py-2 sm:py-3">
                                                     <div className="flex flex-wrap gap-1">
                                                         {session.days?.map(day => (
@@ -873,6 +892,26 @@ const SessionManagement = () => {
                                 required
                                 data-testid="session-name-input"
                             />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="pool_id">{t('admin.poolType') || 'Jenis Kolam'}</Label>
+                            <Select
+                                value={formData.pool_id}
+                                onValueChange={(val) => setFormData({ ...formData, pool_id: val })}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t('admin.selectPool') || 'Pilih Kolam'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {pools.map((pool) => (
+                                        <SelectItem key={pool.id} value={pool.id}>
+                                            {pool.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Recurring Toggle Moved to Top */}

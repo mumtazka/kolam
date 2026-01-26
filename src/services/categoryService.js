@@ -213,10 +213,11 @@ export const isPrefixUnique = async (prefix, excludeId = null) => {
  */
 export const createCategory = async (categoryData) => {
     // Validate prefix uniqueness
-    const isUnique = await isPrefixUnique(categoryData.code_prefix);
-    if (!isUnique) {
-        throw new Error(`Prefix "${categoryData.code_prefix}" is already in use`);
-    }
+    // Validate prefix uniqueness - REMOVED to allow duplicate prefixes
+    // const isUnique = await isPrefixUnique(categoryData.code_prefix);
+    // if (!isUnique) {
+    //     throw new Error(`Prefix "${categoryData.code_prefix}" is already in use`);
+    // }
 
     const { data, error } = await supabase
         .from('categories')
@@ -242,11 +243,13 @@ export const createCategory = async (categoryData) => {
  */
 export const updateCategory = async (categoryId, categoryData) => {
     // Validate prefix uniqueness if prefix is being changed
+    // Validate prefix uniqueness if prefix is being changed
     if (categoryData.code_prefix) {
-        const isUnique = await isPrefixUnique(categoryData.code_prefix, categoryId);
-        if (!isUnique) {
-            throw new Error(`Prefix "${categoryData.code_prefix}" is already in use`);
-        }
+        // Validation REMOVED to allow duplicate prefixes
+        // const isUnique = await isPrefixUnique(categoryData.code_prefix, categoryId);
+        // if (!isUnique) {
+        //     throw new Error(`Prefix "${categoryData.code_prefix}" is already in use`);
+        // }
         categoryData.code_prefix = categoryData.code_prefix.toUpperCase();
     }
 

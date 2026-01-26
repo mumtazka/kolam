@@ -249,6 +249,8 @@ export const translations = {
             activePackages: 'Paket Aktif Saat Ini',
             perPerson: '/ Orang',
             noActivePackages: 'Tidak ada paket aktif ditemukan',
+            selectPool: 'Pilih Kolam',
+            poolType: 'Jenis Kolam',
             // User Management
             staffManagement: 'Manajemen Staf',
             shiftManagement: 'Manajemen Shift',
@@ -660,6 +662,8 @@ export const translations = {
             activePackages: 'Current Active Packages',
             perPerson: '/ Person',
             noActivePackages: 'No active packages found',
+            selectPool: 'Select Pool',
+            poolType: 'Pool Type',
             // User Management
             staffManagement: 'Staff Management',
             shiftManagement: 'Shift Management',
