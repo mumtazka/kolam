@@ -8,13 +8,13 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
             <style type="text/css" media="print">
                 {`
            @page { 
-             size: 80mm 80mm; 
+             size: 80mm 120mm; 
              margin: 0; 
            }
            
            html, body { 
              width: 80mm !important; 
-             height: 80mm !important;
+             height: 120mm !important;
              margin: 0 !important; 
              padding: 0 !important;
              overflow: hidden !important;
@@ -36,9 +36,9 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
 
            .printable-ticket { 
              width: 80mm !important;
-             height: 80mm !important;
-             max-height: 80mm !important;
-             padding: 10px 6mm !important; 
+             height: 120mm !important;
+             max-height: 120mm !important;
+             padding: 8px 5mm !important; 
              margin: 0 !important;
              box-sizing: border-box !important;
              border: none !important;
@@ -46,7 +46,7 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
              flex-direction: column;
              justify-content: flex-start;
              align-items: center;
-             gap: 5px !important;
+             gap: 4px !important;
              overflow: hidden !important;
              page-break-after: always !important; 
              page-break-inside: avoid !important;
@@ -70,55 +70,82 @@ const TicketPrintTemplate = ({ ticket, copies = 1 }) => {
 
             {Array.from({ length: copies }).map((_, index) => (
                 <div key={index} className="printable-ticket">
-                    {/* Header */}
-                    <div className="text-center w-full pb-2 border-b border-black border-dashed">
-                        <h2 className="text-[16px] font-extrabold uppercase leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang UNY</h2>
-                        <h3 className="text-[12px] font-bold uppercase leading-tight mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</h3>
+                    {/* Header - Venue Info */}
+                    <div className="text-center w-full pb-1">
+                        <h2 className="text-[11px] font-bold leading-tight text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang</h2>
+                        <h2 className="text-[11px] font-bold leading-tight text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>Vokasi UNY</h2>
+                        <p className="text-[9px] text-gray-600 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Jl Mandung, Pengasih, Kulon Progo</p>
+                    </div>
+
+                    {/* Receipt Label */}
+                    <div className="text-center w-full py-1">
+                        <p className="text-[10px] font-bold tracking-[0.3em] text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>R E C E I P T</p>
+                    </div>
+
+                    {/* Ticket Info */}
+                    <div className="text-center w-full">
+                        <p className="text-[10px] font-semibold text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.ticket_code || ticket.id?.substring(0, 8)}</p>
+                        <p className="text-[11px] font-bold uppercase text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</p>
+                    </div>
+
+                    {/* Price Calculation */}
+                    <div className="w-full px-2 py-1">
+                        <div className="flex justify-between items-center text-[9px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <span className="text-gray-600">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')} x 1</span>
+                            <span className="text-gray-800 font-medium">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    {/* Total */}
+                    <div className="text-center w-full py-1">
+                        <p className="text-[12px] font-bold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Total: Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</p>
+                    </div>
+
+                    {/* Tax Note */}
+                    <div className="text-center w-full">
+                        <p className="text-[9px] text-teal-700 font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>Termasuk Pajak Hiburan 10%</p>
                     </div>
 
                     {/* QR Code */}
                     <div className="tick-qr flex justify-center w-full py-2">
                         <QRCode
                             value={ticket.ticket_code || ticket.id}
-                            size={110}
+                            size={90}
                         />
                     </div>
 
-                    {/* Ticket Details */}
-                    <div className="w-full font-mono text-[10px] uppercase leading-relaxed px-1 space-y-1" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
-                        <div className="flex justify-between items-start">
-                            <span className="font-semibold text-slate-600">KODE</span>
-                            <span className="font-bold text-black text-right">{ticket.ticket_code || ticket.id?.substring(0, 8)}</span>
+                    {/* NIM if present */}
+                    {ticket.nim && (
+                        <div className="text-center w-full">
+                            <p className="text-[9px] text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>NIM: <span className="font-bold text-black">{ticket.nim}</span></p>
                         </div>
-                        <div className="flex justify-between items-center">
-                            <span className="font-semibold text-slate-600">HARGA</span>
-                            <span className="font-bold text-black text-right">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</span>
-                        </div>
-                        {ticket.nim && (
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-slate-600">NIM</span>
-                                <span className="font-bold text-black text-right">{ticket.nim}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                            <span className="font-semibold text-slate-600">TANGGAL</span>
-                            <span className="font-bold text-black text-right">
-                                {new Date(ticket.created_at).toLocaleString('id-ID', {
-                                    day: '2-digit', month: '2-digit', year: 'numeric',
-                                    hour: '2-digit', minute: '2-digit'
-                                }).replace(/\./g, ':')}
-                            </span>
-                        </div>
-                    </div>
+                    )}
 
-                    {/* Footer */}
-                    <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
-                        <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {/* Validity Note */}
+                    <div className="text-center w-full py-1">
+                        <p className="font-bold text-[8px] leading-tight text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>
                             {ticket.max_usage && ticket.max_usage > 1
                                 ? `TIKET BERLAKU ${ticket.max_usage} KALI`
                                 : 'TIKET HANYA BERLAKU 1 KALI'}
                         </p>
-                        <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>TIKET YANG SUDAH DIBELI TIDAK DAPAT DIKEMBALIKAN</p>
+                    </div>
+
+                    {/* Footer - Contact Info */}
+                    <div className="text-center w-full pt-1 mt-auto border-t border-gray-300">
+                        <p className="text-[9px] font-semibold text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>Pramudianndaru</p>
+                        <p className="text-[8px] text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>kolamrenangwates@uny.ac.id</p>
+                        <p className="text-[8px] text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>IG: @kolamrenang_vokasiunywates</p>
+                        <p className="text-[8px] text-gray-600" style={{ fontFamily: 'Inter, sans-serif' }}>0852-2562-0011</p>
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="text-center w-full pt-1">
+                        <p className="text-[8px] text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            {new Date(ticket.created_at).toLocaleString('id-ID', {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'
+                            }).replace(/\./g, ':')}
+                        </p>
                     </div>
                 </div>
             ))}

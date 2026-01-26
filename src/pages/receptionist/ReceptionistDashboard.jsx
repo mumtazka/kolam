@@ -567,8 +567,8 @@ const ReceptionistDashboard = () => {
                   <Card
                     key={category.id}
                     className={`p-4 cursor-pointer ticket-category-card transition-all shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[120px] ${isSessionTicket
-                        ? 'border-2 border-teal-500 bg-teal-50/30'
-                        : 'hover:border-teal-500'
+                      ? 'border-2 border-teal-500 bg-teal-50/30'
+                      : 'hover:border-teal-500'
                       }`}
                     onClick={() => addToCart(category)}
                     data-testid={`ticket-category-${category.id}`}
@@ -598,8 +598,8 @@ const ReceptionistDashboard = () => {
 
                       {/* Standard Code Block - Visible for all, consistent layout */}
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${isSessionTicket
-                          ? 'bg-teal-100 text-teal-700 mt-6' // Push down slightly to avoid badge
-                          : 'bg-slate-100 text-slate-500'
+                        ? 'bg-teal-100 text-teal-700 mt-6' // Push down slightly to avoid badge
+                        : 'bg-slate-100 text-slate-500'
                         }`}>
                         {category.code_prefix}
                       </div>
@@ -610,8 +610,8 @@ const ReceptionistDashboard = () => {
                         Rp {category.price.toLocaleString('id-ID')}
                       </span>
                       <Button size="icon" className={`h-7 w-7 rounded-full ${isSessionTicket
-                          ? 'bg-teal-600 hover:bg-teal-700 text-white'
-                          : 'bg-slate-900 hover:bg-slate-800'
+                        ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                        : 'bg-slate-900 hover:bg-slate-800'
                         }`}>
                         <Plus className="w-4 h-4" />
                       </Button>
@@ -832,13 +832,13 @@ const ReceptionistDashboard = () => {
           <style type="text/css" media="print">
             {`
                @page { 
-                 size: 80mm 80mm; 
+                 size: 80mm 100mm; 
                  margin: 0; 
                }
                
                html, body { 
                  width: 80mm !important; 
-                 height: 80mm !important;
+                 height: 100mm !important;
                  margin: 0 !important; 
                  padding: 0 !important;
                  overflow: hidden !important;
@@ -860,9 +860,9 @@ const ReceptionistDashboard = () => {
   
                .printable-ticket { 
                  width: 80mm !important;
-                 height: 80mm !important;
-                 max-height: 80mm !important;
-                 padding: 10px 6mm !important; 
+                 height: 100mm !important;
+                 max-height: 100mm !important;
+                 padding: 6px 5mm !important; 
                  margin: 0 !important;
                  box-sizing: border-box !important;
                  border: none !important;
@@ -870,7 +870,7 @@ const ReceptionistDashboard = () => {
                  flex-direction: column;
                  justify-content: flex-start;
                  align-items: center;
-                 gap: 5px !important;
+                 gap: 3px !important;
                  overflow: hidden !important;
                  page-break-after: always !important; 
                  page-break-inside: avoid !important;
@@ -888,87 +888,85 @@ const ReceptionistDashboard = () => {
                .printable-ticket * {
                  -webkit-print-color-adjust: exact !important;
                  print-color-adjust: exact !important;
-               }
-  
-               .printable-ticket.isSpecial .tick-h2, 
-               .printable-ticket.isSpecial .tick-h3, 
-               .printable-ticket.isSpecial .tick-val,
-               .printable-ticket.isSpecial .tick-label,
-               .printable-ticket.isSpecial p,
-               .printable-ticket.isSpecial span,
-               .printable-ticket.isSpecial h2,
-               .printable-ticket.isSpecial h3 {
-                  color: black !important;
-               }
-               
-               .printable-ticket.isSpecial .tick-qr {
-                  background: white !important;
-                  padding: 4px !important;
-                  border-radius: 4px !important;
-               }
-  
-               .printable-ticket.isSpecial .border-black {
-                  border-color: black !important;
-               }
-               
-               .printable-ticket.isSpecial .bg-black {
-                  background-color: black !important;
+                 color: black !important;
                }
              `}
           </style>
 
           {printedTickets.map((ticket) => {
-            // Identify if ticket is special (starts with K)
-            // Check generated code or preview code (PREVIEW-K-...)
-            const isSpecial = ticket.ticket_code.startsWith('K') || (ticket.ticket_code.startsWith('PREVIEW') && ticket.category_name.toLowerCase().includes('khusus'));
-
             return (
-              <div key={ticket.id} className={`printable-ticket ${isSpecial ? 'isSpecial' : ''}`}>
-                {/* Header */}
-                <div className="text-center w-full pb-2 border-b border-black border-dashed">
-                  <h2 className="text-[16px] font-extrabold uppercase leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang UNY</h2>
-                  <h3 className="text-[12px] font-bold uppercase leading-tight mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</h3>
+              <div key={ticket.id} className="printable-ticket">
+                {/* Header - Venue Info */}
+                <div className="text-center w-full pb-1">
+                  <h2 className="text-[11px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Kolam Renang</h2>
+                  <h2 className="text-[11px] font-bold leading-tight text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Vokasi UNY</h2>
+                  <p className="text-[9px] text-black leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>Jl Mandung, Pengasih, Kulon Progo</p>
+                </div>
+
+                {/* Receipt Label */}
+                <div className="text-center w-full py-1">
+                  <p className="text-[10px] font-bold tracking-[0.3em] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>R E C E I P T</p>
+                </div>
+
+                {/* Category Name */}
+                <div className="text-center w-full">
+                  <p className="text-[11px] font-bold uppercase text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.category_name}</p>
+                </div>
+
+                {/* Price Calculation - More padding from edges */}
+                <div className="w-full px-4 py-1">
+                  <div className="flex justify-between items-center text-[9px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <span className="text-black">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')} x 1</span>
+                    <span className="text-black font-medium">Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="text-center w-full py-1">
+                  <p className="text-[12px] font-bold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>Total: Rp {parseFloat(ticket.price || 0).toLocaleString('id-ID')}</p>
+                </div>
+
+                {/* Tax Note */}
+                <div className="text-center w-full">
+                  <p className="text-[9px] text-black font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>Termasuk Pajak Hiburan 10%</p>
                 </div>
 
                 {/* QR Code */}
-                <div className="tick-qr flex justify-center w-full py-2">
+                <div className="tick-qr flex justify-center w-full py-1">
                   <QRCode
                     value={ticket.ticket_code}
-                    size={110}
+                    size={80}
                   />
                 </div>
 
-                {/* Ticket Details */}
-                <div className="w-full font-mono text-[10px] uppercase leading-relaxed px-1 space-y-1" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-600">KODE</span>
-                    <span className="font-bold text-black text-right">{ticket.ticket_code}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-slate-600">HARGA</span>
-                    <span className="font-bold text-black text-right">Rp {ticket.price.toLocaleString('id-ID')}</span>
-                  </div>
-                  {ticket.nim && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-slate-600">NIM</span>
-                      <span className="font-bold text-black text-right">{ticket.nim}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-slate-600">TANGGAL</span>
-                    <span className="font-bold text-black text-right">
-                      {new Date(ticket.created_at).toLocaleString('id-ID', {
-                        day: '2-digit', month: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit'
-                      }).replace(/\./g, ':')}
-                    </span>
-                  </div>
+                {/* Ticket Code - Under QR */}
+                <div className="text-center w-full">
+                  <p className="text-[9px] font-semibold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{ticket.ticket_code}</p>
                 </div>
 
-                {/* Footer */}
-                <div className="text-center pt-2 mt-auto w-full border-t border-black border-dashed">
-                  <p className="font-bold text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketValidOneTime')}</p>
-                  <p className="text-[8px] leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>{t('scanner.ticketNoRefund')}</p>
+                {/* NIM if present */}
+                {ticket.nim && (
+                  <div className="text-center w-full">
+                    <p className="text-[9px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>NIM: <span className="font-bold text-black">{ticket.nim}</span></p>
+                  </div>
+                )}
+
+                {/* Footer - Contact Info */}
+                <div className="text-center w-full pt-1 mt-auto border-t border-black">
+                  <p className="text-[9px] font-semibold text-black" style={{ fontFamily: 'Inter, sans-serif' }}>{user?.full_name || user?.email?.split('@')[0] || 'Staff'}</p>
+                  <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>kolamrenangwates@uny.ac.id</p>
+                  <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>IG: @kolamrenang_vokasiunywates</p>
+                  <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>0852-2562-0011</p>
+                </div>
+
+                {/* Timestamp */}
+                <div className="text-center w-full pt-1">
+                  <p className="text-[8px] text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {new Date(ticket.created_at).toLocaleString('id-ID', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    }).replace(/\./g, ':')}
+                  </p>
                 </div>
               </div>
             );
