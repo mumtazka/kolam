@@ -8,6 +8,8 @@ import XLSX from 'xlsx-js-style';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDailyReport } from '../../services/reportService';
+import { getCategories } from '../../services/categoryService';
+import { getPools } from '../../services/adminService';
 import TicketPrintTemplate from '../../components/TicketPrintTemplate';
 import PrintSettingsModal from '../../components/PrintSettingsModal';
 
@@ -226,6 +228,8 @@ const ReceptionistHistory = () => {
     const [ticketToPrint, setTicketToPrint] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+    const [categories, setCategories] = useState([]);
+    const [pools, setPools] = useState([]);
     const HISTORY_PER_PAGE = 20;
 
     // Ref for calendar dropdown to detect outside clicks
@@ -338,6 +342,41 @@ const ReceptionistHistory = () => {
         }
     }, [selectedDate, user?.name]);
 
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const [cats, poolData] = await Promise.all([
+                    getCategories(),
+                    getPools()
+                ]);
+                setCategories(cats);
+                setPools(poolData);
+            } catch (err) {
+                console.error("Failed to fetch metadata for receptionist reports", err);
+            }
+        };
+        fetchMetadata();
+    }, []);
+
+    const getPoolName = (ticket) => {
+        if (!ticket || !ticket.category_name) return '-';
+
+        // Attempt 1: by ID
+        let category = categories.find(c => c.id === ticket.category_id);
+
+        // Attempt 2: by Name (fallback)
+        if (!category) {
+            category = categories.find(c => c.name === ticket.category_name);
+        }
+
+        if (category && category.sessions && category.sessions.pool_id) {
+            const pool = pools.find(p => p.id === category.sessions.pool_id);
+            return pool ? pool.name : '-';
+        }
+
+        return '-';
+    };
+
     const exportToExcel = () => {
         if (!reportData || !reportData.tickets || reportData.tickets.length === 0) {
             toast.error(t('dashboard.noTicketsSelected'));
@@ -353,7 +392,8 @@ const ReceptionistHistory = () => {
             });
 
             // ========== DATA PREPARATION ==========
-            const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
+            // ========== DATA PREPARATION ==========
+            const headers = ['No', 'Ticket ID', 'Jenis Kolam', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
 
             const ticketRows = sortedTickets.map((ticket, index) => {
                 const date = new Date(ticket.created_at);
@@ -364,6 +404,7 @@ const ReceptionistHistory = () => {
                 return [
                     index + 1,
                     ticket.ticket_code || `TKT-${ticket.id?.substring(0, 8)?.toUpperCase()}`,
+                    getPoolName(ticket),
                     ticket.category_name,
                     ticket.nim ? `\t${ticket.nim}` : '-',
                     ticket.created_by_name,
@@ -387,7 +428,7 @@ const ReceptionistHistory = () => {
                 return sum + m;
             }, 0);
 
-            ticketRows.push(['', '', '', '', 'TOTAL', totalQuantityTicket, totalRevenueTicket, '', '', '']);
+            ticketRows.push(['', '', '', '', '', 'TOTAL', totalQuantityTicket, totalRevenueTicket, '', '', '']);
 
 
             // ========== SUMMARY PREPARATION (RIGHT SIDE) ==========
@@ -467,7 +508,8 @@ const ReceptionistHistory = () => {
 
             // ========== COMBINE LEFT AND RIGHT ==========
             const finalLines = [];
-            const headerLine = [...headers, '', ...['RINGKASAN', '', '']]; // Column K empty, L starts summary
+            const headerLine = [...headers, '', ...['RINGKASAN', '', '']]; // Column L empty, M starts summary
+            finalLines.push(headerLine);
             finalLines.push(headerLine);
 
             // Determine max rows needed
@@ -484,7 +526,7 @@ const ReceptionistHistory = () => {
             // Auto-fit columns
             const colWidths = finalLines[0].map((_, colIndex) => {
                 // Separator column (Gap between data and summary)
-                if (colIndex === 10) return { wch: 2 };
+                if (colIndex === 11) return { wch: 2 };
 
                 let maxLen = 0;
                 finalLines.forEach(row => {
@@ -496,8 +538,8 @@ const ReceptionistHistory = () => {
             ws['!cols'] = colWidths;
 
             // Apply bold styling to summary columns (L, M, N - columns 11, 12, 13)
-            const summaryStartCol = 11; // Column L (0-indexed)
-            const summaryEndCol = 13; // Column N
+            const summaryStartCol = 12; // Adjusted for new column
+            const summaryEndCol = 14;
             const range = XLSX.utils.decode_range(ws['!ref']);
 
             for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -855,6 +897,7 @@ const ReceptionistHistory = () => {
                                         <tr>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">No</th>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
+                                            <th className="px-4 py-3 text-left font-semibold text-slate-700">Jenis Kolam</th>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.category')}</th>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">NIM</th>
                                             <th className="px-4 py-3 text-left font-semibold text-slate-700">{t('common.staff')}</th>
@@ -879,6 +922,9 @@ const ReceptionistHistory = () => {
                                                     </td>
                                                     <td className="px-4 py-3 font-mono text-xs text-teal-700 font-semibold">
                                                         {ticket.ticket_code || ticket.id?.substring(0, 8)}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-medium text-slate-700">
+                                                        {getPoolName(ticket)}
                                                     </td>
                                                     <td className="px-4 py-3 font-medium text-slate-800">
                                                         {ticket.category_name}

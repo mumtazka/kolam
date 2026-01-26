@@ -68,7 +68,7 @@ export const getCategories = async () => {
             sessions (
                 id,
                 name,
-                start_time,
+                pool_id,
                 start_time,
                 end_time,
                 days,
@@ -96,6 +96,7 @@ export const getActiveCategories = async () => {
             sessions (
                 id,
                 name,
+                pool_id,
                 start_time,
                 end_time,
                 days,

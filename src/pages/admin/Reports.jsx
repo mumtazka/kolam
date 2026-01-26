@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import XLSX from 'xlsx-js-style';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getDailyReport, getMonthlyReport, getYearlyReport, getLifetimeReport } from '../../services/reportService';
+import { getCategories } from '../../services/categoryService';
+import { getPools } from '../../services/adminService';
 
 // Indonesian Calendar Component
 const IndonesianMiniCalendar = ({ selectedDate, onDateSelect }) => {
@@ -218,6 +220,8 @@ const Reports = () => {
   const [showPrintSettings, setShowPrintSettings] = useState(false);
   const [ticketToPrint, setTicketToPrint] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [pools, setPools] = useState([]);
   const calendarRef = useRef(null);
   const HISTORY_PER_PAGE = 20;
 
@@ -310,6 +314,49 @@ const Reports = () => {
     fetchReport();
   }, [selectedDate, selectedMonth, selectedYear, reportType]);
 
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const [cats, poolData] = await Promise.all([
+          getCategories(),
+          getPools()
+        ]);
+        setCategories(cats);
+        setPools(poolData);
+      } catch (err) {
+        console.error("Failed to fetch metadata for reports", err);
+      }
+    };
+    fetchMetadata();
+  }, []);
+
+  const getPoolName = (ticket) => {
+    if (!ticket || !ticket.category_name) return '-';
+
+    // Find category
+    // Note: ticket.category_id might not be available in historical data, 
+    // so we might need fallback or rely on matching name if ID missing.
+    // Ideally tickets table has category_id. 
+    // If not, we try to match by name, but name collision is risk.
+    // Let's see if tickets object has category_id. 
+    // Based on reportService, it selects * from tickets.
+
+    // Attempt 1: by ID
+    let category = categories.find(c => c.id === ticket.category_id);
+
+    // Attempt 2: by Name (fallback)
+    if (!category) {
+      category = categories.find(c => c.name === ticket.category_name);
+    }
+
+    if (category && category.sessions && category.sessions.pool_id) {
+      const pool = pools.find(p => p.id === category.sessions.pool_id);
+      return pool ? pool.name : '-';
+    }
+
+    return '-';
+  };
+
   const exportToExcel = () => {
     if (!reportData || !reportData.tickets || reportData.tickets.length === 0) {
       toast.error(t('dashboard.noTicketsSelected'));
@@ -320,7 +367,8 @@ const Reports = () => {
       const tickets = [...reportData.tickets].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       // ========== DATA PREPARATION ==========
-      const headers = ['No', 'Ticket ID', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
+      // ========== DATA PREPARATION ==========
+      const headers = ['No', 'Ticket ID', 'Jenis Kolam', t('common.category'), 'NIM', t('common.staff'), t('dashboard.quantity'), `${t('reports.price')} (Rp)`, t('admin.status'), t('common.date'), t('common.time')];
 
       const ticketRows = tickets.map((ticket, index) => {
         const date = new Date(ticket.created_at);
@@ -331,6 +379,7 @@ const Reports = () => {
         return [
           index + 1,
           ticket.ticket_code || `TKT-${ticket.id?.substring(0, 8)?.toUpperCase()}`,
+          getPoolName(ticket),
           ticket.category_name,
           ticket.nim ? `\t${ticket.nim}` : '-',
           ticket.created_by_name,
@@ -354,7 +403,8 @@ const Reports = () => {
         return sum + m;
       }, 0);
 
-      ticketRows.push(['', '', '', '', 'TOTAL', totalQuantityTicket, totalRevenueTicket, '', '', '']);
+      // Adjusted for new column: extra empty string
+      ticketRows.push(['', '', '', '', '', 'TOTAL', totalQuantityTicket, totalRevenueTicket, '', '', '']);
 
       // ========== SUMMARY PREPARATION (RIGHT SIDE) ==========
       const summaryData = [];
@@ -453,7 +503,7 @@ const Reports = () => {
 
       // ========== COMBINE LEFT AND RIGHT ==========
       const finalLines = [];
-      const headerLine = [...headers, '', ...['RINGKASAN', '', '']]; // Column K empty, L starts summary
+      const headerLine = [...headers, '', ...['RINGKASAN', '', '']]; // Column L empty, M starts summary (index 11/12)
       finalLines.push(headerLine);
 
       // Determine max rows needed
@@ -469,7 +519,8 @@ const Reports = () => {
       // Auto-fit columns
       const colWidths = finalLines[0].map((_, colIndex) => {
         // Separator column (Gap between data and summary)
-        if (colIndex === 10) return { wch: 2 };
+        // With 1 extra column, separator is at index 11
+        if (colIndex === 11) return { wch: 2 };
 
         let maxLen = 0;
         finalLines.forEach(row => {
@@ -480,9 +531,9 @@ const Reports = () => {
       });
       ws['!cols'] = colWidths;
 
-      // Apply bold styling to summary columns (L, M, N - columns 11, 12, 13)
-      const summaryStartCol = 11; // Column L (0-indexed)
-      const summaryEndCol = 13; // Column N
+      // Apply bold styling to summary columns
+      const summaryStartCol = 12; // Adjusted for 1 extra column
+      const summaryEndCol = 14;
       const range = XLSX.utils.decode_range(ws['!ref']);
 
       for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -843,6 +894,7 @@ const Reports = () => {
                     <tr>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">No</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">Jenis Kolam</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.category')}</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">NIM</th>
                       <th className="px-6 py-4 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">{t('common.staff')}</th>
@@ -869,6 +921,9 @@ const Reports = () => {
                             <span className="font-mono text-xs text-teal-700 font-bold">
                               {ticket.ticket_code || ticket.id?.substring(0, 8)}
                             </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-medium text-slate-700">{getPoolName(ticket)}</span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-medium text-slate-700">{ticket.category_name}</span>
